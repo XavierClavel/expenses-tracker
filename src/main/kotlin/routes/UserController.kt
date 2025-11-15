@@ -12,6 +12,7 @@ import com.xavierclavel.utils.getSessionUserId
 import com.xavierclavel.utils.logger
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -44,14 +45,16 @@ fun Route.setupUserController() = route("/users") {
             call.respond(user)
         }
 
-        delete("/{id}") {
-            val id = getPathId()
-            val sessionUserId = getSessionUserId(redisService)
-            if (id != sessionUserId) {
-                throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
+        authenticate("auth-session") {
+            delete("/{id}") {
+                val id = getPathId()
+                val sessionUserId = getSessionUserId(redisService)
+                if (id != sessionUserId) {
+                    throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
+                }
+                userService.deleteById(id)
+                call.respond(HttpStatusCode.OK)
             }
-            userService.deleteById(id)
-            call.respond(HttpStatusCode.OK)
         }
 
     }

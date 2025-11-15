@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
     <changeSet type="apply">
+        <createTable name="categories" pkName="pk_categories">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_categories_user_id" foreignKeyIndex="ix_categories_user_id"/>
+            <column name="name" type="varchar" notnull="true"/>
+        </createTable>
+        <createTable name="expenses" pkName="pk_expenses">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_expenses_user_id" foreignKeyIndex="ix_expenses_user_id"/>
+            <column name="category_id" type="bigint" references="categories.id" foreignKeyName="fk_expenses_category_id" foreignKeyIndex="ix_expenses_category_id"/>
+            <column name="label" type="varchar" notnull="true"/>
+            <column name="amount" type="decimal(15,2)" notnull="true"/>
+            <column name="currency" type="varchar" notnull="true"/>
+            <column name="date" type="date" notnull="true"/>
+        </createTable>
         <createTable name="users" pkName="pk_users">
             <column name="id" type="bigint" primaryKey="true"/>
             <column name="username" type="varchar" notnull="true" unique="uq_users_username"/>

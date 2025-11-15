@@ -7,6 +7,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import kotlinx.datetime.toKotlinLocalDate
 import java.math.BigDecimal
@@ -19,6 +20,7 @@ class Expense(
     @ManyToOne
     var user: User,
 
+    @ManyToOne
     var category: Category? = null,
 
     var label: String,
@@ -39,7 +41,7 @@ class Expense(
     fun toOutput() = ExpenseOut(
         id = this.id,
         label = this.label,
-        amount = this.amount.toDouble(),
+        amount = this.amount,
         currency = this.currency,
         date = this.date.toKotlinLocalDate(),
         categoryId = this.category?.id,

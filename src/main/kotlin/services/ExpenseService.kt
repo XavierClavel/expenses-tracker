@@ -108,19 +108,19 @@ class ExpenseService: KoinComponent {
         val start = LocalDate.of(year, month, 1)
         val end = start.plusMonths(1)
         val (total, byCategory) =  summary(userId, start, end)
-        TODO()
-    }
-
-    fun summaryOfYear(userId: Long, year: Int, month: Int): MonthSummary {
-        val start = LocalDate.of(year, 1, 1)
-        val end = start.plusYears(1)
-        val (total, byCategory) =  summary(userId, start, end)
         return MonthSummary(
             year = year,
             month = month,
             totalExpenses = total,
             byCategory = byCategory,
         )
+    }
+
+    fun summaryOfYear(userId: Long, year: Int, month: Int): MonthSummary {
+        val start = LocalDate.of(year, 1, 1)
+        val end = start.plusYears(1)
+        val (total, byCategory) =  summary(userId, start, end)
+        TODO()
     }
 
     fun summary(userId: Long, start: LocalDate, end: LocalDate): Pair<BigDecimal, List<CategorySummary>> {
@@ -137,8 +137,8 @@ class ExpenseService: KoinComponent {
               e.category_id as categoryId,
               c.name as categoryName,
               sum(e.amount) as total
-            from expense e
-            left join category c on c.id = e.category_id
+            from expenses e
+            left join categories c on c.id = e.category_id
             where e.user_id = :userId 
               and e.date >= :start 
               and e.date < :end

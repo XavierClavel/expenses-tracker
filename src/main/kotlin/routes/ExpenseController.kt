@@ -3,9 +3,10 @@ package com.xavierclavel.routes
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
+import com.xavierclavel.exceptions.ForbiddenCause
+import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.ExpenseService
-import com.xavierclavel.utils.CATEGORY_URL
 import com.xavierclavel.utils.EXPENSES_URL
 import com.xavierclavel.utils.getPaging
 import com.xavierclavel.utils.getPathId
@@ -68,10 +69,14 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             call.respond(HttpStatusCode.OK)
         }
 
-        get("/year/{year}/month/{month}") {
+        get("/user/{user}/year/{year}/month/{month}") {
             val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
             val month = call.parameters["month"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+            val user = call.parameters["user"]?.toLongOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
             val sessionUserId = getSessionUserId(redisService)
+            if (user != sessionUserId) {
+                throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
+            }
             val summary = expenseService.summaryOfMonth(userId = sessionUserId, year = year, month = month)
             call.respond(summary)
         }

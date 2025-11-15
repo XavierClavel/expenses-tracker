@@ -5,13 +5,16 @@ import com.xavierclavel.routes.setupCategoryController
 import com.xavierclavel.routes.setupExpenseController
 import com.xavierclavel.routes.setupUserController
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
 fun Application.serveRoutes() {
     routing {
         setupUserController()
         setupAuthController()
-        setupCategoryController()
-        setupExpenseController()
+        authenticate("auth-session") {
+            setupCategoryController()
+            setupExpenseController()
+        }
     }
 }

@@ -24,6 +24,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Clock
@@ -33,7 +34,7 @@ class ExpenseControllerTest: ApplicationTest() {
     @OptIn(ExperimentalTime::class)
     val expense = ExpenseIn(
         label = "Carrefour",
-        amount = 25.0,
+        amount = BigDecimal("25.00"),
         currency = "eur",
         date = LocalDate.parse("2020-06-06"),
         categoryId = null,
