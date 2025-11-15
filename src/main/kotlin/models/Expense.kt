@@ -7,9 +7,9 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import kotlinx.datetime.toKotlinLocalDate
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -21,6 +21,7 @@ class Expense(
     var user: User,
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     var category: Category? = null,
 
     var label: String,
@@ -43,7 +44,7 @@ class Expense(
         label = this.label,
         amount = this.amount,
         currency = this.currency,
-        date = this.date.toKotlinLocalDate(),
+        date = this.date,
         categoryId = this.category?.id,
     )
 }

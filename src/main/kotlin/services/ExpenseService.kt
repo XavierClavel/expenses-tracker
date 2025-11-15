@@ -15,7 +15,6 @@ import com.xavierclavel.dtos.ExpenseOut
 import com.xavierclavel.dtos.MonthSummary
 import io.ebean.DB
 import io.ebean.Paging
-import kotlinx.datetime.toJavaLocalDate
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.math.BigDecimal
@@ -65,7 +64,7 @@ class ExpenseService: KoinComponent {
             user = user,
             label = expenseDto.label,
             category = category,
-            date = expenseDto.date.toJavaLocalDate(),
+            date = expenseDto.date,
             amount = expenseDto.amount,
             currency = expenseDto.currency,
         )
@@ -79,7 +78,7 @@ class ExpenseService: KoinComponent {
             .apply {
                 this.label = expenseDto.label
                 this.category = category
-                this.date = expenseDto.date.toJavaLocalDate()
+                this.date = expenseDto.date
                 this.amount = expenseDto.amount
                 this.currency = expenseDto.currency
             }

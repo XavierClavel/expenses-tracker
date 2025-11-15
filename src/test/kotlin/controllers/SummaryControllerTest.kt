@@ -1,36 +1,16 @@
-package com.xavierclavel.controllers.controllers
+package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
 import com.xavierclavel.dtos.CategoryIn
 import com.xavierclavel.dtos.ExpenseIn
-import com.xavierclavel.utils.EXPENSES_URL
-import com.xavierclavel.utils.assertExpenseDoesNotExist
-import com.xavierclavel.utils.assertExpenseExists
 import com.xavierclavel.utils.createCategory
 import com.xavierclavel.utils.createExpense
-import com.xavierclavel.utils.deleteExpense
-import com.xavierclavel.utils.getExpense
 import com.xavierclavel.utils.getMe
 import com.xavierclavel.utils.getSummary
-import com.xavierclavel.utils.listExpensesByUser
-import com.xavierclavel.utils.updateExpense
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.LocalDate
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class SummaryControllerTest: ApplicationTest() {

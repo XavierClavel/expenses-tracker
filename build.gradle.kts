@@ -85,7 +85,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.10.1")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+    implementation("org.hibernate:hibernate-core:6.6.1.Final")
 
 }
 
