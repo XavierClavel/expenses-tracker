@@ -18,11 +18,13 @@ enum class UnauthorizedCause(val key: String) {
 }
 
 enum class ForbiddenCause(val key: String) {
-    MUST_BE_PERFORMED_ON_SELF("must_be_performed_on_self")
+    MUST_BE_PERFORMED_ON_SELF("must_be_performed_on_self"),
+    MUST_OWN_CATEGORY("must own category"),
 }
 
 enum class NotFoundCause(val key: String) {
     USER_NOT_FOUND("user_not_found"),
+    CATEGORY_NOT_FOUND("category_not_found"),
 }
 
 enum class BadRequestCause (val key: String) {
