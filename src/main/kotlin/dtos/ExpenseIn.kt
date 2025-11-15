@@ -1,9 +1,9 @@
 package com.xavierclavel.dtos
 
+import com.xavierclavel.utils.BigDecimalSerializer
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 
 /**
  * Represents a category in the system.
@@ -14,7 +14,8 @@ import kotlinx.serialization.Serializable
 data class ExpenseIn(
     val label: String,
     val categoryId: Long?,
-    val amount: Double,
+    @Serializable(with = BigDecimalSerializer::class)
+    val amount: BigDecimal,
     val currency: String,
     val date: LocalDate,
 )

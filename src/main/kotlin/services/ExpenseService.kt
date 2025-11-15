@@ -1,6 +1,7 @@
 package com.xavierclavel.services
 
 import com.xavierclavel.config.Configuration
+import com.xavierclavel.dtos.CategorySummary
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.exceptions.ForbiddenCause
 import com.xavierclavel.exceptions.ForbiddenException
@@ -11,10 +12,14 @@ import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.dtos.ExpenseOut
+import com.xavierclavel.dtos.MonthSummary
+import io.ebean.DB
 import io.ebean.Paging
 import kotlinx.datetime.toJavaLocalDate
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.math.BigDecimal
+import java.time.LocalDate
 
 class ExpenseService: KoinComponent {
     val configuration: Configuration by inject()
@@ -91,4 +96,60 @@ class ExpenseService: KoinComponent {
         }
     }
 
+    fun summaryOfDay(userId: Long, year: Int, month: Int, day: Int): MonthSummary {
+        val start = LocalDate.of(year, month, 1)
+        val end = start.plusDays(1)
+        val (total, byCategory) =  summary(userId, start, end)
+        TODO()
+    }
+
+
+    fun summaryOfMonth(userId: Long, year: Int, month: Int): MonthSummary {
+        val start = LocalDate.of(year, month, 1)
+        val end = start.plusMonths(1)
+        val (total, byCategory) =  summary(userId, start, end)
+        TODO()
+    }
+
+    fun summaryOfYear(userId: Long, year: Int, month: Int): MonthSummary {
+        val start = LocalDate.of(year, 1, 1)
+        val end = start.plusYears(1)
+        val (total, byCategory) =  summary(userId, start, end)
+        return MonthSummary(
+            year = year,
+            month = month,
+            totalExpenses = total,
+            byCategory = byCategory,
+        )
+    }
+
+    fun summary(userId: Long, start: LocalDate, end: LocalDate): Pair<BigDecimal, List<CategorySummary>> {
+        val total = QExpense()
+            .select("sum(amount)")
+            .user.id.eq(userId)
+            .date.ge(start)
+            .date.lt(end)
+            .findSingleAttribute() ?: BigDecimal.ZERO
+
+        val summaryByCategory = DB.findDto(CategorySummary::class.java,
+            """
+            select 
+              e.category_id as categoryId,
+              c.name as categoryName,
+              sum(e.amount) as total
+            from expense e
+            left join category c on c.id = e.category_id
+            where e.user_id = :userId 
+              and e.date >= :start 
+              and e.date < :end
+            group by e.category_id, c.name
+            """
+        )
+            .setParameter("userId", userId)
+            .setParameter("start", start)
+            .setParameter("end", end)
+            .findList()
+
+        return Pair(total, summaryByCategory)
+    }
 }

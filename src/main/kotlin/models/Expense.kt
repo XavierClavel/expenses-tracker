@@ -3,11 +3,13 @@ package com.xavierclavel.models
 import com.xavierclavel.dtos.CategoryOut
 import com.xavierclavel.dtos.ExpenseOut
 import io.ebean.Model
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import kotlinx.datetime.toKotlinLocalDate
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
@@ -21,7 +23,8 @@ class Expense(
 
     var label: String,
 
-    var amount: Double,
+    @Column(precision = 15, scale = 2)
+    var amount: BigDecimal,
 
     var currency: String,
 
@@ -36,7 +39,7 @@ class Expense(
     fun toOutput() = ExpenseOut(
         id = this.id,
         label = this.label,
-        amount = this.amount,
+        amount = this.amount.toDouble(),
         currency = this.currency,
         date = this.date.toKotlinLocalDate(),
         categoryId = this.category?.id,

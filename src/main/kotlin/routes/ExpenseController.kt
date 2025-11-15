@@ -1,6 +1,8 @@
 package com.xavierclavel.routes
 
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.exceptions.BadRequestCause
+import com.xavierclavel.exceptions.BadRequestException
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.utils.CATEGORY_URL
@@ -64,6 +66,14 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val userId = getSessionUserId(redisService)
             expenseService.delete(userId = userId, expenseId = expenseId)
             call.respond(HttpStatusCode.OK)
+        }
+
+        get("/year/{year}/month/{month}") {
+            val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+            val month = call.parameters["month"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+            val sessionUserId = getSessionUserId(redisService)
+            val summary = expenseService.summaryOfMonth(userId = sessionUserId, year = year, month = month)
+            call.respond(summary)
         }
 
     }
