@@ -1,7 +1,7 @@
 package com.xavierclavel.services
 
 import com.xavierclavel.config.Configuration
-import com.xavierclavel.dtos.SignupDto
+import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.dtos.UserIn
 import com.xavierclavel.dtos.UserOut
 import com.xavierclavel.exceptions.BadRequestCause

@@ -2,20 +2,14 @@ package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
 import com.xavierclavel.dtos.CategoryIn
-import com.xavierclavel.dtos.SignupDto
 import com.xavierclavel.utils.CATEGORY_URL
 import com.xavierclavel.utils.assertCategoryDoesNotExist
 import com.xavierclavel.utils.assertCategoryExists
-import com.xavierclavel.utils.assertUserDoesNotExist
-import com.xavierclavel.utils.assertUserExists
 import com.xavierclavel.utils.createCategory
 import com.xavierclavel.utils.deleteCategory
-import com.xavierclavel.utils.deleteUser
 import com.xavierclavel.utils.getCategory
 import com.xavierclavel.utils.getMe
 import com.xavierclavel.utils.listCategoriesByUser
-import com.xavierclavel.utils.listUsers
-import com.xavierclavel.utils.signup
 import com.xavierclavel.utils.updateCategory
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -27,9 +21,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CategoryControllerTest: ApplicationTest() {

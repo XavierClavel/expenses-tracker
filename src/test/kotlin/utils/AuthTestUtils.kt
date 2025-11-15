@@ -1,6 +1,6 @@
 package com.xavierclavel.utils
 
-import com.xavierclavel.dtos.SignupDto
+import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.dtos.UserOut
 import io.ktor.client.HttpClient
 import io.ktor.client.request.basicAuth

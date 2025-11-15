@@ -1,7 +1,7 @@
 package com.xavierclavel.routes
 
 import com.xavierclavel.config.Configuration
-import com.xavierclavel.dtos.SignupDto
+import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
 import com.xavierclavel.exceptions.UnauthorizedCause

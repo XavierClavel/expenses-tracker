@@ -1,7 +1,7 @@
 package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
-import com.xavierclavel.dtos.SignupDto
+import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.utils.assertUserDoesNotExist
 import com.xavierclavel.utils.assertUserExists
 import com.xavierclavel.utils.deleteUser

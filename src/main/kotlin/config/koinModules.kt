@@ -5,6 +5,7 @@ import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.ExpenseService
+import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.UserService
 import org.koin.dsl.module
 
@@ -18,4 +19,5 @@ val koinModules = module {
     single { AuthService() }
     single { CategoryService() }
     single { ExpenseService() }
+    single { SummaryService() }
 }

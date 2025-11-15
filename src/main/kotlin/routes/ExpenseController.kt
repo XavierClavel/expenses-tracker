@@ -69,17 +69,5 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             call.respond(HttpStatusCode.OK)
         }
 
-        get("/user/{user}/year/{year}/month/{month}") {
-            val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
-            val month = call.parameters["month"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
-            val user = call.parameters["user"]?.toLongOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
-            val sessionUserId = getSessionUserId(redisService)
-            if (user != sessionUserId) {
-                throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
-            }
-            val summary = expenseService.summaryOfMonth(userId = sessionUserId, year = year, month = month)
-            call.respond(summary)
-        }
-
     }
 

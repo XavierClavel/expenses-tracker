@@ -2,13 +2,14 @@ package com.xavierclavel
 
 import com.xavierclavel.config.Configuration
 import com.xavierclavel.config.testConfig
-import com.xavierclavel.dtos.SignupDto
+import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.plugins.DatabaseManager
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.ExpenseService
+import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.UserService
 import com.xavierclavel.utils.login
 import com.xavierclavel.utils.logout
@@ -24,7 +25,6 @@ import kotlinx.serialization.json.Json
 import main.com.xavierclavel.containers.RedisTestContainer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.koin.core.context.GlobalContext.startKoin
 import org.koin.core.context.stopKoin
@@ -55,6 +55,7 @@ abstract class ApplicationTest: KoinTest {
                 single { EncryptionService() }
                 single { CategoryService() }
                 single { ExpenseService() }
+                single { SummaryService() }
             }
 
             startKoin {
