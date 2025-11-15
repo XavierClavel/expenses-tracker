@@ -8,6 +8,7 @@ import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
+import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.services.UserService
 import com.xavierclavel.utils.login
 import com.xavierclavel.utils.logout
@@ -53,6 +54,7 @@ abstract class ApplicationTest: KoinTest {
                 single { testConfig }
                 single { EncryptionService() }
                 single { CategoryService() }
+                single { ExpenseService() }
             }
 
             startKoin {
