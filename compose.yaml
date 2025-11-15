@@ -1,0 +1,81 @@
+name: project
+
+services:
+  backend:
+    container_name: project-backend
+    build:
+      context: .
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOSTNAME: ${REDIS_HOSTNAME}
+      REDIS_PORT: ${REDIS_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_JDBC_URL: ${POSTGRES_JDBC_URL}
+      AES_KEY: ${AES_KEY}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      OAUTH_PROVIDER_URL: ${OAUTH_PROVIDER_URL}
+      OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL}
+    ports:
+      - "8080:8080"
+    networks:
+      - database-network
+      - frontend-network
+      - auth-network
+    healthcheck:
+      test: curl --fail http://localhost:8080/health
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    container_name: project-database
+    image: postgres:17.2
+    volumes:
+      - project_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - database-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    container_name: project-redis
+    image: redis:alpine
+    restart: always
+    volumes:
+      - project_redis_data:/data
+    networks:
+      - auth-network
+    command: [ "redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}" ]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "redis-cli","ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  project_postgres_data: {}
+  project_redis_data: {}
+
+networks:
+  frontend-network: {}
+  database-network:
+    internal: true
+  auth-network:
+    driver: bridge
+    internal: true

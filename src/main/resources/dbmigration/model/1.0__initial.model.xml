@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <createTable name="users" pkName="pk_users">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="username" type="varchar" notnull="true" unique="uq_users_username"/>
+            <column name="email_address" type="varchar" notnull="true" unique="uq_users_email_address"/>
+            <column name="hashed_password" type="varchar"/>
+            <column name="google_id" type="varchar"/>
+            <column name="role" type="integer" notnull="true" checkConstraint="check ( role in (0,1))" checkConstraintName="ck_users_role"/>
+        </createTable>
+    </changeSet>
+</migration>

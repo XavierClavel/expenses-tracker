@@ -1,0 +1,22 @@
+postgres:
+  db: project
+  user: project_user
+  password: changeit
+  jdbc:
+    url: jdbc:postgresql://localhost:5432/project
+redis:
+  password: changeit
+  hostname: localhost
+  port: 6379
+oauth:
+  provider:
+    url: changeit
+  redirect:
+    url: changeit
+  client:
+    id: changeit
+    secret: changeit
+aes:
+  key: 5w36GL7dodr6EJl8o0mfBT905WeYdsJw
+admin:
+  password: Passw0rd

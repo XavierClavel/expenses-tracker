@@ -1,0 +1,27 @@
+ebean:
+  test:
+    platform: postgres
+    ddlMode: dropCreate
+    dbName: my_app
+    postgres:
+      version: 17.2
+postgres:
+  db: project
+  user: project_user
+  password: changeit
+  jdbc:
+    url: changeit
+redis:
+  password: changeit
+oauth:
+  provider:
+    url: changeit
+  redirect:
+    url: changeit
+  client:
+    id: changeit
+    secret: changeit
+aes:
+  key: 5w36GL7dodr6EJl8o0mfBT905WeYdsJw
+admin:
+  password: Passw0rd
