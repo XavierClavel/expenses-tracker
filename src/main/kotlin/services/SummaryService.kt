@@ -4,7 +4,9 @@ import com.xavierclavel.config.Configuration
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.dtos.ExpenseOut
 import com.xavierclavel.dtos.summary.CategorySummary
+import com.xavierclavel.dtos.summary.DaySummary
 import com.xavierclavel.dtos.summary.MonthSummary
+import com.xavierclavel.dtos.summary.YearSummary
 import com.xavierclavel.exceptions.ForbiddenCause
 import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
@@ -24,11 +26,17 @@ class SummaryService: KoinComponent {
     val configuration: Configuration by inject()
 
 
-    fun summaryOfDay(userId: Long, year: Int, month: Int, day: Int): MonthSummary {
+    fun summaryOfDay(userId: Long, year: Int, month: Int, day: Int): DaySummary {
         val start = LocalDate.of(year, month, 1)
         val end = start.plusDays(1)
         val (total, byCategory) =  summary(userId, start, end)
-        TODO()
+        return DaySummary(
+            year = year,
+            month = month,
+            day = day,
+            totalExpenses = total,
+            byCategory = byCategory,
+        )
     }
 
 
@@ -44,11 +52,15 @@ class SummaryService: KoinComponent {
         )
     }
 
-    fun summaryOfYear(userId: Long, year: Int, month: Int): MonthSummary {
+    fun summaryOfYear(userId: Long, year: Int): YearSummary {
         val start = LocalDate.of(year, 1, 1)
         val end = start.plusYears(1)
         val (total, byCategory) =  summary(userId, start, end)
-        TODO()
+        return YearSummary(
+            year = year,
+            totalExpenses = total,
+            byCategory = byCategory,
+        )
     }
 
     fun summary(userId: Long, start: LocalDate, end: LocalDate): Pair<BigDecimal, List<CategorySummary>> {
