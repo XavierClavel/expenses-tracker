@@ -4,6 +4,7 @@ import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.utils.CATEGORY_URL
+import com.xavierclavel.utils.EXPENSES_URL
 import com.xavierclavel.utils.getPaging
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
@@ -13,7 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
-fun Route.setupExpenseController() = route(CATEGORY_URL) {
+fun Route.setupExpenseController() = route(EXPENSES_URL) {
     val expenseService: ExpenseService by inject()
     val redisService: RedisService by inject()
 

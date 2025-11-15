@@ -1,13 +1,14 @@
 package com.xavierclavel.models
 
 import com.xavierclavel.dtos.CategoryOut
-import dtos.ExpenseOut
+import com.xavierclavel.dtos.ExpenseOut
 import io.ebean.Model
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import java.time.LocalDateTime
+import kotlinx.datetime.toKotlinLocalDate
+import java.time.LocalDate
 
 @Entity
 @Table(name = "expenses")
@@ -24,7 +25,7 @@ class Expense(
 
     var currency: String,
 
-    var date: LocalDateTime = LocalDateTime.now(),
+    var date: LocalDate,
 
     ): Model() {
 
@@ -37,7 +38,7 @@ class Expense(
         label = this.label,
         amount = this.amount,
         currency = this.currency,
-        date = this.date,
+        date = this.date.toKotlinLocalDate(),
         categoryId = this.category?.id,
     )
 }

@@ -1,8 +1,9 @@
-package dtos
+package com.xavierclavel.dtos
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import java.time.LocalDateTime
 
 /**
  * Represents a category in the system.
@@ -16,7 +17,5 @@ data class ExpenseOut(
     val categoryId: Long?,
     val amount: Double,
     val currency: String,
-
-    @Contextual
-    val date: LocalDateTime,
+    val date: LocalDate,
 )

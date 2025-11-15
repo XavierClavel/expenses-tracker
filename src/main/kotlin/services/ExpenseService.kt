@@ -10,16 +10,14 @@ import com.xavierclavel.models.Expense
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
-import dtos.ExpenseOut
+import com.xavierclavel.dtos.ExpenseOut
 import io.ebean.Paging
+import kotlinx.datetime.toJavaLocalDate
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.time.LocalDateTime
 
 class ExpenseService: KoinComponent {
     val configuration: Configuration by inject()
-    val userService: UserService by inject()
-    val expenseService: ExpenseService by inject()
 
     private fun getById(id: Long): Expense =
         QExpense().id.eq(id).findOne() ?: throw NotFoundException(NotFoundCause.EXPENSE_NOT_FOUND)
@@ -62,7 +60,7 @@ class ExpenseService: KoinComponent {
             user = user,
             label = expenseDto.label,
             category = category,
-            date = expenseDto.date,
+            date = expenseDto.date.toJavaLocalDate(),
             amount = expenseDto.amount,
             currency = expenseDto.currency,
         )
@@ -76,7 +74,7 @@ class ExpenseService: KoinComponent {
             .apply {
                 this.label = expenseDto.label
                 this.category = category
-                this.date = expenseDto.date
+                this.date = expenseDto.date.toJavaLocalDate()
                 this.amount = expenseDto.amount
                 this.currency = expenseDto.currency
             }
