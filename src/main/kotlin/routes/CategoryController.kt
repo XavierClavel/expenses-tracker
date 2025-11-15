@@ -3,6 +3,7 @@ package com.xavierclavel.routes
 import com.xavierclavel.dtos.CategoryIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.CategoryService
+import com.xavierclavel.utils.CATEGORY_URL
 import com.xavierclavel.utils.getPaging
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
@@ -12,7 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
-fun Route.setupCategoryController() = route("/category") {
+fun Route.setupCategoryController() = route(CATEGORY_URL) {
     val categoryService: CategoryService by inject()
     val redisService: RedisService by inject()
 

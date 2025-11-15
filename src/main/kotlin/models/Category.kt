@@ -3,6 +3,7 @@ package com.xavierclavel.models
 import com.xavierclavel.dtos.CategoryOut
 import com.xavierclavel.dtos.UserOut
 import io.ebean.Model
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
@@ -24,6 +25,7 @@ class Category(
 
 
     fun toOutput() = CategoryOut(
+        id = this.id,
         name = this.name,
     )
 }

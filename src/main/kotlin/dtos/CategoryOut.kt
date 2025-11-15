@@ -9,5 +9,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CategoryOut(
+    val id: Long,
     val name: String,
 )

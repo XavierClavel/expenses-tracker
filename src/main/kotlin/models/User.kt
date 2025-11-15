@@ -3,9 +3,11 @@ package com.xavierclavel.models
 import com.xavierclavel.dtos.UserOut
 import com.xavierclavel.enums.UserRole
 import io.ebean.Model
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 @Entity
@@ -23,6 +25,9 @@ class User(
     var googleId: String? = null,
 
     var role: UserRole = UserRole.USER,
+
+    @OneToMany(cascade = [(CascadeType.REMOVE)])
+    var categories: MutableList<Category> = mutableListOf(),
 
     ): Model() {
 

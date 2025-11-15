@@ -2,6 +2,7 @@ package com.xavierclavel.config
 
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AuthService
+import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.UserService
 import org.koin.dsl.module
@@ -14,4 +15,5 @@ val koinModules = module {
     single { config }
     single { EncryptionService() }
     single { AuthService() }
+    single { CategoryService() }
 }
