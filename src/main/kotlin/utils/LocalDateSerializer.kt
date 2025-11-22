@@ -1,4 +1,4 @@
-package com.xavierclavel.utils.utils
+package com.xavierclavel.utils
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -6,7 +6,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.math.BigDecimal
 import java.time.LocalDate
 
 object LocalDateSerializer : KSerializer<LocalDate> {

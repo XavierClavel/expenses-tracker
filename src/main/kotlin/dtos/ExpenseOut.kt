@@ -1,7 +1,7 @@
 package com.xavierclavel.dtos
 
 import com.xavierclavel.utils.BigDecimalSerializer
-import com.xavierclavel.utils.utils.LocalDateSerializer
+import com.xavierclavel.utils.LocalDateSerializer
 
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
