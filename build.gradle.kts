@@ -12,7 +12,7 @@ plugins {
     id("io.ktor.plugin") version "3.3.2"
     id("io.ebean") version "17.0.1"
 }
-²
+
 group = "com.xavierclavel"
 version = "0.0.1"
 

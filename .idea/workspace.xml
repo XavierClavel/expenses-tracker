@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="moved backend to subfolder">
-      <change afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="added frontend project">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +18,9 @@
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/backend">
       <ProjectState />
     </projectState>
   </component>
@@ -32,22 +36,6 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="expenses-tracker" type="f1a62948:ProjectNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="expenses-tracker" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="expenses-tracker" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="verification" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="expenses-tracker" type="f1a62948:ProjectNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
               </path>
             </expand>
             <select />
@@ -78,7 +66,7 @@
     &quot;accountId&quot;: &quot;8c2d616a-a416-4334-8f48-5a81c1d76eb1&quot;
   }
 }</component>
-  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\xrcla\.gradle\wrapper\dists\gradle-9.1.0-bin\9agqghryom9wkf8r80qlhnts3\gradle-9.1.0" javaHome="C:\Users\xrcla\.jdks\temurin-17.0.12" gradleVersion="9.1.0" />
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\xrcla\.gradle\wrapper\dists\gradle-8.14-bin\38aieal9i53h9rfe7vjup95b9\gradle-8.14" javaHome="C:\Users\xrcla\.jdks\temurin-17.0.12" gradleVersion="8.14" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -87,48 +75,48 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.Build expenses-tracker.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.cannot edit category user does not own.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.create category.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.delete category.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.edit category.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.get category.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.list categories.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.user cannot delete category they do not own.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.CategoryControllerTest.users cannot see each others categories.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.ExpenseControllerTest (1).executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.ExpenseControllerTest.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.ExpenseControllerTest.get category.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.ExpenseControllerTest.list expenses.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.SummaryControllerTest.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.SummaryControllerTest.get month summary (1).executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.SummaryControllerTest.get month summary.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.expenses-tracker [:com.xavierclavel.GenerateMigrationKt.main()].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.expenses-tracker [test].executor&quot;: &quot;Run&quot;,
-    &quot;Ktor.ApplicationKt.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/xrcla/Downloads/expenses-tracker&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.4\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build expenses-tracker.executor": "Run",
+    "Gradle.CategoryControllerTest.cannot edit category user does not own.executor": "Run",
+    "Gradle.CategoryControllerTest.create category.executor": "Run",
+    "Gradle.CategoryControllerTest.delete category.executor": "Run",
+    "Gradle.CategoryControllerTest.edit category.executor": "Run",
+    "Gradle.CategoryControllerTest.executor": "Run",
+    "Gradle.CategoryControllerTest.get category.executor": "Run",
+    "Gradle.CategoryControllerTest.list categories.executor": "Run",
+    "Gradle.CategoryControllerTest.user cannot delete category they do not own.executor": "Run",
+    "Gradle.CategoryControllerTest.users cannot see each others categories.executor": "Run",
+    "Gradle.ExpenseControllerTest (1).executor": "Run",
+    "Gradle.ExpenseControllerTest.executor": "Run",
+    "Gradle.ExpenseControllerTest.get category.executor": "Run",
+    "Gradle.ExpenseControllerTest.list expenses.executor": "Run",
+    "Gradle.SummaryControllerTest.executor": "Run",
+    "Gradle.SummaryControllerTest.get month summary (1).executor": "Run",
+    "Gradle.SummaryControllerTest.get month summary.executor": "Run",
+    "Gradle.expenses-tracker [:com.xavierclavel.GenerateMigrationKt.main()].executor": "Run",
+    "Gradle.expenses-tracker [test].executor": "Run",
+    "Ktor.ApplicationKt.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/xrcla/Downloads/expenses-tracker",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Users\\xrcla\\Downloads\\expenses-tracker\\frontend\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\xrcla\Downloads\expenses-tracker" />
@@ -258,6 +246,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="ApplicationKt (1)" type="KtorApplicationConfigurationType" factoryName="Ktor" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.xavierclavel.ApplicationKt" />
+      <module name="com.xavierclavel.expenses-tracker.main" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="includeProvidedScope" value="false" />
+      <option name="mainClass" value="com.xavierclavel.ApplicationKt" />
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" />
+      <option name="shortenCommandLine" />
+      <option name="vmParameters" />
+      <option name="workingDirectory" value="C:\Users\xrcla\Downloads\expenses-tracker" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ApplicationKt" type="KtorApplicationConfigurationType" factoryName="Ktor" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.xavierclavel.ApplicationKt" />
       <module name="expenses-tracker.main" />
@@ -310,7 +314,7 @@
       <workItem from="1763834514502" duration="1969000" />
       <workItem from="1763890355506" duration="2409000" />
       <workItem from="1763892804887" duration="151000" />
-      <workItem from="1763892976853" duration="3277000" />
+      <workItem from="1763892976853" duration="7086000" />
     </task>
     <task id="LOCAL-00001" summary="project init">
       <option name="closed" value="true" />
@@ -408,7 +412,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763834780998</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="added frontend project">
+      <option name="closed" value="true" />
+      <created>1763904292765</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1763904292765</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -427,6 +439,7 @@
     <MESSAGE value="switch to java localdates + categories deletion impact on expenses managed" />
     <MESSAGE value="fixes" />
     <MESSAGE value="moved backend to subfolder" />
-    <option name="LAST_COMMIT_MESSAGE" value="moved backend to subfolder" />
+    <MESSAGE value="added frontend project" />
+    <option name="LAST_COMMIT_MESSAGE" value="added frontend project" />
   </component>
 </project>

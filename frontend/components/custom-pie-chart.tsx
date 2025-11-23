@@ -1,26 +1,19 @@
 import { View, type ViewProps } from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
+import { PropsWithChildren, SetStateAction, useState} from 'react';
 
-
-
-const data=[ {value:50}, {value:80}, {value:90}, {value:70} ]
 
 
 const pieData = [
-    {
-        value: 47,
-        color: '#009FFF',
-        gradientCenterColor: '#006DFF',
-        focused: true,
-    },
-    {value: 40, color: '#93FCF8', gradientCenterColor: '#3BE9DE'},
-    {value: 16, color: '#BDB2FA', gradientCenterColor: '#8F80F3'},
-    {value: 3, color: '#FFA5BA', gradientCenterColor: '#FF7F97'},
+    {value: 47, label: 'Excellent', color: '#009FFF', gradientCenterColor: '#006DFF'},
+    {value: 40, label: 'Good', color: '#93FCF8', gradientCenterColor: '#3BE9DE'},
+    {value: 16, label: 'Okay', color: '#BDB2FA', gradientCenterColor: '#8F80F3'},
+    {value: 3, label: 'Poor', color: '#FFA5BA', gradientCenterColor: '#FF7F97'},
 ];
 
 
-const renderDot = color => {
+const renderDot = (color: string) => {
     return (
         <View
             style={{
@@ -34,62 +27,11 @@ const renderDot = color => {
     );
 };
 
-const renderLegendComponent = () => {
-    return (
-        <>
-            <View
-                style={{
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    marginBottom: 10,
-                }}>
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        width: 120,
-                        marginRight: 20,
-                    }}>
-                    {renderDot('#006DFF')}
-                    <Text style={{color: 'white'}}>Excellent: 47%</Text>
-                </View>
-                <View
-                    style={{flexDirection: 'row', alignItems: 'center', width: 120}}>
-                    {renderDot('#8F80F3')}
-                    <Text style={{color: 'white'}}>Okay: 16%</Text>
-                </View>
-            </View>
-            <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        width: 120,
-                        marginRight: 20,
-                    }}>
-                    {renderDot('#3BE9DE')}
-                    <Text style={{color: 'white'}}>Good: 40%</Text>
-                </View>
-                <View
-                    style={{flexDirection: 'row', alignItems: 'center', width: 120}}>
-                    {renderDot('#FF7F97')}
-                    <Text style={{color: 'white'}}>Poor: 3%</Text>
-                </View>
-            </View>
-        </>
-    );
-};
-
 export function CustomPieChart({}) {
+    const [focusedItem, setFocusedItem] = useState(1)
+
     return <View
-        style={{
-            paddingVertical: 100,
-            backgroundColor: '#34448B',
-            flex: 1,
-        }}>
-        <View
             style={{
-                margin: 20,
                 padding: 16,
                 borderRadius: 20,
                 backgroundColor: '#232B5D',
@@ -99,10 +41,17 @@ export function CustomPieChart({}) {
             </Text>
             <View style={{padding: 20, alignItems: 'center'}}>
                 <PieChart
+                    focusOnPress
+                    toggleFocusOnPress
+                    focusedPieIndex={focusedItem}
+                    onPress={(item: any, index: number) => {
+                        console.log(index)
+                        setFocusedItem(index)
+                        console.log(index)
+                    }}
                     data={pieData}
                     donut
                     showGradient
-                    sectionAutoFocus
                     radius={90}
                     innerRadius={60}
                     innerCircleColor={'#232B5D'}
@@ -111,15 +60,38 @@ export function CustomPieChart({}) {
                             <View style={{justifyContent: 'center', alignItems: 'center'}}>
                                 <Text
                                     style={{fontSize: 22, color: 'white', fontWeight: 'bold'}}>
-                                    47%
+                                    {pieData[focusedItem].value}%
                                 </Text>
-                                <Text style={{fontSize: 14, color: 'white'}}>Excellent</Text>
+                                <Text style={{fontSize: 14, color: 'white'}}>{pieData[focusedItem].label}</Text>
                             </View>
                         );
                     }}
                 />
             </View>
-            {renderLegendComponent()}
-        </View>
+            <View style={{
+                flex: 1,
+                justifyContent: "center",   // vertical center
+                alignItems: "center",        // horizontal center
+            }}>
+                {pieData.map((item, index) => (
+                    <View
+                        style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            marginVertical: 3,
+                            paddingHorizontal: 10,
+                            width: "100%",
+                            borderRadius: 8,
+                            backgroundColor: '#34448B',
+                        }}>
+                        {renderDot(item.color)}
+                        <Text key={index} style={{ color: 'white', fontSize: 16, marginVertical: 8 }}>
+                            {item.label}
+                        </Text>
+                    </View>
+
+                ))}
+            </View>
     </View>
 }
