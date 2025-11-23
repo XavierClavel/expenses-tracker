@@ -13,7 +13,7 @@ const data = [
 ];
 
 const total = data.reduce((accumulator, object) => {
-    return accumulator + Math.abs(object.value);
+    return accumulator + object.value;
 }, 0);
 
 const pieData = data.map(it => {
@@ -68,7 +68,14 @@ export function CustomPieChart({}) {
                 innerCircleColor={'#232B5D'}
                 centerLabelComponent={() => {
                     if (data[focusedItem] == null) {
-                        return
+                        return(
+                            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                                <Text
+                                    style={{fontSize: 22, color: 'white', fontWeight: 'bold'}}>
+                                    {(Math.round(total * 100) / 100).toFixed(2)}€
+                                </Text>
+                            </View>
+                        )
                     }
                     return (
                         <View style={{justifyContent: 'center', alignItems: 'center'}}>
@@ -95,15 +102,30 @@ export function CustomPieChart({}) {
                 backgroundColor: '#34448B',
                 height: 50,
             }}>
-            <Pressable style={{ paddingVertical: 10, backgroundColor: '#34448B', borderRadius: 8 }} onPress={
-                console.log("")
-            }>
+            <Pressable style={{ width: 50, paddingVertical: 10, backgroundColor: '#34448B', borderRadius: 8 }} onPress={() => {
+                console.log("minus")
+                if (focusedItem > 0) {
+                    setFocusedItem(focusedItem - 1)
+                } else {
+                    setFocusedItem(data.length - 1)
+                }
+            }}
+                >
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'<'}</Text>
             </Pressable>
-            <Text style={{ color: 'white', textAlign: 'center', fontSize: 16, marginVertical: 8 }}>
-                {data[focusedItem]?.label  || ''}
-            </Text>
-            <Pressable style={{backgroundColor: '#34448B', borderRadius: 8 }}>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 16, marginVertical: 8 }}>
+                    {data[focusedItem]?.label  || 'Total'}
+                </Text>
+            </View>
+            <Pressable style={{ width: 50, backgroundColor: '#34448B', borderRadius: 8 }} onPress={() => {
+                console.log("minus")
+                if (focusedItem < data.length - 1) {
+                    setFocusedItem(focusedItem + 1)
+                } else {
+                    setFocusedItem(0)
+                }
+            }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'>'}</Text>
             </Pressable>
         </View>

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="bug fixes">
+    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="amount per category display">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" afterDir="false" />
     </list>
@@ -311,7 +311,7 @@
       <workItem from="1763834514502" duration="1969000" />
       <workItem from="1763890355506" duration="2409000" />
       <workItem from="1763892804887" duration="151000" />
-      <workItem from="1763892976853" duration="12967000" />
+      <workItem from="1763892976853" duration="13696000" />
     </task>
     <task id="LOCAL-00001" summary="project init">
       <option name="closed" value="true" />
@@ -449,7 +449,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763920198584</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="amount per category display">
+      <option name="closed" value="true" />
+      <created>1763920380271</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1763920380272</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -472,6 +480,7 @@
     <MESSAGE value="improved visuals" />
     <MESSAGE value="fixed scaling for mobile" />
     <MESSAGE value="bug fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug fixes" />
+    <MESSAGE value="amount per category display" />
+    <option name="LAST_COMMIT_MESSAGE" value="amount per category display" />
   </component>
 </project>
