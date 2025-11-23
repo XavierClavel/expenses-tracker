@@ -4,12 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="added frontend project">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="improved visuals">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(tabs)/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/parallax-scroll-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/parallax-scroll-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/constants/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/constants/theme.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -314,7 +314,7 @@
       <workItem from="1763834514502" duration="1969000" />
       <workItem from="1763890355506" duration="2409000" />
       <workItem from="1763892804887" duration="151000" />
-      <workItem from="1763892976853" duration="7086000" />
+      <workItem from="1763892976853" duration="8959000" />
     </task>
     <task id="LOCAL-00001" summary="project init">
       <option name="closed" value="true" />
@@ -420,7 +420,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763904292765</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="improved visuals">
+      <option name="closed" value="true" />
+      <created>1763908150381</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1763908150381</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -440,6 +448,7 @@
     <MESSAGE value="fixes" />
     <MESSAGE value="moved backend to subfolder" />
     <MESSAGE value="added frontend project" />
-    <option name="LAST_COMMIT_MESSAGE" value="added frontend project" />
+    <MESSAGE value="improved visuals" />
+    <option name="LAST_COMMIT_MESSAGE" value="improved visuals" />
   </component>
 </project>

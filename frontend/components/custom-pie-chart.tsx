@@ -33,12 +33,7 @@ export function CustomPieChart({}) {
     return <View
             style={{
                 padding: 16,
-                borderRadius: 20,
-                backgroundColor: '#232B5D',
             }}>
-            <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
-                Performance
-            </Text>
             <View style={{padding: 20, alignItems: 'center'}}>
                 <PieChart
                     focusOnPress
@@ -90,7 +85,6 @@ export function CustomPieChart({}) {
                             {item.label}
                         </Text>
                     </View>
-
                 ))}
             </View>
     </View>

@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import {Button, Pressable, Platform, StyleSheet, Text, View} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -22,6 +22,25 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
+        <View
+            style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                width: "100%",
+                padding: 10,
+                justifyContent: "space-around"
+            }}>
+            <Pressable style={{ paddingVertical: 10, width:110, backgroundColor: '#34448B', borderRadius: 8 }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>-2296,99€</Text>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 11, paddingTop: 5  }}>Expenses</Text>
+            </Pressable>
+            <Pressable style={{ paddingVertical: 10, width:110, paddingHorizontal: 20, backgroundColor: '#34448B', borderRadius: 8 }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>3067,63€</Text>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 11, paddingTop: 5 }}>Income</Text>
+            </Pressable>
+
+        </View>
         <CustomPieChart/>
     </ParallaxScrollView>
   );
