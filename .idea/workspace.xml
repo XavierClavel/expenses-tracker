@@ -8,8 +8,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(tabs)/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/parallax-scroll-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/parallax-scroll-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/constants/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/constants/theme.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -314,7 +312,7 @@
       <workItem from="1763834514502" duration="1969000" />
       <workItem from="1763890355506" duration="2409000" />
       <workItem from="1763892804887" duration="151000" />
-      <workItem from="1763892976853" duration="8959000" />
+      <workItem from="1763892976853" duration="9707000" />
     </task>
     <task id="LOCAL-00001" summary="project init">
       <option name="closed" value="true" />
@@ -428,7 +426,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763908150381</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="improved visuals">
+      <option name="closed" value="true" />
+      <created>1763910075122</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1763910075122</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

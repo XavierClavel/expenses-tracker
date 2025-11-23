@@ -47,8 +47,8 @@ export function CustomPieChart({}) {
                     data={pieData}
                     donut
                     showGradient
-                    radius={90}
-                    innerRadius={60}
+                    radius={120}
+                    innerRadius={90}
                     innerCircleColor={'#232B5D'}
                     centerLabelComponent={() => {
                         return (
@@ -74,11 +74,12 @@ export function CustomPieChart({}) {
                             flex: 1,
                             flexDirection: 'row',
                             alignItems: 'center',
-                            marginVertical: 3,
+                            marginVertical: 5,
                             paddingHorizontal: 10,
                             width: "100%",
                             borderRadius: 8,
                             backgroundColor: '#34448B',
+                            height: 50,
                         }}>
                         {renderDot(item.color)}
                         <Text key={index} style={{ color: 'white', fontSize: 16, marginVertical: 8 }}>
