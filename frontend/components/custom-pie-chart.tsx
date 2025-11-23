@@ -129,6 +129,11 @@ export function CustomPieChart({}) {
                         <Text key={index} style={{ color: 'white', fontSize: 16, marginVertical: 8 }}>
                             {item.label}
                         </Text>
+                        <View style={{ flex: 1, alignItems: 'right' }}>
+                            <Text key={index} style={{ textAlign:'right', color: 'white', fontWeight:'bold', fontSize: 16, marginVertical: 8 }}>
+                                {item.value}€
+                            </Text>
+                        </View>
                     </View>
                 ))}
             </View>

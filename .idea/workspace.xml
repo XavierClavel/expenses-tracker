@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="fixed scaling for mobile">
+    <list default="true" id="7b30d36d-e4fe-4a63-812b-d0ecbdeee96d" name="Changes" comment="bug fixes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/custom-pie-chart.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/constants/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/constants/theme.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -312,7 +311,7 @@
       <workItem from="1763834514502" duration="1969000" />
       <workItem from="1763890355506" duration="2409000" />
       <workItem from="1763892804887" duration="151000" />
-      <workItem from="1763892976853" duration="12798000" />
+      <workItem from="1763892976853" duration="12967000" />
     </task>
     <task id="LOCAL-00001" summary="project init">
       <option name="closed" value="true" />
@@ -442,7 +441,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763910802217</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="bug fixes">
+      <option name="closed" value="true" />
+      <created>1763920198584</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1763920198584</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -464,6 +471,7 @@
     <MESSAGE value="added frontend project" />
     <MESSAGE value="improved visuals" />
     <MESSAGE value="fixed scaling for mobile" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed scaling for mobile" />
+    <MESSAGE value="bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="bug fixes" />
   </component>
 </project>
