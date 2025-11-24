@@ -82,12 +82,11 @@ export function CustomPieChart({ data }) {
                 marginTop: 5,
                 marginBottom: 50,
                 marginHorizontal: 50,
-                paddingHorizontal: 10,
-                borderRadius: 8,
-                backgroundColor: '#34448B',
+                borderRadius: 15,
+                backgroundColor: focusedItem != -1 ? data[focusedItem].color : '#34448B',
                 height: 50,
             }}>
-            <Pressable style={{ width: 50, paddingVertical: 10, backgroundColor: '#34448B', borderRadius: 8 }} onPress={() => {
+            <Pressable style={{ width: 50, paddingVertical: 14, borderRadius: 8}} onPress={() => {
                 console.log("minus")
                 if (focusedItem > 0) {
                     setFocusedItem(focusedItem - 1)
@@ -96,14 +95,14 @@ export function CustomPieChart({ data }) {
                 }
             }}
                 >
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'<'}</Text>
+                <Text style={{ color: focusedItem == -1 ? 'white' : 'black', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'<'}</Text>
             </Pressable>
             <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 16, marginVertical: 8 }}>
+                <Text style={{ color: focusedItem == -1 ? 'white' : 'black', textAlign: 'center', fontSize: 14, marginVertical: 8, fontWeight: 'bold' }}>
                     {data[focusedItem]?.label  || 'Total'}
                 </Text>
             </View>
-            <Pressable style={{ width: 50, backgroundColor: '#34448B', borderRadius: 8 }} onPress={() => {
+            <Pressable style={{ width: 50, paddingVertical: 14, borderRadius:8}} onPress={() => {
                 console.log("minus")
                 if (focusedItem < data.length - 1) {
                     setFocusedItem(focusedItem + 1)
@@ -111,7 +110,7 @@ export function CustomPieChart({ data }) {
                     setFocusedItem(0)
                 }
             }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'>'}</Text>
+                <Text style={{ color: focusedItem == -1 ? 'white' : 'black', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'>'}</Text>
             </Pressable>
         </View>
             <View style={{
