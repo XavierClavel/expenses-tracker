@@ -5,44 +5,43 @@ import { PropsWithChildren, SetStateAction, useState} from 'react';
 
 
 
-const data = [
-    {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', gradientCenterColor: '#006DFF'},
-    {value: -736.14, label: 'Leisure', color: '#93FCF8', gradientCenterColor: '#3BE9DE'},
-    {value: -268.40, label: 'Food', color: '#BDB2FA', gradientCenterColor: '#8F80F3'},
-    {value: -193.38, label: 'Shopping', color: '#FFA5BA', gradientCenterColor: '#FF7F97'},
-];
-
-const total = data.reduce((accumulator, object) => {
-    return accumulator + object.value;
-}, 0);
-
-const pieData = data.map(it => {
-    return {
-        value: Math.abs(it.value),
-        color: it.color,
-        gradientCenterColor: it.color
-    }
-})
-
-console.log(pieData)
 
 
-const renderDot = (color: string) => {
-    return (
-        <View
-            style={{
-                height: 10,
-                width: 10,
-                borderRadius: 5,
-                backgroundColor: color,
-                marginRight: 10,
-            }}
-        />
-    );
-};
 
-export function CustomPieChart({}) {
-    const [focusedItem, setFocusedItem] = useState(1)
+export function CustomPieChart({ data }) {
+    const total = data.reduce((accumulator, object) => {
+        return accumulator + object.value;
+    }, 0);
+
+    let newFocusedItem = 0
+
+    const pieData = data.map(it => {
+        return {
+            value: Math.abs(it.value),
+            color: it.color,
+            gradientCenterColor: it.color,
+            radius: newFocusedItem === data.indexOf(it) ? 130 : 120,
+        }
+    })
+
+
+    let clickLocked = false;
+
+
+    const renderDot = (color: string) => {
+        return (
+            <View
+                style={{
+                    height: 10,
+                    width: 10,
+                    borderRadius: 5,
+                    backgroundColor: color,
+                    marginRight: 10,
+                }}
+            />
+        );
+    };
+    const [focusedItem, setFocusedItem] = useState(0)
 
     return <View
         style={{
@@ -50,9 +49,9 @@ export function CustomPieChart({}) {
         }}>
         <View style={{padding: 20, alignItems: 'center'}}>
             <PieChart
-                focusOnPress
-                toggleFocusOnPress
+                sectionAutoFocus
                 focusedPieIndex={focusedItem}
+
                 onPress={(item: any, index: number) => {
                     if (focusedItem == index) {
                         setFocusedItem(-1)
@@ -60,6 +59,8 @@ export function CustomPieChart({}) {
                         setFocusedItem(index)
                     }
                 }}
+
+
                 data={pieData}
                 donut
                 showGradient
@@ -136,6 +137,7 @@ export function CustomPieChart({}) {
             }}>
                 {data.map((item, index) => (
                     <View
+                        key={index}
                         style={{
                             flex: 1,
                             flexDirection: 'row',

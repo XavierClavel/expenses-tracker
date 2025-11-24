@@ -7,7 +7,14 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 import { CustomPieChart } from '@/components/custom-pie-chart';
+import {data} from "browserslist";
 
+const pieData = [
+    {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', gradientCenterColor: '#006DFF'},
+    {value: -736.14, label: 'Leisure', color: '#93FCF8', gradientCenterColor: '#3BE9DE'},
+    {value: -268.40, label: 'Food', color: '#BDB2FA', gradientCenterColor: '#8F80F3'},
+    {value: -193.38, label: 'Shopping', color: '#FFA5BA', gradientCenterColor: '#FF7F97'},
+];
 
 
 
@@ -42,7 +49,7 @@ export default function HomeScreen() {
             </Pressable>
 
         </View>
-        <CustomPieChart/>
+        <CustomPieChart data={pieData}/>
     </ParallaxScrollView>
   );
 }
