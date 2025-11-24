@@ -4,7 +4,9 @@ import { PieChart } from "react-native-gifted-charts";
 import { PropsWithChildren, SetStateAction, useState} from 'react';
 import {ProgressBar} from "@/components/progress-bar";
 
-export function CategoryReport({ item }) {
+export function CategoryReport({ item, percent }) {
+
+    const displayedPercent = percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
 
     const renderDot = (color: string) => {
         return (
@@ -65,9 +67,9 @@ export function CategoryReport({ item }) {
                     }}
                 >
                 <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold', width: 40, justifyContent: 'center' }}>
-                    10%
+                    {displayedPercent}
                 </Text>
-                <ProgressBar progress={10} color={item.color}></ProgressBar>
+                <ProgressBar progress={percent} color={item.color}></ProgressBar>
             </View>
             </View>
 

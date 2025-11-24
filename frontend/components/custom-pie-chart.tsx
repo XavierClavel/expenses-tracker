@@ -120,7 +120,7 @@ export function CustomPieChart({ data }) {
                 alignItems: "center",        // horizontal center
             }}>
                 {data.map((item, index) => (
-                    <CategoryReport item={item}/>
+                    <CategoryReport item={item} percent={item.value / total * 100}/>
                 ))}
             </View>
     </View>
