@@ -2,6 +2,7 @@ import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
 import { PropsWithChildren, SetStateAction, useState} from 'react';
+import {CategoryReport} from "@/components/category-report";
 
 
 
@@ -24,23 +25,6 @@ export function CustomPieChart({ data }) {
         }
     })
 
-
-    let clickLocked = false;
-
-
-    const renderDot = (color: string) => {
-        return (
-            <View
-                style={{
-                    height: 10,
-                    width: 10,
-                    borderRadius: 5,
-                    backgroundColor: color,
-                    marginRight: 10,
-                }}
-            />
-        );
-    };
     const [focusedItem, setFocusedItem] = useState(0)
 
     return <View
@@ -136,29 +120,7 @@ export function CustomPieChart({ data }) {
                 alignItems: "center",        // horizontal center
             }}>
                 {data.map((item, index) => (
-                    <View
-                        key={index}
-                        style={{
-                            flex: 1,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            marginVertical: 5,
-                            paddingHorizontal: 10,
-                            width: "100%",
-                            borderRadius: 8,
-                            backgroundColor: '#34448B',
-                            height: 50,
-                        }}>
-                        {renderDot(item.color)}
-                        <Text key={index} style={{ color: 'white', fontSize: 16, marginVertical: 8 }}>
-                            {item.label}
-                        </Text>
-                        <View style={{ flex: 1, alignItems: 'right' }}>
-                            <Text key={index} style={{ textAlign:'right', color: 'white', fontWeight:'bold', fontSize: 16, marginVertical: 8 }}>
-                                {item.value}€
-                            </Text>
-                        </View>
-                    </View>
+                    <CategoryReport item={item}/>
                 ))}
             </View>
     </View>
