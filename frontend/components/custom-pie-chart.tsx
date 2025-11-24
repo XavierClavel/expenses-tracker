@@ -62,13 +62,16 @@ export function CustomPieChart({ data }) {
                             </View>
                         )
                     }
+                    const percent = data[focusedItem].value / total * 100
                     return (
                         <View style={{justifyContent: 'center', alignItems: 'center'}}>
                             <Text
                                 style={{fontSize: 22, color: 'white', fontWeight: 'bold'}}>
                                 {data[focusedItem].value}€
                             </Text>
-                            <Text style={{fontSize: 14, color: 'white'}}>{data[focusedItem].label}</Text>
+                            <Text style={{fontSize: 14, color: 'white'}}>{
+                                percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
+                            }</Text>
                         </View>
                     );
                 }}
