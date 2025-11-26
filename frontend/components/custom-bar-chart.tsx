@@ -12,7 +12,7 @@ import {Dimensions} from 'react-native';
 export function CustomBarChart({ data }) {
     const windowWidth = Dimensions.get('window').width;
     const [focusedItem, setFocusedItem] = useState([])
-    const setSize = 16  + 7 + 3
+    const setSize = 51
     return <View style={{padding: 0, marginTop: 100, alignItems: 'center'}}>
         <View
             style={{
@@ -20,10 +20,11 @@ export function CustomBarChart({ data }) {
                 left: windowWidth / 2,
                 top: 0,
                 bottom: 0,
-                width: 1,
+                width: 51,
                 backgroundColor: "rgba(255,255,255,0.2)", // light, subtle line
                 zIndex: 0,   // make sure it stays behind
                 marginBottom: 25,
+                borderRadius: 5,
             }}
         />
         <View style={{ zIndex: 1 }}>
@@ -34,12 +35,14 @@ export function CustomBarChart({ data }) {
             highlightEnabled
             scrollToEnd
             focusedBarIndex={focusedItem}
+            lineBehindBars
 
             //style={{width: "50%"}}
             height={400}
             data={data}
             barWidth={16}
-            initialSpacing={windowWidth / 2}
+            initialSpacing={(windowWidth  / 2 ) - 3}
+            endSpacing={windowWidth / 2}
             spacing={14}
             barBorderRadius={3}
             yAxisThickness={0}
@@ -47,20 +50,21 @@ export function CustomBarChart({ data }) {
             yAxisTextStyle={{color: 'lightgray'}}
             stepValue={1000}
             maxValue={6000}
-            noOfSections={6}
             labelWidth={40}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
             hideYAxisText
+            rulesType={"solid"}
+            rulesColor={"rgba(255,255,255,0.2)"}
             //showLine
             onScroll={(item: any)=> {
                 const x = item.nativeEvent.contentOffset.x
-                const index = Math.round(x / setSize)
+                const index = Math.round((x + 7) * 2/ setSize)
                 if (index % 2 == 0) {
                     setFocusedItem([index, index + 1])
                 } else {
                     setFocusedItem([index -1, index])
                 }
-                console.log(index)
+                console.log(x)
             }}
             onPress={(item: any, index: number) => {
                 console.log(index)
