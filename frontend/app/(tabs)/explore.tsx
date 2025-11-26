@@ -15,16 +15,26 @@ const colorIncomeGradient = '#bdfdaa'
 
 
 const data = [
-    {value: 2500, frontColor: colorIncome, gradientColor: colorIncomeGradient, spacing: 6, label:'Jan'},
-    {value: 2400, frontColor: colorExpense, gradientColor: colorExpenseGradient},
-    {value: 3500, frontColor: colorIncome, gradientColor: colorIncomeGradient, spacing: 6, label:'Feb'},
-    {value: 3000, frontColor: colorExpense, gradientColor: colorExpenseGradient},
-    {value: 4500, frontColor: colorIncome, gradientColor: colorIncomeGradient, spacing: 6, label:'Mar'},
-    {value: 4000, frontColor: colorExpense, gradientColor: colorExpenseGradient},
-    {value: 5200, frontColor: colorIncome, gradientColor: colorIncomeGradient, spacing: 6, label:'Apr'},
-    {value: 4900, frontColor: colorExpense, gradientColor: colorExpenseGradient},
-    {value: 3000, frontColor: colorIncome, gradientColor: colorIncomeGradient, spacing: 6, label:'May'},
-    {value: 2800, frontColor: colorExpense, gradientColor: colorExpenseGradient},
+    {value: 2500, frontColor: colorIncome, spacing: 6, label:'Jan'},
+    {value: 2400, frontColor: colorExpense},
+    {value: 3500, frontColor: colorIncome, spacing: 6, label:'Feb'},
+    {value: 3000, frontColor: colorExpense},
+    {value: 4500, frontColor: colorIncome, spacing: 6, label:'Mar'},
+    {value: 4000, frontColor: colorExpense},
+    {value: 5200, frontColor: colorIncome, spacing: 6, label:'Apr'},
+    {value: 4900, frontColor: colorExpense},
+    {value: 3000, frontColor: colorIncome, spacing: 6, label:'May'},
+    {value: 2800, frontColor: colorExpense},
+    {value: 2500, frontColor: colorIncome, spacing: 6, label:'Jan'},
+    {value: 2400, frontColor: colorExpense},
+    {value: 3500, frontColor: colorIncome, spacing: 6, label:'Feb'},
+    {value: 3000, frontColor: colorExpense},
+    {value: 4500, frontColor: colorIncome, spacing: 6, label:'Mar'},
+    {value: 4000, frontColor: colorExpense},
+    {value: 5200, frontColor: colorIncome, spacing: 6, label:'Apr'},
+    {value: 4900, frontColor: colorExpense},
+    {value: 3000, frontColor: colorIncome, spacing: 6, label:'May'},
+    {value: 2800, frontColor: colorExpense},
 ];
 
 export default function TabTwoScreen() {
@@ -42,7 +52,6 @@ export default function TabTwoScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 width: "100%",
-                padding: 10,
                 marginTop: 70,
                 justifyContent: "space-around"
             }}>

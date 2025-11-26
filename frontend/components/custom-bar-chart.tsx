@@ -2,7 +2,7 @@ import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import {BarChart, PieChart} from "react-native-gifted-charts";
 import { PropsWithChildren, SetStateAction, useState} from 'react';
-
+import {Dimensions} from 'react-native';
 
 
 //TODO: prepare input
@@ -10,16 +10,26 @@ import { PropsWithChildren, SetStateAction, useState} from 'react';
 
 
 export function CustomBarChart({ data }) {
-    return <View style={{padding: 20, alignItems: 'center'}}>
+    const windowWidth = Dimensions.get('window').width;
+    const [focusedItem, setFocusedItem] = useState([])
+    return <View style={{padding: 20, marginTop: 100, alignItems: 'center'}}>
         <BarChart
+            //adjustToWidth
+            width={300}
+            //focusBarOnPress
+            highlightEnabled
+            scrollToEnd
+            focusedBarIndex={focusedItem}
+            //style={{width: "50%"}}
+            height={400}
             data={data}
             barWidth={16}
-            initialSpacing={10}
+            initialSpacing={windowWidth / 2}
             spacing={14}
             barBorderRadius={3}
-            showGradient
+            //showGradient
             yAxisThickness={0}
-            xAxisType={'dashed'}
+            xAxisType={'solid'}
             xAxisColor={'lightgray'}
             yAxisTextStyle={{color: 'lightgray'}}
             stepValue={1000}
@@ -28,14 +38,20 @@ export function CustomBarChart({ data }) {
             yAxisLabelTexts={['0', '1k', '2k', '3k', '4k', '5k', '6k']}
             labelWidth={40}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
-            showLine
-            lineConfig={{
-                color: '#F29C6E',
-                thickness: 3,
-                curved: true,
-                hideDataPoints: true,
-                shiftY: 20,
-                initialSpacing: -30,
+            hideYAxisText
+            //showLine
+            onScroll={(item: any)=> {
+                const x = item.nativeEvent.contentOffset.x
+                const index = Math.round(x / 30)
+                if (index % 2 == 0) {
+                    setFocusedItem([index, index + 1])
+                } else {
+                    setFocusedItem([index -1, index])
+                }
+                console.log(index)
+            }}
+            onPress={(item: any, index: number) => {
+                console.log(index)
             }}
         />
     </View>
