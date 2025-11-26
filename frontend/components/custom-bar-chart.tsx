@@ -12,14 +12,29 @@ import {Dimensions} from 'react-native';
 export function CustomBarChart({ data }) {
     const windowWidth = Dimensions.get('window').width;
     const [focusedItem, setFocusedItem] = useState([])
-    return <View style={{padding: 20, marginTop: 100, alignItems: 'center'}}>
+    const setSize = 16  + 7 + 3
+    return <View style={{padding: 0, marginTop: 100, alignItems: 'center'}}>
+        <View
+            style={{
+                position: "absolute",
+                left: windowWidth / 2,
+                top: 0,
+                bottom: 0,
+                width: 1,
+                backgroundColor: "rgba(255,255,255,0.2)", // light, subtle line
+                zIndex: 0,   // make sure it stays behind
+                marginBottom: 25,
+            }}
+        />
+        <View style={{ zIndex: 1 }}>
         <BarChart
             //adjustToWidth
-            width={300}
+            width={windowWidth}
             //focusBarOnPress
             highlightEnabled
             scrollToEnd
             focusedBarIndex={focusedItem}
+
             //style={{width: "50%"}}
             height={400}
             data={data}
@@ -27,22 +42,19 @@ export function CustomBarChart({ data }) {
             initialSpacing={windowWidth / 2}
             spacing={14}
             barBorderRadius={3}
-            //showGradient
             yAxisThickness={0}
-            xAxisType={'solid'}
             xAxisColor={'lightgray'}
             yAxisTextStyle={{color: 'lightgray'}}
             stepValue={1000}
             maxValue={6000}
             noOfSections={6}
-            yAxisLabelTexts={['0', '1k', '2k', '3k', '4k', '5k', '6k']}
             labelWidth={40}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
             hideYAxisText
             //showLine
             onScroll={(item: any)=> {
                 const x = item.nativeEvent.contentOffset.x
-                const index = Math.round(x / 30)
+                const index = Math.round(x / setSize)
                 if (index % 2 == 0) {
                     setFocusedItem([index, index + 1])
                 } else {
@@ -54,5 +66,6 @@ export function CustomBarChart({ data }) {
                 console.log(index)
             }}
         />
+        </View>
     </View>
 }
