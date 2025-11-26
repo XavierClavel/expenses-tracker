@@ -1,14 +1,15 @@
 import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
-import { PropsWithChildren, SetStateAction, useState} from 'react';
+import React, { PropsWithChildren, SetStateAction, useState} from 'react';
 import {ProgressBar} from "@/components/progress-bar";
+import {IconSymbol} from "@/components/ui/icon-symbol";
 
 export function CategoryReport({ item, percent }) {
 
     const displayedPercent = percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
 
-    const renderDot = (color: string) => {
+    const renderIcon = (color: string, icon: string) => {
         return (
             <View
                 style={{
@@ -17,8 +18,12 @@ export function CategoryReport({ item, percent }) {
                     borderRadius: 15,
                     backgroundColor: color,
                     marginRight: 15,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}
-            />
+            >
+                <IconSymbol name={icon} color={'#34448B'} size={20} />
+            </View>
         );
     };
 
@@ -36,7 +41,7 @@ export function CategoryReport({ item, percent }) {
                 backgroundColor: '#34448B',
                 height: 70,
             }}>
-            {renderDot(item.color)}
+            {renderIcon(item.color, item.icon)}
             <View
                 style={{
                     flex: 1,

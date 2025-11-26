@@ -20,6 +20,7 @@ export function CustomPieChart({ data }) {
         return {
             value: Math.abs(it.value),
             color: it.color,
+            icon: it.icon,
             gradientCenterColor: it.color,
             radius: newFocusedItem === data.indexOf(it) ? 130 : 120,
         }
@@ -47,7 +48,6 @@ export function CustomPieChart({ data }) {
 
                 data={pieData}
                 donut
-                showGradient
                 radius={120}
                 innerRadius={90}
                 innerCircleColor={'#232B5D'}
@@ -90,7 +90,6 @@ export function CustomPieChart({ data }) {
                 height: 50,
             }}>
             <Pressable style={{ width: 50, paddingVertical: 14, borderRadius: 8}} onPress={() => {
-                console.log("minus")
                 if (focusedItem > 0) {
                     setFocusedItem(focusedItem - 1)
                 } else {
@@ -106,7 +105,6 @@ export function CustomPieChart({ data }) {
                 </Text>
             </View>
             <Pressable style={{ width: 50, paddingVertical: 14, borderRadius:8}} onPress={() => {
-                console.log("minus")
                 if (focusedItem < data.length - 1) {
                     setFocusedItem(focusedItem + 1)
                 } else {
