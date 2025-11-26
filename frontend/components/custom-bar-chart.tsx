@@ -11,16 +11,18 @@ import {Dimensions} from 'react-native';
 
 export function CustomBarChart({ data }) {
     const windowWidth = Dimensions.get('window').width;
+    console.log("window width", windowWidth)
     const [focusedItem, setFocusedItem] = useState([])
     const setSize = 51
-    return <View style={{padding: 0, marginTop: 100, alignItems: 'center'}}>
+    return <View style={{padding: 0, margin: 0, alignItems: 'stretch'}}>
+
         <View
             style={{
                 position: "absolute",
-                left: windowWidth / 2,
+                left: (windowWidth - setSize ) / 2,
                 top: 0,
                 bottom: 0,
-                width: 51,
+                width: setSize,
                 backgroundColor: "rgba(255,255,255,0.2)", // light, subtle line
                 zIndex: 0,   // make sure it stays behind
                 marginBottom: 25,
@@ -31,28 +33,36 @@ export function CustomBarChart({ data }) {
         <BarChart
             //adjustToWidth
             width={windowWidth}
+            initialSpacing={(windowWidth / 2) - 18.5}
+            endSpacing={windowWidth/2 - windowWidth /4 - 10}
             //focusBarOnPress
             highlightEnabled
             scrollToEnd
             focusedBarIndex={focusedItem}
             lineBehindBars
+            yAxisLabelWidth={0}
 
             //style={{width: "50%"}}
             height={400}
             data={data}
             barWidth={16}
-            initialSpacing={(windowWidth  / 2 ) - 3}
-            endSpacing={windowWidth / 2}
+            //initialSpacing={(windowWidth  / 2 ) - 19}
+            //initialSpacing={0}
+            //endSpacing={windowWidth / 2 - 112 }
+            //endSpacing={windowWidth / 2}
             spacing={14}
             barBorderRadius={3}
-            yAxisThickness={0}
+            //yAxisThickness={0}
             xAxisColor={'lightgray'}
-            yAxisTextStyle={{color: 'lightgray'}}
+            //yAxisTextStyle={{color: 'lightgray'}}
             stepValue={1000}
             maxValue={6000}
             labelWidth={40}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
             hideYAxisText
+            secondaryYAxis
+            yAxisThickness={0}
+            yAxisColor={'red'}
             rulesType={"solid"}
             rulesColor={"rgba(255,255,255,0.2)"}
             //showLine
