@@ -14,7 +14,47 @@ export function CustomBarChart({ data }) {
     console.log("window width", windowWidth)
     const [focusedItem, setFocusedItem] = useState([])
     const setSize = 51
-    return <View style={{padding: 0, margin: 0, alignItems: 'stretch'}}>
+    const barSize = 16
+    const interSpacing = 6
+    const spacing = 14
+
+    function renderValues() {
+        if (focusedItem.length > 0) return <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly'
+        }}>
+            <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: 'green', borderRadius: 8 }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                    {data[focusedItem[0]].value}€
+                </Text>
+            </Pressable>
+            <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: 'red', borderRadius: 8 }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                    -{data[focusedItem[1]].value}€
+                </Text>
+            </Pressable>
+        </View>
+        else return
+    }
+
+    return  <View
+        style={{
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            marginVertical: 4,
+        }}
+    >
+
+        <View
+            style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly'
+            }}
+        >
+            {renderValues()}
+        </View>
+
+    <View style={{padding: 0, margin: 0, alignItems: 'stretch'}}>
 
         <View
             style={{
@@ -33,7 +73,7 @@ export function CustomBarChart({ data }) {
         <BarChart
             //adjustToWidth
             width={windowWidth}
-            initialSpacing={(windowWidth / 2) - 18.5}
+            initialSpacing={(windowWidth / 2) - barSize - interSpacing / 2 }
             endSpacing={windowWidth/2 - windowWidth /4 - 10}
             //focusBarOnPress
             highlightEnabled
@@ -81,5 +121,6 @@ export function CustomBarChart({ data }) {
             }}
         />
         </View>
+    </View>
     </View>
 }
