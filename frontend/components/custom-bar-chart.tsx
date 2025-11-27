@@ -3,6 +3,7 @@ import { StyleSheet, Text, type TextProps } from 'react-native';
 import {BarChart, PieChart} from "react-native-gifted-charts";
 import {PropsWithChildren, SetStateAction, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
+import {time} from "@expo/fingerprint/cli/build/utils/log";
 
 
 //TODO: prepare input
@@ -19,6 +20,7 @@ export function CustomBarChart({ data }) {
     const spacing = 20
     const setSize = spacing + barSize * 2 + interSpacing
     const scrollRef = useRef(null);
+    const isSnapping = useRef(false);
 
     function renderValues() {
         return
@@ -129,10 +131,17 @@ export function CustomBarChart({ data }) {
                 let targetX = Math.round((x/setSize))*setSize ;
                 //console.log(targetX)
 
+                if (isSnapping.current) return
+                isSnapping.current = true
+
                 scrollRef.current?.scrollTo({
                     x: targetX,
-                    animated: false,
+                    animated: true,
                 });
+
+                setTimeout(() => {
+                    isSnapping.current = false
+                }, 200)
 
 
             }}
