@@ -114,7 +114,7 @@ export function CustomBarChart({ data }) {
             onScroll={(item: any)=> {
                 const x = item.nativeEvent.contentOffset.x
                 const index = Math.round((x / setSize) )
-                console.log(x, index)
+                //console.log(x, index)
                 setFocusedItem([index * 2, index*2+1])
                 setScrollPosition(x)
                 //console.log(x)
@@ -122,15 +122,16 @@ export function CustomBarChart({ data }) {
             onScrollEndDrag={(e, d) => {
 
             }}
-/*
+
             onMomentumScrollEnd={(e) => {
+                console.log("momentum scroll end")
                 const x = scrollPosition
                 let targetX = Math.round((x/setSize))*setSize ;
-                console.log(targetX)
+                //console.log(targetX)
 
                 scrollRef.current?.scrollTo({
                     x: targetX,
-                    animated: true,
+                    animated: false,
                 });
 
 
@@ -138,7 +139,7 @@ export function CustomBarChart({ data }) {
 
 
 
- */
+
 
 
             onPress={(item: any, index: number) => {
