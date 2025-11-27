@@ -42,7 +42,7 @@ export default function HomeScreen() {
                 justifyContent: "space-around"
             }}>
             {data.map((item, index) => (
-                <Expense data={item} />
+                <Expense data={item} key={index} />
             ))}
         </View>
     </ParallaxScrollView>
