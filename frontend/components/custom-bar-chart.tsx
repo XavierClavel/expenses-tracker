@@ -14,7 +14,7 @@ export function CustomBarChart({ data }) {
     const windowWidth = Dimensions.get('window').width;
     //console.log("window width", windowWidth)
     const [focusedItem, setFocusedItem] = useState([data.length -2, data.length -1])
-    const [scrollPosition, setScrollPosition] = useState(0)
+    const scrollPosition = useRef(0)
     const barSize = 16
     const interSpacing = 6
     const spacing = 20
@@ -23,21 +23,19 @@ export function CustomBarChart({ data }) {
     const isSnapping = useRef(false);
 
     function renderValues() {
-        return
         if (focusedItem.length > 0) return <View style={{
             flexDirection: 'row',
-            justifyContent: 'space-evenly'
+            justifyContent: 'space-evenly',
+            flex: 1,
+            width: "100%",
+            marginVertical: 20
         }}>
-            <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: 'green', borderRadius: 8 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                <Text style={{ color: '#71cc5d', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
                     {data[focusedItem[0]].value}€
                 </Text>
-            </Pressable>
-            <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: 'red', borderRadius: 8 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                <Text style={{ color: '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
                     -{data[focusedItem[1]].value}€
                 </Text>
-            </Pressable>
         </View>
         else return
     }
@@ -74,7 +72,9 @@ export function CustomBarChart({ data }) {
                 borderRadius: 5,
             }}
         />
-        <View style={{ zIndex: 1 }}>
+        <View style={{
+            zIndex: 1,
+        }}>
         <BarChart
             scrollRef={scrollRef}
             //adjustToWidth
@@ -118,7 +118,7 @@ export function CustomBarChart({ data }) {
                 const index = Math.round((x / setSize) )
                 //console.log(x, index)
                 setFocusedItem([index * 2, index*2+1])
-                setScrollPosition(x)
+                scrollPosition.current = x
                 //console.log(x)
             }}
             onScrollEndDrag={(e, d) => {
@@ -127,7 +127,7 @@ export function CustomBarChart({ data }) {
 
             onMomentumScrollEnd={(e) => {
                 console.log("momentum scroll end")
-                const x = scrollPosition
+                const x = scrollPosition.current
                 let targetX = Math.round((x/setSize))*setSize ;
                 //console.log(targetX)
 

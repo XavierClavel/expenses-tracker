@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import {Platform, StyleSheet, View} from 'react-native';
+import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 
 import { Collapsible } from '@/components/ui/collapsible';
 import { ExternalLink } from '@/components/external-link';
@@ -47,13 +47,29 @@ export default function TabTwoScreen() {
         <View
             style={{
                 flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: 'column',
+                justifyContent: 'space-around',
                 width: "100%",
-                marginTop: 70,
-                justifyContent: "space-around"
+                marginVertical: 50
             }}>
             <CustomBarChart data={data} />
+            <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly',
+                flex: 1,
+                width: "100%"
+            }}>
+                <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: '#34448B', borderRadius: 8 }}>
+                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                        Month
+                    </Text>
+                </Pressable>
+                <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: '#34448B', borderRadius: 8 }}>
+                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                        Year
+                    </Text>
+                </Pressable>
+            </View>
         </View>
     </ParallaxScrollView>
   );
