@@ -9,9 +9,7 @@ import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
 
 const colorExpense = '#da451a'
-const colorExpenseGradient = '#dd8768'
 const colorIncome = '#71cc5d'
-const colorIncomeGradient = '#bdfdaa'
 
 
 const data = [

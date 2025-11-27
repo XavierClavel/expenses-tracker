@@ -1,7 +1,7 @@
 import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import {BarChart, PieChart} from "react-native-gifted-charts";
-import { PropsWithChildren, SetStateAction, useState} from 'react';
+import {PropsWithChildren, SetStateAction, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 
 
@@ -11,14 +11,17 @@ import {Dimensions} from 'react-native';
 
 export function CustomBarChart({ data }) {
     const windowWidth = Dimensions.get('window').width;
-    console.log("window width", windowWidth)
-    const [focusedItem, setFocusedItem] = useState([])
-    const setSize = 51
+    //console.log("window width", windowWidth)
+    const [focusedItem, setFocusedItem] = useState([data.length -2, data.length -1])
+    const [scrollPosition, setScrollPosition] = useState(0)
     const barSize = 16
     const interSpacing = 6
-    const spacing = 14
+    const spacing = 20
+    const setSize = spacing + barSize * 2 + interSpacing
+    const scrollRef = useRef(null);
 
     function renderValues() {
+        return
         if (focusedItem.length > 0) return <View style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly'
@@ -71,6 +74,7 @@ export function CustomBarChart({ data }) {
         />
         <View style={{ zIndex: 1 }}>
         <BarChart
+            scrollRef={scrollRef}
             //adjustToWidth
             width={windowWidth}
             initialSpacing={(windowWidth / 2) - barSize - interSpacing / 2 }
@@ -81,16 +85,17 @@ export function CustomBarChart({ data }) {
             focusedBarIndex={focusedItem}
             lineBehindBars
             yAxisLabelWidth={0}
+            scrollToIndex={focusedItem[0]}
 
             //style={{width: "50%"}}
             height={400}
             data={data}
-            barWidth={16}
+            barWidth={barSize}
             //initialSpacing={(windowWidth  / 2 ) - 19}
             //initialSpacing={0}
             //endSpacing={windowWidth / 2 - 112 }
             //endSpacing={windowWidth / 2}
-            spacing={14}
+            spacing={spacing}
             barBorderRadius={3}
             //yAxisThickness={0}
             xAxisColor={'lightgray'}
@@ -108,14 +113,34 @@ export function CustomBarChart({ data }) {
             //showLine
             onScroll={(item: any)=> {
                 const x = item.nativeEvent.contentOffset.x
-                const index = Math.round((x + 7) * 2/ setSize)
-                if (index % 2 == 0) {
-                    setFocusedItem([index, index + 1])
-                } else {
-                    setFocusedItem([index -1, index])
-                }
-                console.log(x)
+                const index = Math.round((x / setSize) )
+                console.log(x, index)
+                setFocusedItem([index * 2, index*2+1])
+                setScrollPosition(x)
+                //console.log(x)
             }}
+            onScrollEndDrag={(e, d) => {
+
+            }}
+/*
+            onMomentumScrollEnd={(e) => {
+                const x = scrollPosition
+                let targetX = Math.round((x/setSize))*setSize ;
+                console.log(targetX)
+
+                scrollRef.current?.scrollTo({
+                    x: targetX,
+                    animated: true,
+                });
+
+
+            }}
+
+
+
+ */
+
+
             onPress={(item: any, index: number) => {
                 console.log(index)
             }}
