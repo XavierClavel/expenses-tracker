@@ -37,41 +37,35 @@ const data = [
 
 export default function TabTwoScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-          <Image
-              source={require('@/assets/images/partial-react-logo.png')}
-          />
-      }>
-        <View
-            style={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'space-around',
-                width: "100%",
-                marginVertical: 50
-            }}>
-            <CustomBarChart data={data} />
-            <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-evenly',
-                flex: 1,
-                width: "100%"
-            }}>
-                <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: '#34448B', borderRadius: 8 }}>
-                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
-                        Month
-                    </Text>
-                </Pressable>
-                <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: '#34448B', borderRadius: 8 }}>
-                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
-                        Year
-                    </Text>
-                </Pressable>
-            </View>
+      <View
+        style={{
+            flex: 1,
+            flexDirection: 'column',
+            width: "100%",
+            marginBottom: 10,
+            position: 'absolute',
+            bottom: 0
+        }}>
+        <CustomBarChart data={data} />
+        <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            flex: 1,
+            width: "100%",
+            marginVertical: 5
+        }}>
+            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: '#34448B', borderRadius: 8 }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>
+                    Month
+                </Text>
+            </Pressable>
+            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: '#34448B', borderRadius: 8 }}>
+                <Text style={{ color: 'white', textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>
+                    Year
+                </Text>
+            </Pressable>
         </View>
-    </ParallaxScrollView>
+    </View>
   );
 }
 
