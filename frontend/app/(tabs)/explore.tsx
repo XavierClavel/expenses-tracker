@@ -42,15 +42,22 @@ export default function TabTwoScreen() {
             flex: 1,
             flexDirection: 'column',
             width: "100%",
-            marginBottom: 10,
-            position: 'absolute',
-            bottom: 0
+            height: "100%",
+            backgroundColor: '#232B5D',
         }}>
+          <View
+              style={{
+                  flexDirection: 'column',
+                  width: "100%",
+                  marginBottom: 10,
+                  position: 'absolute',
+                  bottom: 0,
+              }}>
         <CustomBarChart data={data} />
         <View style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly',
-            flex: 1,
+            //flex: 1,
             width: "100%",
             marginVertical: 5
         }}>
@@ -65,6 +72,7 @@ export default function TabTwoScreen() {
                 </Text>
             </Pressable>
         </View>
+          </View>
     </View>
   );
 }

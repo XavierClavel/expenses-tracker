@@ -40,11 +40,20 @@ export default function a() {
             />
             <TextInput
                 style={{width: "100%"}}
-                label="Title"
+                label="Amount"
                 value={amount}
                 onChangeText={text => setAmount(text)}
                 inputMode='decimal'
             />
+
+
+
+
+
+
+
+
+            ....
         </View>
     </ParallaxScrollView>
       </View>
