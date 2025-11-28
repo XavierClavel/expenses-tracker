@@ -5,6 +5,7 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import {Expense} from "@/components/expense";
 import {FAB} from "react-native-paper";
+import {useNavigation} from "expo-router";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -32,6 +33,7 @@ const data = [
 
 
 export default function HomeScreen() {
+    const navigation = useNavigation();
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -59,7 +61,7 @@ export default function HomeScreen() {
               <FAB
                   icon="plus"
                   style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
-                  onPress={() => {}}
+                  onPress={() => {navigation.navigate('expense/edit')}}
               />
 
       </View>
