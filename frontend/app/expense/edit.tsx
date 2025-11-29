@@ -5,7 +5,9 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import {Expense} from "@/components/expense";
 import {FAB, TextInput} from "react-native-paper";
-import {useState} from "react";
+import {useCallback, useState} from "react";
+import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
+import {SafeAreaProvider} from "react-native-safe-area-context";
 
 
 
@@ -13,6 +15,20 @@ import {useState} from "react";
 export default function a() {
     const [title, setTitle] = useState("");
     const [amount, setAmount] = useState("");
+    const [date, setDate] = useState(new Date());
+    const [open, setOpen] = useState(false);
+
+    const onDismissSingle = useCallback(() => {
+        setOpen(false);
+    }, [setOpen]);
+
+    const onConfirmSingle = useCallback(
+        (params) => {
+            setOpen(false);
+            setDate(params.date);
+        },
+        [setOpen, setDate]
+    );
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -30,30 +46,67 @@ export default function a() {
                 width: "100%",
                 padding: 20,
                 marginTop: 70,
-                justifyContent: "space-around"
+                justifyContent: "space-around",
             }}>
             <TextInput
-                style={{width: "100%"}}
-                label="Title"
+                style={{
+                    width: "100%",
+                    marginVertical: 5,
+                    backgroundColor: '#34448B',
+                    color: 'white'
+            }}
+                textColor='white'
+                underlineColor='white'
+                cursorColor='white'
+                placeholderTextColor='white'
+                selectionColor='orange'
+                activeUnderlineColor='orange'
+                label={<Text style={{color: 'white'}}>Title</Text>}
                 value={title}
                 onChangeText={text => setTitle(text)}
             />
             <TextInput
-                style={{width: "100%"}}
-                label="Amount"
+                style={{
+                    width: "100%",
+                    marginVertical: 5,
+                    backgroundColor: '#34448B'
+                }}
+                textColor='white'
+                underlineColor='white'
+                cursorColor='white'
+                placeholderTextColor='white'
+                selectionColor='orange'
+                activeUnderlineColor='orange'
+                label={<Text style={{color: 'white'}}>Amount</Text>}
                 value={amount}
                 onChangeText={text => setAmount(text)}
                 inputMode='decimal'
             />
+                    <DatePickerInput
+                        style={{
+                            width: "100%",
+                            marginVertical: 5,
+                            backgroundColor: '#34448B',
+                        }}
+                        textColor='white'
+                        underlineColor='white'
+                        cursorColor='white'
+                        placeholderTextColor='white'
+                        iconColor = 'white'
+                        selectionColor='orange'
+                        activeUnderlineColor='orange'
+                        label='Date'
+                        locale="en"
+                        value={date}
+                        onChange={(d) => setDate(d)}
+                        inputMode="start"
+                        theme={{
+                            colors: {
+                                onSurfaceVariant: 'white',
+                            }
+                        }}
+                    />
 
-
-
-
-
-
-
-
-            ....
         </View>
     </ParallaxScrollView>
       </View>
