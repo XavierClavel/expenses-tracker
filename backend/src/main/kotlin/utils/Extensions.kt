@@ -21,10 +21,10 @@ fun RoutingContext.getPaging(): Paging =
         call.request.queryParameters["size"]?.toIntOrNull() ?: 20
     )
 
-suspend fun RoutingContext.createSession(user: UserOut, redisService: RedisService) {
+suspend fun RoutingContext.createSession(user: UserOut, redisService: RedisService): String {
     val sessionId = UUID.randomUUID().toString()
     redisService.createSession(sessionId, user)
-    call.sessions.set(UserSession(sessionId))
+    return sessionId
 }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)

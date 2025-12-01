@@ -44,7 +44,6 @@ fun Application.configureAuthentication() {
                 UserIdPrincipal(credentials.name)
             }
 
-
         }
 
         oauth("auth-oauth-google") {

@@ -1,6 +1,7 @@
 package com.xavierclavel.routes
 
 import com.xavierclavel.config.Configuration
+import com.xavierclavel.dtos.auth.SessionDto
 import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
@@ -28,6 +29,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.sessions
+import io.ktor.server.sessions.set
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import org.koin.ktor.ext.inject
 
@@ -43,8 +45,9 @@ fun Route.setupAuthController() = route(AUTH_URL) {
         post("/login") {
             val mail = call.principal<UserIdPrincipal>()?.name.toString()
             val user = userService.exportByMail(mail) ?: throw UnauthorizedException(UnauthorizedCause.INVALID_CREDENTIALS)
-            createSession(user, redisService)
-            call.respond(HttpStatusCode.OK)
+            val sessionId = createSession(user, redisService)
+            call.sessions.set(UserSession(sessionId))
+            call.respond(SessionDto(sessionId))
         }
 
     }
@@ -63,7 +66,8 @@ fun Route.setupAuthController() = route(AUTH_URL) {
             val currentPrincipal: OAuthAccessTokenResponse.OAuth2 = call.principal() ?: return@get call.respondRedirect(configuration.oauth.redirect.url)
             currentPrincipal.state ?: return@get call.respondRedirect(configuration.oauth.redirect.url)
             val user = authService.loginOrSignupOAuth(currentPrincipal.accessToken)
-            createSession(user, redisService)
+            val sessionId = createSession(user, redisService)
+            call.sessions.set(UserSession(sessionId))
             val redirect = authService.redirects[currentPrincipal.state] ?: return@get call.respondRedirect(configuration.oauth.redirect.url)
             return@get call.respondRedirect(redirect)
 
