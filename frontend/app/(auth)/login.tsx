@@ -1,13 +1,63 @@
 import { Link } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import {TextInput} from "react-native-paper";
+import {useState} from "react";
+import { Button } from 'react-native-paper';
 
 export default function ModalScreen() {
+    const [mail, setMail] = useState("");
+    const [password, setPassword] = useState("");
+
     return (
         <ThemedView style={styles.container}>
-            <ThemedText type="title">This is a login page</ThemedText>
+            <ThemedText type="title">Login</ThemedText>
+            <TextInput
+                style={{
+                    width: "100%",
+                    marginVertical: 5,
+                    backgroundColor: '#34448B',
+                    color: 'white'
+                }}
+                textColor='white'
+                underlineColor='white'
+                cursorColor='white'
+                placeholderTextColor='white'
+                selectionColor='orange'
+                activeUnderlineColor='orange'
+
+                label={<Text style={{color: 'white'}}>Email address</Text>}
+                value={mail}
+                onChangeText={text => setMail(text)}
+            />
+            <TextInput
+                style={{
+                    width: "100%",
+                    marginVertical: 5,
+                    backgroundColor: '#34448B',
+                    color: 'white'
+                }}
+                textColor='white'
+                underlineColor='white'
+                cursorColor='white'
+                placeholderTextColor='white'
+                selectionColor='orange'
+                activeUnderlineColor='orange'
+
+                label={<Text style={{color: 'white'}}>Password</Text>}
+                value={password}
+                onChangeText={text => setPassword(text)}
+            />
+            <Button
+                style={{
+                    width: "100%",
+                    paddingVertical: 5,
+                    backgroundColor: '#34448B',
+                }}
+                textColor='white'
+            >Log in</Button>
         </ThemedView>
     );
 }
