@@ -8,14 +8,18 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import {ThemeProvider} from "@react-navigation/core";
+import {DarkTheme} from "@react-navigation/native";
+import {DefaultTheme} from "react-native-paper";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: 'white',
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
@@ -41,5 +45,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+      </ThemeProvider>
   );
 }
