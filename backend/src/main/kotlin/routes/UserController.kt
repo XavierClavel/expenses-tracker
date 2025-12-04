@@ -46,13 +46,9 @@ fun Route.setupUserController() = route("/users") {
         }
 
         authenticate("auth-session") {
-            delete("/{id}") {
-                val id = getPathId()
+            delete {
                 val sessionUserId = getSessionUserId(redisService)
-                if (id != sessionUserId) {
-                    throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
-                }
-                userService.deleteById(id)
+                userService.deleteById(sessionUserId)
                 call.respond(HttpStatusCode.OK)
             }
         }

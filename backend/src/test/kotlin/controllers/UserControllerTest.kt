@@ -68,7 +68,7 @@ class UserControllerTest: ApplicationTest() {
             val result = client.getMe()
             userId = result.id
             client.assertUserExists(userId)
-            client.deleteUser(userId)
+            client.deleteUser()
         }
         runAsUser2 {
             client.assertUserDoesNotExist(userId)

@@ -33,8 +33,8 @@ suspend fun HttpClient.listUsers(): List<UserOut>  {
     }
 }
 
-suspend fun HttpClient.deleteUser(id: Long)  {
-    this.delete("$USERS_URL/$id").apply {
+suspend fun HttpClient.deleteUser()  {
+    this.delete(USERS_URL).apply {
         assertEquals(HttpStatusCode.OK, status)
     }
 }

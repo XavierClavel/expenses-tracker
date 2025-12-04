@@ -23,9 +23,9 @@ object DatabaseManager {
     val configuration by inject<Configuration>(Configuration::class.java)
 
     fun getTables() = listOf(
-        QUser(),
-        QCategory(),
         QExpense(),
+        QCategory(),
+        QUser(),
     )
 
     private fun initConfig(): HikariDataSource {

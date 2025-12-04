@@ -11,6 +11,8 @@ import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
 import com.xavierclavel.models.User
+import com.xavierclavel.models.query.QCategory
+import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
@@ -56,6 +58,8 @@ class UserService: KoinComponent {
             .toOutput()
 
     fun deleteById(id: Long) {
+        QExpense().user.id.eq(id).delete()
+        QCategory().user.id.eq(id).delete()
         val user = getById(id)
         val result = user.delete()
         if (!result) {
