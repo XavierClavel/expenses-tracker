@@ -6,3 +6,5 @@ dependencyResolutionManagement {
         maven("https://jitpack.io")
     }
 }
+
+include("backend")

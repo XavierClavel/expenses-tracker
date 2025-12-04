@@ -1,7 +1,7 @@
 import { createApiClient } from "../api/client";
 import { fetchMe, login } from "../api/auth";
 import { loadToken, saveToken, clearToken } from "../storage/token";
-import axios, {AxiosInstance} from "axios";
+import {AxiosInstance} from "axios";
 
 export type BootstrapResult = {
     api: AxiosInstance;
