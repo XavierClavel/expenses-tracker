@@ -5,7 +5,7 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import {Expense} from "@/components/expense";
 import {FAB} from "react-native-paper";
-import {useNavigation} from "expo-router";
+import {router, useNavigation} from "expo-router";
 import {useThemeColor} from "@/hooks/use-theme-color";
 
 const data = [
@@ -55,7 +55,14 @@ export default function HomeScreen() {
                 justifyContent: "space-around"
             }}>
             {data.map((item, index) => (
-                <Expense data={item} key={index} />
+                <Pressable
+                    key={index}
+                    onPress={() => {
+                        router.navigate("expense/edit");
+                    }}
+                >
+                <Expense data={item}/>
+                </Pressable>
             ))}
         </View>
     </ParallaxScrollView>
