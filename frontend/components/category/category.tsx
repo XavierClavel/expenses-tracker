@@ -12,7 +12,7 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 
-export function Expense({ data }) {
+export function Category({ data }) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
@@ -50,18 +50,13 @@ export function Expense({ data }) {
                 flex: 1,
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent: "flex-start",
             }}
         >
         {renderIcon(data.color, data.icon)}
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {data.label}
         </Text>
-        <View style={{ flex: 1, alignItems: 'right' }}>
-            <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16, marginVertical: 8 }}>
-                {data.value}€
-            </Text>
-        </View>
-        </View>
+    </View>
     </View>
 }

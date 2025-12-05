@@ -2,7 +2,7 @@ import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
 import { PropsWithChildren, SetStateAction, useState} from 'react';
-import {CategoryReport} from "@/components/category-report";
+import {CategoryReport} from "@/components/category/category-report";
 import {useTheme} from "@react-navigation/core";
 import {useThemeColor} from "@/hooks/use-theme-color";
 

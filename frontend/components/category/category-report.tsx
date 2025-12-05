@@ -34,7 +34,6 @@ export function CategoryReport({ item, percent }) {
     return (
         <View
             style={{
-                flex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
                 marginVertical: 5,
@@ -43,6 +42,12 @@ export function CategoryReport({ item, percent }) {
                 borderRadius: 8,
                 backgroundColor: surfaceColor,
                 height: 70,
+            }}>
+        <View
+            style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
             }}>
             {renderIcon(item.color, item.icon)}
             <View
@@ -80,7 +85,7 @@ export function CategoryReport({ item, percent }) {
                 <ProgressBar progress={percent} color={item.color}></ProgressBar>
             </View>
             </View>
-
+        </View>
         </View>
     );
 }
