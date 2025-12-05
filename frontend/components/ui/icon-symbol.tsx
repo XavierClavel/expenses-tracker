@@ -48,6 +48,8 @@ export function IconSymbol({
             return <MaterialCommunityIcons color={color} size={size} name='train' />;
         case 'clothes':
             return <FontAwesome5 color={color} size={size-3} name='tshirt' />;
+        case 'unknown':
+            return <FontAwesome5 color={color} size={size-3} name='question' />;
     }
   return <MaterialIcons color={color} size={size} name='' />;
 }

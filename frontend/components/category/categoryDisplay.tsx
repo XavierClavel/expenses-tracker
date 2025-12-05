@@ -6,13 +6,16 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import Category from "@/src/types/Category";
 
 
 
+type CategoryDisplayProps = {
+    data: Category;
+};
 
 
-
-export function Category({ data }) {
+export function CategoryDisplay( { data }: CategoryDisplayProps) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 

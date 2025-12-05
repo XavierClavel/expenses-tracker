@@ -5,21 +5,38 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import {Expense} from "@/components/expense";
 import {FAB, TextInput} from "react-native-paper";
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
+import {usePickerStore} from "@/src/stores/category-picker-store";
+import {CategoryDisplay} from "@/components/category/categoryDisplay";
+import Category from "@/src/types/Category";
 
 
 
 
 export default function a() {
+    const segments = useSegments();
+
+    const [selected, setSelected] = useState<string | null>(null);
+    const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
 
     const [title, setTitle] = useState("");
     const [amount, setAmount] = useState("");
     const [date, setDate] = useState(new Date());
     const [open, setOpen] = useState(false);
+    const pickedCategory = usePickerStore((s) => s.selected);
+    const setPickedCategory = usePickerStore((s) => s.setSelected)
+
+    useEffect(() => {
+        return () => {
+            console.log(segments)
+            setPickedCategory(null);
+        };
+    }, []);
 
     const onDismissSingle = useCallback(() => {
         setOpen(false);
@@ -111,6 +128,15 @@ export default function a() {
                     />
 
         </View>
+          <View style={{ padding: 8 }}>
+              <Pressable
+                  onPress={() => {
+                      router.navigate("category/picker");
+                  }}
+              >
+                  <CategoryDisplay data={ pickedCategory || new Category(-1, "No category selected", 'lightgray', '')}></CategoryDisplay>
+              </Pressable>
+          </View>
     </ParallaxScrollView>
       </View>
   );
