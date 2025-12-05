@@ -4,8 +4,10 @@ import { PieChart } from "react-native-gifted-charts";
 import React, { PropsWithChildren, SetStateAction, useState} from 'react';
 import {ProgressBar} from "@/components/progress-bar";
 import {IconSymbol} from "@/components/ui/icon-symbol";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 export function CategoryReport({ item, percent }) {
+    const surfaceColor = useThemeColor({}, 'surface');
 
     const displayedPercent = percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
 
@@ -22,7 +24,7 @@ export function CategoryReport({ item, percent }) {
                     justifyContent: 'center',
                 }}
             >
-                <IconSymbol name={icon} color={'#34448B'} size={20} />
+                <IconSymbol name={icon} color={surfaceColor} size={20} />
             </View>
         );
     };
@@ -38,7 +40,7 @@ export function CategoryReport({ item, percent }) {
                 paddingHorizontal: 10,
                 width: "100%",
                 borderRadius: 8,
-                backgroundColor: '#34448B',
+                backgroundColor: surfaceColor,
                 height: 70,
             }}>
             {renderIcon(item.color, item.icon)}

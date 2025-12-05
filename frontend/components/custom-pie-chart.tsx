@@ -13,6 +13,7 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 
 export function CustomPieChart({ data }) {
     const backgroundColor = useThemeColor({}, 'background');
+    const surfaceColor = useThemeColor({}, 'surface');
 
     const total = data.reduce((accumulator, object) => {
         return accumulator + object.value;
@@ -90,7 +91,7 @@ export function CustomPieChart({ data }) {
                 marginBottom: 50,
                 marginHorizontal: 50,
                 borderRadius: 15,
-                backgroundColor: focusedItem != -1 ? data[focusedItem].color : '#34448B',
+                backgroundColor: focusedItem != -1 ? data[focusedItem].color : surfaceColor,
                 height: 50,
             }}>
             <Pressable style={{ width: 50, paddingVertical: 14, borderRadius: 8}} onPress={() => {

@@ -5,6 +5,7 @@ import React, { PropsWithChildren, SetStateAction, useState} from 'react';
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {IconSymbol} from "@/components/ui/icon-symbol";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 
@@ -12,6 +13,7 @@ import {IconSymbol} from "@/components/ui/icon-symbol";
 
 
 export function Expense({ data }) {
+    const surfaceColor = useThemeColor({}, 'surface');
 
     const renderIcon = (color: string, icon: string) => {
         return (
@@ -26,7 +28,7 @@ export function Expense({ data }) {
                     justifyContent: 'center',
                 }}
             >
-                <IconSymbol name={icon} color={'#34448B'} size={20} />
+                <IconSymbol name={icon} color={surfaceColor} size={20} />
             </View>
         );
     };
@@ -40,7 +42,7 @@ export function Expense({ data }) {
             paddingHorizontal: 10,
             width: "100%",
             borderRadius: 8,
-            backgroundColor: '#34448B',
+            backgroundColor: surfaceColor,
             height: 50,
         }}>
         {renderIcon(data.color, data.icon)}

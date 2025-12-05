@@ -8,11 +8,14 @@ import {FAB, TextInput} from "react-native-paper";
 import {useCallback, useState} from "react";
 import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
 import {SafeAreaProvider} from "react-native-safe-area-context";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 
 
 export default function a() {
+    const surfaceColor = useThemeColor({}, 'surface');
+
     const [title, setTitle] = useState("");
     const [amount, setAmount] = useState("");
     const [date, setDate] = useState(new Date());
@@ -52,7 +55,7 @@ export default function a() {
                 style={{
                     width: "100%",
                     marginVertical: 5,
-                    backgroundColor: '#34448B',
+                    backgroundColor: surfaceColor,
                     color: 'white'
             }}
                 textColor='white'
@@ -69,7 +72,7 @@ export default function a() {
                 style={{
                     width: "100%",
                     marginVertical: 5,
-                    backgroundColor: '#34448B'
+                    backgroundColor: surfaceColor
                 }}
                 textColor='white'
                 underlineColor='white'
@@ -86,7 +89,7 @@ export default function a() {
                         style={{
                             width: "100%",
                             marginVertical: 5,
-                            backgroundColor: '#34448B',
+                            backgroundColor: surfaceColor,
                         }}
                         textColor='white'
                         underlineColor='white'

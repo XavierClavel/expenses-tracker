@@ -38,6 +38,7 @@ const data = [
 
 export default function TabTwoScreen() {
     const backgroundColor = useThemeColor({}, 'background');
+    const surfaceColor = useThemeColor({}, 'surface');
 
     return (
       <View
@@ -64,12 +65,12 @@ export default function TabTwoScreen() {
             width: "100%",
             marginVertical: 5
         }}>
-            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: '#34448B', borderRadius: 8 }}>
+            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: surfaceColor, borderRadius: 8 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>
                     Month
                 </Text>
             </Pressable>
-            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: '#34448B', borderRadius: 8 }}>
+            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: surfaceColor, borderRadius: 8 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>
                     Year
                 </Text>

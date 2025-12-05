@@ -6,6 +6,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import {Expense} from "@/components/expense";
 import {FAB} from "react-native-paper";
 import {useNavigation} from "expo-router";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},

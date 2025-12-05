@@ -6,8 +6,11 @@ import { ThemedView } from '@/components/themed-view';
 import {TextInput} from "react-native-paper";
 import {useState} from "react";
 import { Button } from 'react-native-paper';
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 export default function ModalScreen() {
+    const surfaceColor = useThemeColor({}, 'surface');
+
     const [mail, setMail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -18,7 +21,7 @@ export default function ModalScreen() {
                 style={{
                     width: "100%",
                     marginVertical: 5,
-                    backgroundColor: '#34448B',
+                    backgroundColor: surfaceColor,
                     color: 'white'
                 }}
                 textColor='white'
@@ -36,7 +39,7 @@ export default function ModalScreen() {
                 style={{
                     width: "100%",
                     marginVertical: 5,
-                    backgroundColor: '#34448B',
+                    backgroundColor: surfaceColor,
                     color: 'white'
                 }}
                 textColor='white'
@@ -54,7 +57,7 @@ export default function ModalScreen() {
                 style={{
                     width: "100%",
                     paddingVertical: 5,
-                    backgroundColor: '#34448B',
+                    backgroundColor: surfaceColor,
                 }}
                 textColor='white'
             >Log in</Button>

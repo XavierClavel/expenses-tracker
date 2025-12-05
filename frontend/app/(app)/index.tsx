@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 import { CustomPieChart } from '@/components/custom-pie-chart';
 import {data} from "browserslist";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -19,7 +20,9 @@ const pieData = [
 
 
 export default function HomeScreen() {
-  return (
+    const surfaceColor = useThemeColor({}, 'surface');
+
+    return (
 
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -39,11 +42,11 @@ export default function HomeScreen() {
                 marginTop: 70,
                 justifyContent: "space-around"
             }}>
-            <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: '#34448B', borderRadius: 8 }}>
+            <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: surfaceColor, borderRadius: 8 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>-2296,99€</Text>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 12, paddingTop: 5  }}>Expenses</Text>
             </Pressable>
-            <Pressable style={{ paddingVertical: 10, width:150, paddingHorizontal: 20, backgroundColor: '#34448B', borderRadius: 8 }}>
+            <Pressable style={{ paddingVertical: 10, width:150, paddingHorizontal: 20, backgroundColor: surfaceColor, borderRadius: 8 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>3067,63€</Text>
                 <Text style={{ color: 'white', textAlign: 'center', fontSize: 12, paddingTop: 5 }}>Income</Text>
             </Pressable>
