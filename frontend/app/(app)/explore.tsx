@@ -7,6 +7,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { BarChart } from "react-native-gifted-charts";
 import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 const colorExpense = '#da451a'
 const colorIncome = '#71cc5d'
@@ -36,14 +37,16 @@ const data = [
 ];
 
 export default function TabTwoScreen() {
-  return (
+    const backgroundColor = useThemeColor({}, 'background');
+
+    return (
       <View
         style={{
             flex: 1,
             flexDirection: 'column',
             width: "100%",
             height: "100%",
-            backgroundColor: '#232B5D',
+            backgroundColor: backgroundColor,
         }}>
           <View
               style={{

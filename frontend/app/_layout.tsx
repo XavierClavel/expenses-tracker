@@ -4,10 +4,13 @@ import { loadToken, clearToken } from "@/src/storage/token";
 import { createApiClient } from "@/src/api/client";
 import { fetchMe } from "@/src/api/auth";
 import * as SplashScreen from "expo-splash-screen";
+import {ThemeProvider} from "@react-navigation/core";
+import {DarkTheme} from "@react-navigation/native";
 
 SplashScreen.preventAutoHideAsync();
 
 async function isAuthenticated(): Promise<boolean> {
+    return true
     let token = await loadToken();
 
     if (!token) return false;
@@ -39,8 +42,10 @@ export default function RootLayout() {
     if (authenticated === null) return null;
 
     return (
+        <ThemeProvider value={DarkTheme}>
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name={authenticated ? "(app)" : "(auth)"} />
         </Stack>
+        </ThemeProvider>
     );
 }

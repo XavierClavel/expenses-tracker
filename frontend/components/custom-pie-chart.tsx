@@ -3,6 +3,8 @@ import { StyleSheet, Text, type TextProps } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
 import { PropsWithChildren, SetStateAction, useState} from 'react';
 import {CategoryReport} from "@/components/category-report";
+import {useTheme} from "@react-navigation/core";
+import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 
@@ -10,6 +12,8 @@ import {CategoryReport} from "@/components/category-report";
 
 
 export function CustomPieChart({ data }) {
+    const backgroundColor = useThemeColor({}, 'background');
+
     const total = data.reduce((accumulator, object) => {
         return accumulator + object.value;
     }, 0);
@@ -50,7 +54,7 @@ export function CustomPieChart({ data }) {
                 donut
                 radius={120}
                 innerRadius={90}
-                innerCircleColor={'#232B5D'}
+                innerCircleColor={backgroundColor}
                 centerLabelComponent={() => {
                     if (data[focusedItem] == null) {
                         return(
