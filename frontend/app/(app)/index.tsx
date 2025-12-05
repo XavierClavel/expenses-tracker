@@ -21,6 +21,7 @@ const pieData = [
 
 export default function HomeScreen() {
     const surfaceColor = useThemeColor({}, 'surface');
+    const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     return (
 
@@ -43,12 +44,12 @@ export default function HomeScreen() {
                 justifyContent: "space-around"
             }}>
             <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: surfaceColor, borderRadius: 8 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>-2296,99€</Text>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 12, paddingTop: 5  }}>Expenses</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>-2296,99€</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 12, paddingTop: 5  }}>Expenses</Text>
             </Pressable>
             <Pressable style={{ paddingVertical: 10, width:150, paddingHorizontal: 20, backgroundColor: surfaceColor, borderRadius: 8 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>3067,63€</Text>
-                <Text style={{ color: 'white', textAlign: 'center', fontSize: 12, paddingTop: 5 }}>Income</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>3067,63€</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 12, paddingTop: 5 }}>Income</Text>
             </Pressable>
 
         </View>

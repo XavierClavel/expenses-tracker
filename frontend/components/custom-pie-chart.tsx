@@ -14,6 +14,8 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 export function CustomPieChart({ data }) {
     const backgroundColor = useThemeColor({}, 'background');
     const surfaceColor = useThemeColor({}, 'surface');
+    const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
+    const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const total = data.reduce((accumulator, object) => {
         return accumulator + object.value;
@@ -61,7 +63,7 @@ export function CustomPieChart({ data }) {
                         return(
                             <View style={{justifyContent: 'center', alignItems: 'center'}}>
                                 <Text
-                                    style={{fontSize: 22, color: 'white', fontWeight: 'bold'}}>
+                                    style={{fontSize: 22, color: textOnBackgroundColor, fontWeight: 'bold'}}>
                                     {(Math.round(total * 100) / 100).toFixed(2)}€
                                 </Text>
                             </View>
@@ -71,10 +73,10 @@ export function CustomPieChart({ data }) {
                     return (
                         <View style={{justifyContent: 'center', alignItems: 'center'}}>
                             <Text
-                                style={{fontSize: 22, color: 'white', fontWeight: 'bold'}}>
+                                style={{fontSize: 22, color: textOnBackgroundColor, fontWeight: 'bold'}}>
                                 {data[focusedItem].value}€
                             </Text>
-                            <Text style={{fontSize: 14, color: 'white'}}>{
+                            <Text style={{fontSize: 14, color: textOnBackgroundColor}}>{
                                 percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
                             }</Text>
                         </View>
@@ -102,10 +104,10 @@ export function CustomPieChart({ data }) {
                 }
             }}
                 >
-                <Text style={{ color: focusedItem == -1 ? 'white' : 'black', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'<'}</Text>
+                <Text style={{ color: focusedItem == -1 ? textOnSurfaceColor: 'black', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'<'}</Text>
             </Pressable>
             <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ color: focusedItem == -1 ? 'white' : 'black', textAlign: 'center', fontSize: 14, marginVertical: 8, fontWeight: 'bold' }}>
+                <Text style={{ color: focusedItem == -1 ? textOnSurfaceColor: 'black', textAlign: 'center', fontSize: 14, marginVertical: 8, fontWeight: 'bold' }}>
                     {data[focusedItem]?.label  || 'Total'}
                 </Text>
             </View>
@@ -116,7 +118,7 @@ export function CustomPieChart({ data }) {
                     setFocusedItem(0)
                 }
             }}>
-                <Text style={{ color: focusedItem == -1 ? 'white' : 'black', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'>'}</Text>
+                <Text style={{ color: focusedItem == -1 ? textOnSurfaceColor: 'black', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{'>'}</Text>
             </Pressable>
         </View>
             <View style={{

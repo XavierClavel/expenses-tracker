@@ -8,6 +8,7 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 
 export function CategoryReport({ item, percent }) {
     const surfaceColor = useThemeColor({}, 'surface');
+    const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const displayedPercent = percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
 
@@ -58,10 +59,10 @@ export function CategoryReport({ item, percent }) {
                         marginVertical: 4,
                     }}
                 >
-                    <Text style={{ color: 'white', fontSize: 16 }}>
+                    <Text style={{ color: textOnSurfaceColor, fontSize: 16 }}>
                         {item.label}
                     </Text>
-                        <Text style={{ textAlign:'right', color: 'white', fontWeight:'bold', fontSize: 16}}>
+                        <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16}}>
                             {item.value}€
                         </Text>
                 </View>
@@ -73,7 +74,7 @@ export function CategoryReport({ item, percent }) {
                         alignItems: 'center',
                     }}
                 >
-                <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold', width: 40, justifyContent: 'center' }}>
+                <Text style={{ color: textOnSurfaceColor, fontSize: 14, fontWeight: 'bold', width: 40, justifyContent: 'center' }}>
                     {displayedPercent}
                 </Text>
                 <ProgressBar progress={percent} color={item.color}></ProgressBar>

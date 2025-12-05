@@ -11,6 +11,8 @@ const tintColorDark = '#fff';
 export const Colors = {
   dark: {
     text: '#ECEDEE',
+    textOnBackground: 'white',
+    textOnSurface: 'white',
     background: '#232B5D',
     surface: '#34448B',
     tint: tintColorDark,
