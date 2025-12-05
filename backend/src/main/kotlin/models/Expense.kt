@@ -33,6 +33,10 @@ class Expense(
 
     var date: LocalDate,
 
+    var hidden: Boolean = false,
+
+    var marked: Boolean = false,
+
     ): Model() {
 
     @Id

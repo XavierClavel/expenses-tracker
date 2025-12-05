@@ -33,7 +33,6 @@ export default function a() {
 
     useEffect(() => {
         return () => {
-            console.log(segments)
             setPickedCategory(null);
         };
     }, []);
