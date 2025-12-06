@@ -9,7 +9,7 @@ import com.xavierclavel.utils.createExpense
 import com.xavierclavel.utils.deleteExpense
 import com.xavierclavel.utils.getExpense
 import com.xavierclavel.utils.getMe
-import com.xavierclavel.utils.listExpensesByUser
+import com.xavierclavel.utils.listExpenses
 import com.xavierclavel.utils.updateExpense
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -25,7 +25,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class ExpenseControllerTest: ApplicationTest() {
@@ -46,12 +45,11 @@ class ExpenseControllerTest: ApplicationTest() {
 
     @Test
     fun `create expense`() = runTestAsUser {
-        val me = client.getMe()
-        val result = client.listExpensesByUser(me.id)
+        val result = client.listExpenses()
         assertEquals(0, result.size)
 
         client.createExpense(expense)
-        val result2 = client.listExpensesByUser(me.id)
+        val result2 = client.listExpenses()
         assertEquals(1, result2.size)
     }
 
@@ -77,15 +75,13 @@ class ExpenseControllerTest: ApplicationTest() {
         }
 
         runAsUser1 {
-            val id = client.getMe().id
-            val result = client.listExpensesByUser(id)
+            val result = client.listExpenses()
             assertEquals(1, result.size)
             assertEquals("Carrefour", result[0].label)
         }
 
         runAsUser2 {
-            val id = client.getMe().id
-            val result = client.listExpensesByUser(id)
+            val result = client.listExpenses()
             assertEquals(2, result.size)
             assertTrue {
                 result.any { it.label == "MacDo" }
@@ -118,7 +114,7 @@ class ExpenseControllerTest: ApplicationTest() {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 setBody(expense)
             }.apply {
-                assertEquals(HttpStatusCode.Companion.Forbidden, status)
+                assertEquals(HttpStatusCode.Forbidden, status)
             }
         }
     }
@@ -132,7 +128,7 @@ class ExpenseControllerTest: ApplicationTest() {
 
         runAsUser2 {
             client.delete("${EXPENSES_URL}/$expenseId").apply {
-                assertEquals(HttpStatusCode.Companion.Forbidden, status)
+                assertEquals(HttpStatusCode.Forbidden, status)
             }
         }
     }
@@ -147,7 +143,7 @@ class ExpenseControllerTest: ApplicationTest() {
 
         runAsUser2 {
             client.get("${EXPENSES_URL}/user/$userId").apply {
-                assertEquals(HttpStatusCode.Companion.Forbidden, status)
+                assertEquals(HttpStatusCode.Forbidden, status)
             }
         }
     }

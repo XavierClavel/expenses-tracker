@@ -3,7 +3,6 @@ package com.xavierclavel.utils
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.dtos.ExpenseOut
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -50,8 +49,8 @@ suspend fun HttpClient.getExpense(id: Long): ExpenseOut {
     }
 }
 
-suspend fun HttpClient.listExpensesByUser(id: Long): List<ExpenseOut>  {
-    this.get("$EXPENSES_URL/user/$id").apply {
+suspend fun HttpClient.listExpenses(): List<ExpenseOut>  {
+    this.get(EXPENSES_URL).apply {
         assertEquals(HttpStatusCode.OK, status)
         val categories = Json.decodeFromString<List<ExpenseOut>>(bodyAsText())
         return categories
