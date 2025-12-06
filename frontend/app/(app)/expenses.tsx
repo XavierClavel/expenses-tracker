@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
+import {Pressable, Platform, StyleSheet, Text, View, FlatList, ActivityIndicator} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -9,6 +9,7 @@ import {router, useNavigation} from "expo-router";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {listExpenses} from "@/src/api/expenses";
 import {useEffect, useState} from "react";
+import ExpenseOut from "@/src/types/ExpenseOut";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -37,21 +38,32 @@ const data = [
 
 export default function HomeScreen() {
     const navigation = useNavigation();
-    const [expenses, setExpenses] = useState([]);
+    const [expenses, setExpenses] = useState<ExpenseOut[]>([]);
+    const [page, setPage] = useState(0);
+    const [pageSize] = useState(20);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const backgroundColor = useThemeColor({}, 'background');
+
+    const loadExpenses = async (pageToLoad: number) => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
+
+        const newExpenses = await listExpenses(pageToLoad, pageSize);
+
+        setExpenses(prev => [...prev, ...newExpenses]);
+        setHasMore(newExpenses.length === pageSize);
+        setLoading(false);
+    };
+
     useEffect(() => {
-        listExpenses().then((response) => {
-            setExpenses(response);
-        });
+        loadExpenses(0);
     }, []);
+
+
   return (
-      <View style={{ flex: 1}}>
-      <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-        />
-      }>
+      <View style={{ flex: 1, backgroundColor: backgroundColor}}>
         <View
             style={{
                 flex: 1,
@@ -62,18 +74,33 @@ export default function HomeScreen() {
                 marginTop: 70,
                 justifyContent: "space-around"
             }}>
-            {expenses.map((item, index) => (
-                <Pressable
-                    key={index}
-                    onPress={() => {
-                        router.navigate("expense/edit");
-                    }}
-                >
-                <ExpenseDisplay data={item}/>
-                </Pressable>
-            ))}
+            <FlatList
+                style={{
+                    width: "100%",
+                }}
+                data={expenses}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) =>
+                    <Pressable
+                        key={item.id}
+                        onPress={() => {
+                            router.navigate("expense/edit");
+                        }}
+                    >
+                        <ExpenseDisplay data={item}/>
+                    </Pressable>}
+                onEndReached={() => {
+                    console.log("end reached")
+                    if (!loading && hasMore) {
+                        const next = page + 1;
+                        setPage(next);
+                        loadExpenses(next);
+                    }
+                }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={loading ? <ActivityIndicator/>: null}
+            />
         </View>
-    </ParallaxScrollView>
               <FAB
                   icon="plus"
                   style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}

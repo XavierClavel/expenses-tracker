@@ -4,8 +4,8 @@ import {apiClient} from "@/src/api/client";
 import ExpenseOut from "@/src/types/ExpenseOut";
 
 
-export async function listExpenses(): Promise<ExpenseOut[]> {
-    const response = await apiClient.get("/expenses");
+export async function listExpenses(page: number, size: number): Promise<ExpenseOut[]> {
+    const response = await apiClient.get( `/expenses?page=${page}&size=${size}`);
 
     const expenses: ExpenseOut[] = response.data.map((e: any) =>
         new ExpenseOut(
