@@ -1,17 +1,10 @@
 import axios, {AxiosInstance} from "axios";
 import {saveToken} from "@/src/storage/token";
 import {useNavigation} from "expo-router";
-
-
-const rawApi = axios.create({
-    baseURL: "http://178.16.131.84:30081",
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+import {apiClient} from "@/src/api/client";
 
 export async function login(username: string, password: string): Promise<void> {
-    const result = await rawApi.post("/auth/login", {}, {
+    const result = await apiClient.post("/auth/login", {}, {
         auth: {
             username: username,
             password: password,
@@ -21,7 +14,8 @@ export async function login(username: string, password: string): Promise<void> {
     await saveToken(result.data.token)
 }
 
-export async function fetchMe(api: AxiosInstance) {
-    const res = await api.get("/me");
+export async function fetchMe() {
+    const res = await apiClient.get("/me");
+    console.log("User is logged in")
     return res.data;
 }

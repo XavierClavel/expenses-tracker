@@ -3,7 +3,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
-import {Expense} from "@/components/expense";
+import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {router, useFocusEffect, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import Category from "@/src/types/Category";

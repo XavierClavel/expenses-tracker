@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { loadToken, clearToken } from "@/src/storage/token";
-import { createApiClient } from "@/src/api/client";
+import {createApiClient, setSessionToken} from "@/src/api/client";
 import { fetchMe } from "@/src/api/auth";
 import * as SplashScreen from "expo-splash-screen";
 import {ThemeProvider} from "@react-navigation/core";
@@ -14,9 +14,10 @@ async function isAuthenticated(): Promise<boolean> {
 
     if (!token) return false;
 
+    setSessionToken(token)
+
     try {
-        const api = createApiClient(token);
-        await fetchMe(api);
+        await fetchMe();
         return true;
     } catch (err) {
         console.warn("Stored token invalid, retrying login...");

@@ -12,7 +12,7 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 
-export function Expense({ data }) {
+export function ExpenseDisplay({ data }) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 

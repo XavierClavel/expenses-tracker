@@ -3,7 +3,7 @@ import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
-import {Expense} from "@/components/expense";
+import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {FAB, TextInput} from "react-native-paper";
 import {useCallback, useEffect, useState} from "react";
 import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
@@ -13,6 +13,9 @@ import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import Category from "@/src/types/Category";
+import {createExpense} from "@/src/api/expenses";
+import ExpenseIn from "@/src/types/Expense";
+import {login} from "@/src/api/auth";
 
 
 
@@ -149,8 +152,21 @@ export default function a() {
                       justifyContent: 'center',
                       marginVertical: 5,
                   }}
-                  onPress={() => {
-                      router.navigate("expenses");
+                  onPress={async () => {
+                      const expense = new ExpenseIn(
+                            title,
+                          amount,
+                          "EUR",
+                          date.toISOString().split("T")[0],
+                          1,
+                      )
+                      try {
+                          await createExpense(expense)
+                          router.replace("/(app)/expenses");
+                      } catch (e) {
+                          console.error("Expense creation failed", e);
+                      }
+
                   }}
               >
                     <Text

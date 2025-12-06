@@ -3,10 +3,11 @@ import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
-import {Expense} from "@/components/expense";
+import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {FAB} from "react-native-paper";
 import {router, useNavigation} from "expo-router";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {listExpenses} from "@/src/api/expenses";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -35,6 +36,7 @@ const data = [
 
 export default function HomeScreen() {
     const navigation = useNavigation();
+    listExpenses()
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -61,7 +63,7 @@ export default function HomeScreen() {
                         router.navigate("expense/edit");
                     }}
                 >
-                <Expense data={item}/>
+                <ExpenseDisplay data={item}/>
                 </Pressable>
             ))}
         </View>

@@ -13,9 +13,7 @@ export async function bootstrapAuth(): Promise<BootstrapResult> {
 
     if (token) {
         try {
-            const api = createApiClient(token);
-            const me = await fetchMe(api);
-            return { api, me };
+            const me = await fetchMe();
         } catch (err) {
             console.warn("Stored token invalid, retrying login...");
             await clearToken();
