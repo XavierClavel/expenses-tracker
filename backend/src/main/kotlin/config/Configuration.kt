@@ -4,6 +4,7 @@ import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addResourceSource
 import com.sksamuel.hoplite.sources.EnvironmentVariablesPropertySource
 import com.sksamuel.hoplite.sources.MapPropertySource
+import com.xavierclavel.utils.logger
 
 
 data class Configuration(
@@ -66,9 +67,7 @@ val testConfig: Configuration by lazy {
 
 fun prodConfig(): Configuration {
     return ConfigLoaderBuilder.default()
-        .addSource(
-            customEnvSource()
-        )
+        .addSource(customEnvSource())
         .addResourceSource("/configuration.yaml", true)
         .build()
         .loadConfigOrThrow<Configuration>()
@@ -87,6 +86,8 @@ fun customEnvSource(): MapPropertySource {
 
             hopliteKey to value
         }
+
+    logger.info {"Env source built: $transformed"}
 
     return MapPropertySource(transformed)
 }
