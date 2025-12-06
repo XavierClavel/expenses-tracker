@@ -1,5 +1,6 @@
 package com.xavierclavel.config
 
+import com.sksamuel.hoplite.ConfigAlias
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addResourceSource
 import com.sksamuel.hoplite.sources.EnvironmentVariablesPropertySource
@@ -13,11 +14,17 @@ data class Configuration(
     val aes: Aes,
 ) {
     data class Postgres(
+        @ConfigAlias("POSTGRES_USER")
         val user: String,
+
+        @ConfigAlias("POSTGRES_PASSWORD")
         val password: String,
+
         val jdbc: Jdbc
     ) {
         data class Jdbc(
+
+            @ConfigAlias("POSTGRES_JDBC_URL")
             val url: String,
         )
     }
@@ -39,16 +46,24 @@ data class Configuration(
     )
 
     data class Redis(
+
+        @ConfigAlias("REDIS_PASSWORD")
         val password: String,
+
+        @ConfigAlias("REDIS_HOSTNAME")
         val hostname: String,
+
+        @ConfigAlias("REDIS_PORT")
         val port: Int,
     )
 
     data class Admin(
+        @ConfigAlias("ADMIN_PASSWORD")
         val password: String,
     )
 
     data class Aes(
+        @ConfigAlias("AES_KEY")
         val key: String,
     )
 
