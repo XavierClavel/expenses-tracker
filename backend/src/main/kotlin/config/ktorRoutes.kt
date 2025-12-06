@@ -13,7 +13,7 @@ fun Application.serveRoutes() {
     routing {
         setupUserController()
         setupAuthController()
-        authenticate("auth-session") {
+        authenticate("bearer-auth", "auth-session") {
             setupCategoryController()
             setupExpenseController()
             setupSummaryController()

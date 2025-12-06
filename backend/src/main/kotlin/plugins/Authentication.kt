@@ -14,6 +14,7 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.OAuthServerSettings
 import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.basic
+import io.ktor.server.auth.bearer
 import io.ktor.server.auth.oauth
 import io.ktor.server.auth.session
 import io.ktor.server.sessions.Sessions
@@ -80,6 +81,17 @@ fun Application.configureAuthentication() {
             }
             challenge {
                 throw UnauthorizedException(UnauthorizedCause.SESSION_NOT_FOUND)
+            }
+        }
+
+        bearer("bearer-auth") {
+            authenticate { tokenCredential ->
+                val session = redisService.getSession(tokenCredential.token)
+                if (session != null) {
+                    UserIdPrincipal(session.userId.toString())
+                } else {
+                    null
+                }
             }
         }
 

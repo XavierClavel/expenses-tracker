@@ -13,6 +13,7 @@ import com.xavierclavel.services.UserService
 import com.xavierclavel.utils.AUTH_URL
 import com.xavierclavel.utils.UserSession
 import com.xavierclavel.utils.createSession
+import com.xavierclavel.utils.getSessionId
 import com.xavierclavel.utils.getSessionUserId
 import com.xavierclavel.utils.logger
 import io.ktor.http.HttpStatusCode
@@ -53,7 +54,9 @@ fun Route.setupAuthController() = route(AUTH_URL) {
     }
 
     post("/logout") {
+        val sessionId = getSessionId()
         call.sessions.clear<UserSession>()
+        redisService.deleteSession(sessionId)
         call.respond(HttpStatusCode.OK)
     }
 
@@ -74,7 +77,7 @@ fun Route.setupAuthController() = route(AUTH_URL) {
         }
     }
 
-    authenticate("auth-session") {
+    authenticate("bearer-auth", "auth-session") {
         get("/me") {
             val id = getSessionUserId(redisService)
             val userInfo = userService.export(id)

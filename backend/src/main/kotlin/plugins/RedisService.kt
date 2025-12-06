@@ -35,6 +35,13 @@ class RedisService(redisUrl: String): KoinComponent {
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
+    suspend fun deleteSession(sessionId: String) {
+        redis.del("session:$sessionId")
+    }
+
+
+
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
     suspend fun hasSession(sessionId: String): Boolean =
         getSessionUserId(sessionId) != null
 

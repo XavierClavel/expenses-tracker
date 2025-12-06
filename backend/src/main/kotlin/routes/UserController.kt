@@ -45,7 +45,7 @@ fun Route.setupUserController() = route("/users") {
             call.respond(user)
         }
 
-        authenticate("auth-session") {
+        authenticate("bearer-auth", "auth-session") {
             delete {
                 val sessionUserId = getSessionUserId(redisService)
                 userService.deleteById(sessionUserId)

@@ -39,14 +39,20 @@ suspend fun RoutingContext.getOptionalSessionId(redisService: RedisService): Lon
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 suspend fun RoutingContext.getSessionUserId(redisService: RedisService): Long {
-    val session =
-        call.sessions.get<UserSession>() ?: throw UnauthorizedException(UnauthorizedCause.SESSION_NOT_FOUND)
-    val userId = redisService.getSessionUserId(session.sessionId)
+    val sessionId = getSessionId()
+    val userId = redisService.getSessionUserId(sessionId)
     if (userId == null) {
         call.sessions.clear<UserSession>()
         throw UnauthorizedException(UnauthorizedCause.SESSION_NOT_FOUND)
     }
     return userId
+}
+
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
+suspend fun RoutingContext.getSessionId(): String {
+    val session =
+        call.sessions.get<UserSession>() ?: throw UnauthorizedException(UnauthorizedCause.SESSION_NOT_FOUND)
+    return session.sessionId
 }
 
 fun RoutingContext.getPathId(): Long = call.parameters["id"]?.toLongOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
