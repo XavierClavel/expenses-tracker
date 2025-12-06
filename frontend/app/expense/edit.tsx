@@ -7,7 +7,7 @@ import {Expense} from "@/components/expense";
 import {FAB, TextInput} from "react-native-paper";
 import {useCallback, useEffect, useState} from "react";
 import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
-import {SafeAreaProvider} from "react-native-safe-area-context";
+import {SafeAreaView} from "react-native-safe-area-context";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
@@ -23,6 +23,8 @@ export default function a() {
     const [selected, setSelected] = useState<string | null>(null);
     const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
+    const backgroundColor = useThemeColor({}, 'background');
+    const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const [title, setTitle] = useState("");
     const [amount, setAmount] = useState("");
@@ -57,14 +59,13 @@ export default function a() {
           source={require('@/assets/images/partial-react-logo.png')}
         />
       }>
-        <View
+        <SafeAreaView
             style={{
                 flex: 1,
                 flexDirection: 'column',
                 alignItems: 'center',
                 width: "100%",
                 padding: 20,
-                marginTop: 70,
                 justifyContent: "space-around",
             }}>
             <TextInput
@@ -72,14 +73,16 @@ export default function a() {
                     width: "100%",
                     marginVertical: 5,
                     backgroundColor: surfaceColor,
-                    color: 'white'
+                    color: 'white',
+                    borderRadius: 15,
             }}
-                textColor='white'
-                underlineColor='white'
+                theme={{ colors: { primary: 'transparent'}}}
+                mode='outlined'
+                textColor={textOnSurfaceColor}
+                selectionColor='darkgray'
+                outlineColor={backgroundColor}
                 cursorColor='white'
-                placeholderTextColor='white'
-                selectionColor='orange'
-                activeUnderlineColor='orange'
+                placeholderTextColor={textOnSurfaceColor}
                 label={<Text style={{color: 'white'}}>Title</Text>}
                 value={title}
                 onChangeText={text => setTitle(text)}
@@ -88,55 +91,75 @@ export default function a() {
                 style={{
                     width: "100%",
                     marginVertical: 5,
-                    backgroundColor: surfaceColor
+                    backgroundColor: surfaceColor,
+                    color: 'white',
+                    borderRadius: 15,
                 }}
-                textColor='white'
-                underlineColor='white'
+                theme={{ colors: { primary: 'transparent'}}}
+                mode='outlined'
+                textColor={textOnSurfaceColor}
+                selectionColor='darkgray'
+                outlineColor={backgroundColor}
                 cursorColor='white'
-                placeholderTextColor='white'
-                selectionColor='orange'
-                activeUnderlineColor='orange'
+                placeholderTextColor={textOnSurfaceColor}
                 label={<Text style={{color: 'white'}}>Amount</Text>}
                 value={amount}
                 onChangeText={text => setAmount(text)}
                 inputMode='decimal'
             />
-                    <DatePickerInput
-                        style={{
-                            width: "100%",
-                            marginVertical: 5,
-                            backgroundColor: surfaceColor,
-                        }}
-                        textColor='white'
-                        underlineColor='white'
-                        cursorColor='white'
-                        placeholderTextColor='white'
-                        iconColor = 'white'
-                        selectionColor='orange'
-                        activeUnderlineColor='orange'
-                        label='Date'
-                        locale="en"
-                        value={date}
-                        onChange={(d) => setDate(d)}
-                        inputMode="start"
-                        theme={{
-                            colors: {
-                                onSurfaceVariant: 'white',
-                            }
-                        }}
-                    />
-
-        </View>
-          <View style={{ padding: 8 }}>
-              <Pressable
+                <DatePickerInput
+                    style={{
+                        width: "100%",
+                        marginVertical: 5,
+                        backgroundColor: surfaceColor,
+                        color: 'white',
+                        borderRadius: 15,
+                    }}
+                    theme={{ colors: { primary: 'transparent', onSurfaceVariant: 'white',}}}
+                    mode='outlined'
+                    textColor={textOnSurfaceColor}
+                    selectionColor='darkgray'
+                    outlineColor={backgroundColor}
+                    cursorColor='white'
+                    placeholderTextColor={textOnSurfaceColor}
+                    iconColor = 'white'
+                    label='Date'
+                    locale="en"
+                    value={date}
+                    onChange={(d) => setDate(d)}
+                    inputMode="start"
+                />
+             <Pressable
+                 style={{
+                     marginVertical: 5,
+                 }}
                   onPress={() => {
                       router.navigate("category/picker");
                   }}
               >
                   <CategoryDisplay data={ pickedCategory || new Category(-1, "No category selected", 'lightgray', '')}></CategoryDisplay>
               </Pressable>
-          </View>
-    </ParallaxScrollView>
+
+              <Pressable
+                  style={{
+                      width: "100%",
+                      borderRadius: 8,
+                      height: 50,
+                      backgroundColor: surfaceColor,
+                      justifyContent: 'center',
+                      marginVertical: 5,
+                  }}
+                  onPress={() => {
+                      router.navigate("expenses");
+                  }}
+              >
+                    <Text
+                        style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
+                  >Save</Text>
+              </Pressable>
+        </SafeAreaView>
+
+      </ParallaxScrollView>
       </View>
   );
 }
