@@ -22,11 +22,9 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
     val redisService: RedisService by inject()
 
         /**
-         * Retrieves all users registered in the system.
-         *
-         * @response 200 OK - Returns a list of User objects
+         * Retrieves a paginated list of expenses from logged user.
          */
-        get("/user/{id}") {
+        get {
             val id = getPathId()
             val sessionUserId = getSessionUserId(redisService)
             val paging = getPaging()
@@ -35,10 +33,7 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
         }
 
         /**
-         * Retrieves the user that matches the id.
-         *
-         * @response 200 OK - Returns a User object that matches the given id
-         * @response 404 Not Found - If no user exists with the provided id
+         * Retrieves a specific expense from its id.
          */
         get("/{id}") {
             val userId = getSessionUserId(redisService)
