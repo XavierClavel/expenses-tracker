@@ -10,6 +10,6 @@ fun main() {
     //System.setProperty("ddl.migration.pendingDropsFor", "1.23")
     val dbMigration = DbMigration.create()
     dbMigration.setPlatform(Platform.POSTGRES)
-    dbMigration.setPathToResources("src/main/resources")
+    dbMigration.setPathToResources("backend/src/main/resources")
     dbMigration.generateMigration()
 }

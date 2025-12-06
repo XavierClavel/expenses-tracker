@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <addColumn tableName="expenses">
+            <column name="hidden" type="boolean" defaultValue="false" notnull="true"/>
+            <column name="marked" type="boolean" defaultValue="false" notnull="true"/>
+        </addColumn>
+        <createTable name="month_commentaries" pkName="pk_month_commentaries">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="month" type="integer" notnull="true"/>
+            <column name="year" type="integer" notnull="true"/>
+            <column name="comment" type="varchar" notnull="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_month_commentaries_user_id" foreignKeyIndex="ix_month_commentaries_user_id"/>
+        </createTable>
+    </changeSet>
+</migration>

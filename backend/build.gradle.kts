@@ -15,9 +15,6 @@ plugins {
     id("io.ebean") version "17.0.1"
 }
 
-group = "com.xavierclavel"
-version = "0.0.1"
-
 application {
     mainClass = "com.xavierclavel.ApplicationKt"
 }
@@ -94,8 +91,4 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.compilerOptions {
-    freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
 }
