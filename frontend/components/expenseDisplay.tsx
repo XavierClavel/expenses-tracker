@@ -6,13 +6,17 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import Category from "@/src/types/Category";
+import ExpenseOut from "@/src/types/ExpenseOut";
+
+
+type ExpenseDisplayProps = {
+    data: ExpenseOut;
+};
 
 
 
-
-
-
-export function ExpenseDisplay({ data }) {
+export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
@@ -53,13 +57,13 @@ export function ExpenseDisplay({ data }) {
                 justifyContent: "space-between",
             }}
         >
-        {renderIcon(data.color, data.icon)}
+        {renderIcon('#b4f1a7', 'school')}
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {data.label}
         </Text>
         <View style={{ flex: 1, alignItems: 'right' }}>
             <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16, marginVertical: 8 }}>
-                {data.value}€
+                {data.amount}€
             </Text>
         </View>
         </View>

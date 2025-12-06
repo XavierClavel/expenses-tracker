@@ -8,6 +8,7 @@ import {FAB} from "react-native-paper";
 import {router, useNavigation} from "expo-router";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {listExpenses} from "@/src/api/expenses";
+import {useEffect, useState} from "react";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -36,7 +37,12 @@ const data = [
 
 export default function HomeScreen() {
     const navigation = useNavigation();
-    listExpenses()
+    const [expenses, setExpenses] = useState([]);
+    useEffect(() => {
+        listExpenses().then((response) => {
+            setExpenses(response);
+        });
+    }, []);
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -56,7 +62,7 @@ export default function HomeScreen() {
                 marginTop: 70,
                 justifyContent: "space-around"
             }}>
-            {data.map((item, index) => (
+            {expenses.map((item, index) => (
                 <Pressable
                     key={index}
                     onPress={() => {
