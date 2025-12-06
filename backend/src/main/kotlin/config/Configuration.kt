@@ -1,9 +1,9 @@
 package com.xavierclavel.config
 
-import com.sksamuel.hoplite.ConfigAlias
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addResourceSource
 import com.sksamuel.hoplite.sources.EnvironmentVariablesPropertySource
+import com.sksamuel.hoplite.sources.MapPropertySource
 
 
 data class Configuration(
@@ -14,17 +14,11 @@ data class Configuration(
     val aes: Aes,
 ) {
     data class Postgres(
-        @ConfigAlias("POSTGRES_USER")
         val user: String,
-
-        @ConfigAlias("POSTGRES_PASSWORD")
         val password: String,
-
         val jdbc: Jdbc
     ) {
         data class Jdbc(
-
-            @ConfigAlias("POSTGRES_JDBC_URL")
             val url: String,
         )
     }
@@ -46,24 +40,16 @@ data class Configuration(
     )
 
     data class Redis(
-
-        @ConfigAlias("REDIS_PASSWORD")
         val password: String,
-
-        @ConfigAlias("REDIS_HOSTNAME")
         val hostname: String,
-
-        @ConfigAlias("REDIS_PORT")
         val port: Int,
     )
 
     data class Admin(
-        @ConfigAlias("ADMIN_PASSWORD")
         val password: String,
     )
 
     data class Aes(
-        @ConfigAlias("AES_KEY")
         val key: String,
     )
 
@@ -81,12 +67,26 @@ val testConfig: Configuration by lazy {
 fun prodConfig(): Configuration {
     return ConfigLoaderBuilder.default()
         .addSource(
-            EnvironmentVariablesPropertySource(
-                useUnderscoresAsSeparator = true,
-                allowUppercaseNames = true,
-            )
+            customEnvSource()
         )
         .addResourceSource("/configuration.yaml", true)
         .build()
         .loadConfigOrThrow<Configuration>()
+}
+
+/**
+ * Loads config from env variables with single underscore
+ */
+fun customEnvSource(): MapPropertySource {
+    val transformed: Map<String, String> = System.getenv().entries
+        .associate { (key, value) ->
+            val hopliteKey = key
+                .replace("__", ".")
+                .replace("_", ".")
+                .lowercase()
+
+            hopliteKey to value
+        }
+
+    return MapPropertySource(transformed)
 }
