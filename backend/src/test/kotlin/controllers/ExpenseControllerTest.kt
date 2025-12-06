@@ -133,19 +133,4 @@ class ExpenseControllerTest: ApplicationTest() {
         }
     }
 
-
-    @Test
-    fun `users cannot see each others categories`() = runTest {
-        var userId: Long = 0
-        runAsUser1 {
-            userId = client.getMe().id
-        }
-
-        runAsUser2 {
-            client.get("${EXPENSES_URL}/user/$userId").apply {
-                assertEquals(HttpStatusCode.Forbidden, status)
-            }
-        }
-    }
-
 }

@@ -41,10 +41,7 @@ class ExpenseService: KoinComponent {
             .checkRights(userId)
             .toOutput()
 
-    fun list(userId: Long, sessionUserId: Long, paging: Paging): List<ExpenseOut> {
-        if (sessionUserId != userId) {
-            throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
-        }
+    fun list(userId: Long, paging: Paging): List<ExpenseOut> {
         return QExpense()
             .user.id.eq(userId)
             .setPaging(paging)

@@ -25,10 +25,9 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
          * Retrieves a paginated list of expenses from logged user.
          */
         get {
-            val id = getPathId()
             val sessionUserId = getSessionUserId(redisService)
             val paging = getPaging()
-            val users = expenseService.list(userId = id, sessionUserId = sessionUserId, paging = paging)
+            val users = expenseService.list(userId = sessionUserId, paging = paging)
             call.respond(users)
         }
 
