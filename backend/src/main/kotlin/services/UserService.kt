@@ -14,6 +14,7 @@ import com.xavierclavel.models.User
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
+import com.xavierclavel.utils.logger
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -90,5 +91,9 @@ class UserService: KoinComponent {
             password = configuration.admin.password,
             emailAddress = "admin@mail.com"
         )
+        try {
+            create(dto)
+            logger.info {"Default admin setup"}
+        } catch (e: Exception) {}
     }
 }

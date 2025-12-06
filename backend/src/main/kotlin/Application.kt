@@ -8,10 +8,12 @@ import com.xavierclavel.plugins.configureMonitoring
 import com.xavierclavel.plugins.configureSerialization
 import com.xavierclavel.plugins.configureStatusPages
 import com.xavierclavel.plugins.setupOpenAPI
+import com.xavierclavel.services.UserService
 import io.ktor.server.application.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import org.koin.core.context.startKoin
+import org.koin.ktor.ext.inject
 
 
 fun main() {
@@ -32,4 +34,8 @@ fun Application.module() {
     configureSerialization()
     configureAuthentication()
     serveRoutes()
+
+    val userService by inject<UserService>()
+    userService.setupDefaultAdmin()
+
 }
