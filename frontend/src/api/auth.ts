@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from "axios";
 import {saveToken} from "@/src/storage/token";
 import {useNavigation} from "expo-router";
-import {apiClient} from "@/src/api/client";
+import {apiClient, setSessionToken} from "@/src/api/client";
 
 export async function login(username: string, password: string): Promise<void> {
     const result = await apiClient.post("/auth/login", {}, {
@@ -10,12 +10,13 @@ export async function login(username: string, password: string): Promise<void> {
             password: password,
         }
     });
-    console.log(result)
+    console.log("Login successful, received token", result.data.token)
+    setSessionToken(result.data.token)
     await saveToken(result.data.token)
 }
 
 export async function fetchMe() {
-    const res = await apiClient.get("/me");
-    console.log("User is logged in")
+    const res = await apiClient.get("/auth/me");
+    console.log("User is already logged in")
     return res.data;
 }

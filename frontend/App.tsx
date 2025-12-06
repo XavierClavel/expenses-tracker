@@ -11,9 +11,9 @@ export default function App() {
     useEffect(() => {
         async function init() {
             try {
-                const result = await bootstrapAuth();
-                setApi(result.api);
-                setMe(result.me);
+                //const result = await bootstrapAuth();
+                //setApi(result.api);
+                //setMe(result.me);
             } catch (e) {
                 console.error("Auth bootstrap failed:", e);
             } finally {

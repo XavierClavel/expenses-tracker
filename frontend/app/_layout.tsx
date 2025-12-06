@@ -12,9 +12,13 @@ SplashScreen.preventAutoHideAsync();
 async function isAuthenticated(): Promise<boolean> {
     let token = await loadToken();
 
-    if (!token) return false;
+    if (!token) {
+        console.log("No token found")
+        return false;
+    }
 
     setSessionToken(token)
+    console.log("Token found", token)
 
     try {
         await fetchMe();
