@@ -2,7 +2,7 @@ import axios from "axios";
 
 export function createApiClient(token: string) {
     return axios.create({
-        baseURL: process.env.BACK_URL,
+        baseURL: "http://178.16.131.84:30081",
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

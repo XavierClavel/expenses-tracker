@@ -10,7 +10,6 @@ import {DarkTheme} from "@react-navigation/native";
 SplashScreen.preventAutoHideAsync();
 
 async function isAuthenticated(): Promise<boolean> {
-    return true
     let token = await loadToken();
 
     if (!token) return false;
