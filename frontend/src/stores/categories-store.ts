@@ -8,14 +8,20 @@ type CategoriesStore = {
     selected: CategoryOut[];
     setSelected: (value: CategoryOut[]) => void;
     reset: () => void;
-    getSubcategories: () => SubcategoryOut[];
+    subcategories: SubcategoryOut[];
     getSubcategory: (id: number) => SubcategoryOut | undefined;
 };
 
 export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
     selected: [],
-    setSelected: (value) => set({ selected: value }),
-    reset: () => set({selected: [] }),
-    getSubcategories: () => get().selected.flatMap((it) => it.subcategories),
-    getSubcategory: (id: number) => get().selected.flatMap((it) => it.subcategories).find((it) => it.id == id)
+    subcategories: [],
+    setSelected: (value) => set({
+        selected: value,
+        subcategories: value.flatMap((it) => it.subcategories)
+    }),
+    reset: () => set({
+        selected: [],
+        subcategories: [],
+    }),
+    getSubcategory: (id: number) => get().subcategories.find((it) => it.id == id)
 }));
