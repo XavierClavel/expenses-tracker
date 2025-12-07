@@ -11,6 +11,7 @@ import {listExpenses} from "@/src/api/expenses";
 import {useEffect, useState} from "react";
 import ExpenseOut from "@/src/types/ExpenseOut";
 import {SafeAreaView} from "react-native-safe-area-context";
+import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -45,6 +46,7 @@ export default function HomeScreen() {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const backgroundColor = useThemeColor({}, 'background');
+    const selectedExpenseStore = useSelectedExpenseStore()
 
     const loadExpenses = async (pageToLoad: number) => {
         if (loading || !hasMore) return;
@@ -84,6 +86,7 @@ export default function HomeScreen() {
                     <Pressable
                         key={item.id}
                         onPress={() => {
+                            selectedExpenseStore.setSelected(item)
                             router.navigate("expense/edit");
                         }}
                     >
@@ -104,7 +107,10 @@ export default function HomeScreen() {
               <FAB
                   icon="plus"
                   style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
-                  onPress={() => {navigation.navigate('expense/edit')}}
+                  onPress={() => {
+                      selectedExpenseStore.setSelected(null)
+                      navigation.navigate('expense/edit')
+                  }}
               />
 
       </View>

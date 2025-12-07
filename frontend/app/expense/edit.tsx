@@ -13,15 +13,17 @@ import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import Category from "@/src/types/Category";
-import {createExpense} from "@/src/api/expenses";
+import {createExpense, updateExpense} from "@/src/api/expenses";
 import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
+import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 
 
 
 
 export default function a() {
     const segments = useSegments();
+    const selectedExpenseStore = useSelectedExpenseStore()
 
     const [selected, setSelected] = useState<string | null>(null);
     const navigation = useNavigation();
@@ -29,9 +31,9 @@ export default function a() {
     const backgroundColor = useThemeColor({}, 'background');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
-    const [title, setTitle] = useState("");
-    const [amount, setAmount] = useState("");
-    const [date, setDate] = useState(new Date());
+    const [title, setTitle] = useState(selectedExpenseStore.selected?.title || "");
+    const [amount, setAmount] = useState(selectedExpenseStore.selected?.amount || "");
+    const [date, setDate] = useState(selectedExpenseStore.selected?.date || new Date());
     const [open, setOpen] = useState(false);
     const pickedCategory = usePickerStore((s) => s.selected);
     const setPickedCategory = usePickerStore((s) => s.setSelected)
@@ -162,7 +164,11 @@ export default function a() {
                           "EXPENSE",
                       )
                       try {
-                          await createExpense(expense)
+                          if (selectedExpenseStore.selected) {
+                              await updateExpense(selectedExpenseStore.selected.id, expense)
+                          } else {
+                              await createExpense(expense)
+                          }
                           router.replace("/(app)/expenses");
                       } catch (e) {
                           console.error("Expense creation failed", e);

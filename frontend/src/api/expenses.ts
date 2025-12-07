@@ -30,3 +30,8 @@ export async function createExpense(expense: ExpenseIn) {
     console.log(res.data)
     return res.data;
 }
+
+export async function updateExpense(id: number, expense: ExpenseIn) {
+    const res = await apiClient.put(`/expenses/${id}`, expense)
+    return res.data;
+}
