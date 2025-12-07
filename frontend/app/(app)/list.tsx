@@ -51,7 +51,7 @@ export default function HomeScreen() {
                         >
                             <CategoryDisplay data={item}/>
                         </Pressable>
-                            {item.subcategories.filter((it) => it.isDefault).map((item) => (
+                            {item.subcategories/*.filter((it) => it.isDefault)*/.map((item) => (
                                 <Pressable
                                     key={item.id}
                                     style={{marginLeft: 40}}

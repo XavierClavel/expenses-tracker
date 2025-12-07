@@ -19,6 +19,7 @@ import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {createCategory, updateCategory} from "@/src/api/categories";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
+import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 
 
 
@@ -26,6 +27,8 @@ import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 export default function a() {
     const segments = useSegments();
     const selectedCategoryStore = useSelectedCategoryStore()
+    const selectedSubcategoryStore = useSelectedSubcategoryStore()
+    const categoryPickerStore = usePickerStore()
 
     const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
@@ -74,15 +77,25 @@ export default function a() {
                 onChangeText={text => setTitle(text)}
             />
 
-             <Pressable
-                 style={{
-                     marginVertical: 5,
-                 }}
-                  onPress={() => {
-                      router.navigate("category/picker");
-                  }}
-              >
-              </Pressable>
+            <Pressable
+                style={{
+                    width: "100%",
+                    borderRadius: 8,
+                    height: 50,
+                    backgroundColor: surfaceColor,
+                    justifyContent: 'center',
+                    marginVertical: 5,
+                }}
+                onPress={async () => {
+                    selectedSubcategoryStore.setSelected(null)
+                    categoryPickerStore.setSelected(selectedCategoryStore.selected)
+                    router.navigate("subcategory/edit");
+                }}
+            >
+                <Text
+                    style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
+                >New subcategory</Text>
+            </Pressable>
 
               <Pressable
                   style={{
