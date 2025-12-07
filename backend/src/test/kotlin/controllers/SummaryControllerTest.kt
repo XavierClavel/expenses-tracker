@@ -17,7 +17,7 @@ import kotlin.time.ExperimentalTime
 class SummaryControllerTest: ApplicationTest() {
     @OptIn(ExperimentalTime::class)
     val expense = ExpenseIn(
-        label = "Carrefour",
+        title = "Carrefour",
         amount = BigDecimal("25.00"),
         currency = "eur",
         date = LocalDate.parse("2020-06-06"),

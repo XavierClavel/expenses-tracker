@@ -16,7 +16,7 @@ import java.time.LocalDate
 @Serializable
 data class ExpenseOut(
     val id: Long,
-    val label: String,
+    val title: String,
     val categoryId: Long?,
     @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,

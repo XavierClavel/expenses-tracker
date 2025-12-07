@@ -1,25 +1,19 @@
 package com.xavierclavel.services
 
 import com.xavierclavel.config.Configuration
-import com.xavierclavel.dtos.summary.CategorySummary
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.exceptions.ForbiddenCause
 import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.Expense
-import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.dtos.ExpenseOut
-import com.xavierclavel.dtos.summary.MonthSummary
 import com.xavierclavel.models.query.QSubcategory
-import io.ebean.DB
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.math.BigDecimal
-import java.time.LocalDate
 
 class ExpenseService: KoinComponent {
     val configuration: Configuration by inject()
@@ -57,7 +51,7 @@ class ExpenseService: KoinComponent {
 
         val expense = Expense(
             user = user,
-            label = expenseDto.label,
+            title = expenseDto.title,
             category = category,
             date = expenseDto.date,
             amount = expenseDto.amount,
@@ -74,7 +68,7 @@ class ExpenseService: KoinComponent {
         return getById(expenseId)
             .checkRights(userId)
             .apply {
-                this.label = expenseDto.label
+                this.title = expenseDto.title
                 this.category = category
                 this.date = expenseDto.date
                 this.amount = expenseDto.amount

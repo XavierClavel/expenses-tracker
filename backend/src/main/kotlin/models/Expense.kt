@@ -27,7 +27,8 @@ class Expense(
     @OnDelete(action = OnDeleteAction.SET_NULL)
     var category: Subcategory?,
 
-    var label: String,
+    @DbDefault("")
+    var title: String,
 
     @Column(precision = 15, scale = 2)
     var amount: BigDecimal,
@@ -52,7 +53,7 @@ class Expense(
 
     fun toOutput() = ExpenseOut(
         id = this.id,
-        label = this.label,
+        title = this.title,
         amount = this.amount,
         currency = this.currency,
         date = this.date,

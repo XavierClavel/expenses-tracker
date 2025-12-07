@@ -11,7 +11,6 @@ import com.xavierclavel.utils.createCategory
 import com.xavierclavel.utils.createExpense
 import com.xavierclavel.utils.deleteCategory
 import com.xavierclavel.utils.getCategory
-import com.xavierclavel.utils.getMe
 import com.xavierclavel.utils.listCategoriesByUser
 import com.xavierclavel.utils.updateCategory
 import io.ktor.client.request.delete
@@ -33,7 +32,7 @@ class CategoryControllerTest: ApplicationTest() {
 
     val categoryInTemplate = CategoryIn(name = "Groceries", type = ExpenseType.EXPENSE, color = "", icon = "")
     val expense = ExpenseIn(
-        label = "Carrefour",
+        title = "Carrefour",
         amount = BigDecimal("25.00"),
         currency = "eur",
         date = LocalDate.parse("2020-06-06"),

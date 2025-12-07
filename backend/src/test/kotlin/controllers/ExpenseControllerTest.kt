@@ -9,11 +9,9 @@ import com.xavierclavel.utils.assertExpenseExists
 import com.xavierclavel.utils.createExpense
 import com.xavierclavel.utils.deleteExpense
 import com.xavierclavel.utils.getExpense
-import com.xavierclavel.utils.getMe
 import com.xavierclavel.utils.listExpenses
 import com.xavierclavel.utils.updateExpense
 import io.ktor.client.request.delete
-import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -31,7 +29,7 @@ import kotlin.time.ExperimentalTime
 class ExpenseControllerTest: ApplicationTest() {
     @OptIn(ExperimentalTime::class)
     val expense = ExpenseIn(
-        label = "Carrefour",
+        title = "Carrefour",
         amount = BigDecimal("25.00"),
         currency = "eur",
         date = LocalDate.parse("2020-06-06"),
@@ -42,7 +40,7 @@ class ExpenseControllerTest: ApplicationTest() {
     @Test
     fun `get expense`() = runTestAsUser {
         val result = client.createExpense(expense)
-        assertEquals(expense.label, result.label)
+        assertEquals(expense.title, result.title)
     }
 
     @Test
@@ -59,11 +57,11 @@ class ExpenseControllerTest: ApplicationTest() {
     fun `edit expense`() = runTestAsUser {
         val expense = client.createExpense(this@ExpenseControllerTest.expense)
         val result = client.getExpense(expense.id)
-        assertEquals("Carrefour", result.label)
+        assertEquals("Carrefour", result.title)
 
-        client.updateExpense(result.id, this@ExpenseControllerTest.expense.copy(label = "Monoprix"))
+        client.updateExpense(result.id, this@ExpenseControllerTest.expense.copy(title = "Monoprix"))
         val result2 = client.getExpense(expense.id)
-        assertEquals("Monoprix", result2.label)
+        assertEquals("Monoprix", result2.title)
     }
 
     @Test
@@ -72,24 +70,24 @@ class ExpenseControllerTest: ApplicationTest() {
             client.createExpense(expense)
         }
         runAsUser2 {
-            client.createExpense(expense.copy(label = "MacDo"))
-            client.createExpense(expense.copy(label = "Coffee"))
+            client.createExpense(expense.copy(title = "MacDo"))
+            client.createExpense(expense.copy(title = "Coffee"))
         }
 
         runAsUser1 {
             val result = client.listExpenses()
             assertEquals(1, result.size)
-            assertEquals("Carrefour", result[0].label)
+            assertEquals("Carrefour", result[0].title)
         }
 
         runAsUser2 {
             val result = client.listExpenses()
             assertEquals(2, result.size)
             assertTrue {
-                result.any { it.label == "MacDo" }
+                result.any { it.title == "MacDo" }
             }
             assertTrue {
-                result.any { it.label == "Coffee" }
+                result.any { it.title == "Coffee" }
             }
         }
     }
