@@ -10,11 +10,13 @@ import {ActivityIndicator, FlatList, Pressable, View} from "react-native";
 import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {FAB} from "react-native-paper";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
+import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 
 export default function HomeScreen() {
     const navigation = useNavigation();
     const backgroundColor = useThemeColor({}, 'background');
     const categoriesStore = useCategoriesStore()
+    const selectedCategoryStore = useSelectedCategoryStore()
 
 
     return (
@@ -35,15 +37,24 @@ export default function HomeScreen() {
                     data={categoriesStore.selected}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) =>
+                        <View>
                         <Pressable
                             key={item.id}
                             onPress={() => {
-                                //selectedExpenseStore.setSelected(item)
+                                selectedCategoryStore.setSelected(item)
                                 router.navigate("category/edit");
                             }}
                         >
                             <CategoryDisplay data={item}/>
-                        </Pressable>}
+                        </Pressable>
+                            {item.subcategories.filter((it) => it.isDefault).map((item) => (
+                                <View style={{marginLeft: 40}}>
+                                <CategoryDisplay key={item.id} data={item}/>
+                                </View>
+                            ))
+                            }
+                        </View>
+}
                     onEndReachedThreshold={0.5}
                 />
             </View>

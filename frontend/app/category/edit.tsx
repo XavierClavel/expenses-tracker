@@ -18,22 +18,21 @@ import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {createCategory} from "@/src/api/categories";
+import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 
 
 
 
 export default function a() {
     const segments = useSegments();
-    const selectedExpenseStore = useSelectedExpenseStore()
+    const selectedCategoryStore = useSelectedCategoryStore()
 
-    const [selected, setSelected] = useState<string | null>(null);
     const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
     const backgroundColor = useThemeColor({}, 'background');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
-    const [title, setTitle] = useState(selectedExpenseStore.selected?.title || "");
-    const [amount, setAmount] = useState(selectedExpenseStore.selected?.amount || "");
+    const [title, setTitle] = useState(selectedCategoryStore.selected?.name || "");
     const setPickedCategory = usePickerStore((s) => s.setSelected)
 
     useEffect(() => {
