@@ -161,7 +161,7 @@ export default function a() {
                           amount,
                           "EUR",
                           date.toLocaleDateString('sv-SE'),
-                          null,
+                          pickedCategory?.id || null,
                           "EXPENSE",
                       )
                       try {

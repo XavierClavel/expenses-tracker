@@ -8,21 +8,14 @@ import {router, useFocusEffect, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import CategoryIn from "@/src/types/CategoryIn";
 import {useCallback} from "react";
-
-const OPTIONS = [
-    new CategoryIn(1, 'Accomodation & charges', '#009FFF', 'house'),
-    new CategoryIn(2,  'Leisure', '#93FCF8', 'train'),
-    new CategoryIn(3, 'Food', '#BDB2FA', 'groceries'),
-    new CategoryIn(4, 'Shopping', '#FFA5BA', 'trip'),
-    new CategoryIn(5, 'Video games', '#e1d481', 'video-games'),
-    new CategoryIn(6,  'School', '#b4f1a7', 'school'),
-];
+import {useCategoriesStore} from "@/src/stores/categories-store";
 
 export default function FullPickerScreen() {
   const route = useRoute<any>();
   const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
   const setPickedCategory = usePickerStore((s) => s.setSelected)
+    const categoriesStore = useCategoriesStore()
 
   return (
     <View style={{
@@ -35,7 +28,7 @@ export default function FullPickerScreen() {
     }}>
 
         <SafeAreaView>
-      {OPTIONS.map((item) => (
+      {categoriesStore.subcategories.map((item) => (
           <Pressable
               key={item.id}
               onPress={() => {

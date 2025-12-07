@@ -14,6 +14,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {listCategories} from "@/src/api/categories";
 import {useCategoriesStore} from "@/src/stores/categories-store";
+import {usePickerStore} from "@/src/stores/category-picker-store";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -49,6 +50,7 @@ export default function HomeScreen() {
     const [hasMore, setHasMore] = useState(true);
     const backgroundColor = useThemeColor({}, 'background');
     const selectedExpenseStore = useSelectedExpenseStore()
+    const pickedCategoryStore = usePickerStore()
     const categoriesStore = useCategoriesStore()
 
     const loadExpenses = async (pageToLoad: number) => {
@@ -97,6 +99,7 @@ export default function HomeScreen() {
                         key={item.id}
                         onPress={() => {
                             selectedExpenseStore.setSelected(item)
+                            pickedCategoryStore.setSelected(categoriesStore.getSubcategory(item.categoryId))
                             router.navigate("expense/edit");
                         }}
                     >
