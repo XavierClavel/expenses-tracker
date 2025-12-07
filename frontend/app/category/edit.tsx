@@ -20,6 +20,7 @@ import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {createCategory, updateCategory} from "@/src/api/categories";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
+import {ColorDisplay} from "@/components/category/color-display";
 
 
 
@@ -76,6 +77,17 @@ export default function a() {
                 value={title}
                 onChangeText={text => setTitle(text)}
             />
+
+            <Pressable
+                style={{
+                    marginVertical: 5,
+                }}
+                onPress={() => {
+                    router.navigate("picker/colors");
+                }}
+            >
+                <ColorDisplay color='#009FFF' label='Blue' ></ColorDisplay>
+            </Pressable>
 
             <Pressable
                 style={{
