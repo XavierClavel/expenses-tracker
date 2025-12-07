@@ -2,6 +2,7 @@ package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.utils.EXPENSES_URL
 import com.xavierclavel.utils.assertExpenseDoesNotExist
 import com.xavierclavel.utils.assertExpenseExists
@@ -35,6 +36,7 @@ class ExpenseControllerTest: ApplicationTest() {
         currency = "eur",
         date = LocalDate.parse("2020-06-06"),
         categoryId = null,
+        type = ExpenseType.EXPENSE,
     )
 
     @Test

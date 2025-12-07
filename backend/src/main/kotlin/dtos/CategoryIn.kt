@@ -1,5 +1,6 @@
 package com.xavierclavel.dtos
 
+import com.xavierclavel.enums.ExpenseType
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,4 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CategoryIn(
     val name: String,
+    val type: ExpenseType,
+    val color: String,
+    val icon: String,
 )

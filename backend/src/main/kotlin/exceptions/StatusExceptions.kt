@@ -21,11 +21,13 @@ enum class ForbiddenCause(val key: String) {
     MUST_BE_PERFORMED_ON_SELF("must_be_performed_on_self"),
     MUST_OWN_CATEGORY("must own category"),
     MUST_OWN_EXPENSE("must own expense"),
+    CANNOT_DELETE_USED_CATEGORY("cannot_delete use_category"),
 }
 
 enum class NotFoundCause(val key: String) {
     USER_NOT_FOUND("user_not_found"),
     CATEGORY_NOT_FOUND("category_not_found"),
+    SUBCATEGORY_NOT_FOUND("subcategory_not_found"),
     EXPENSE_NOT_FOUND("expense_not_found"),
 }
 

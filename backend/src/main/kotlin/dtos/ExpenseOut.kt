@@ -1,5 +1,6 @@
 package com.xavierclavel.dtos
 
+import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.utils.BigDecimalSerializer
 import com.xavierclavel.utils.LocalDateSerializer
 
@@ -22,4 +23,5 @@ data class ExpenseOut(
     val currency: String,
     @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate,
+    val type: ExpenseType,
 )

@@ -10,6 +10,7 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 import {listExpenses} from "@/src/api/expenses";
 import {useEffect, useState} from "react";
 import ExpenseOut from "@/src/types/ExpenseOut";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -63,15 +64,14 @@ export default function HomeScreen() {
 
 
   return (
-      <View style={{ flex: 1, backgroundColor: backgroundColor}}>
+      <View style={{ flex: 1, backgroundColor: backgroundColor, paddingTop: 50}}>
         <View
             style={{
                 flex: 1,
                 flexDirection: 'column',
                 alignItems: 'center',
                 width: "100%",
-                padding: 10,
-                marginTop: 70,
+                paddingHorizontal: 10,
                 justifyContent: "space-around"
             }}>
             <FlatList

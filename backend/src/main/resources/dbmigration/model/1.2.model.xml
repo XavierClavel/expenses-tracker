@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <addColumn tableName="categories">
+            <column name="color" type="varchar" defaultValue="'#ffffff'" notnull="true"/>
+            <column name="icon" type="varchar" defaultValue="''" notnull="true"/>
+            <column name="type" type="varchar(7)" defaultValue="'EXPENSE'" notnull="true" checkConstraint="check ( type in ('EXPENSE','INCOME'))" checkConstraintName="ck_categories_type"/>
+        </addColumn>
+        <alterColumn columnName="category_id" tableName="expenses" references="subcategories.id" foreignKeyName="fk_expenses_category_id" foreignKeyIndex="ix_expenses_category_id" dropForeignKey="fk_expenses_category_id" dropForeignKeyIndex="ix_expenses_category_id"/>
+        <addColumn tableName="expenses">
+            <column name="type" type="varchar(7)" defaultValue="'EXPENSE'" notnull="true" checkConstraint="check ( type in ('EXPENSE','INCOME'))" checkConstraintName="ck_expenses_type"/>
+        </addColumn>
+        <createTable name="subcategories" pkName="pk_subcategories">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_subcategories_user_id" foreignKeyIndex="ix_subcategories_user_id"/>
+            <column name="name" type="varchar" notnull="true"/>
+            <column name="icon" type="varchar" notnull="true"/>
+            <column name="is_default" type="boolean" defaultValue="false" notnull="true"/>
+            <column name="type" type="varchar(7)" notnull="true" checkConstraint="check ( type in ('EXPENSE','INCOME'))" checkConstraintName="ck_subcategories_type"/>
+            <column name="parent_category_id" type="bigint" notnull="true" references="categories.id" foreignKeyName="fk_subcategories_parent_category_id" foreignKeyIndex="ix_subcategories_parent_category_id"/>
+        </createTable>
+        <alterColumn columnName="role" tableName="users" type="varchar(5)" currentType="integer" currentNotnull="true" checkConstraint="check ( role in ('USER','ADMIN'))" checkConstraintName="ck_users_role"/>
+    </changeSet>
+</migration>

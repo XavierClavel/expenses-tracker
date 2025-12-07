@@ -52,8 +52,8 @@ suspend fun HttpClient.getCategory(id: Long): CategoryOut  {
     }
 }
 
-suspend fun HttpClient.listCategoriesByUser(id: Long): List<CategoryOut>  {
-    this.get("$CATEGORY_URL/user/$id").apply {
+suspend fun HttpClient.listCategoriesByUser(): List<CategoryOut>  {
+    this.get(CATEGORY_URL).apply {
         assertEquals(HttpStatusCode.OK, status)
         val categories = Json.decodeFromString<List<CategoryOut>>(bodyAsText())
         return categories

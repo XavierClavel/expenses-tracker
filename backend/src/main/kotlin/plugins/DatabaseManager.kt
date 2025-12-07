@@ -3,6 +3,7 @@ package com.xavierclavel.plugins
 import com.xavierclavel.config.Configuration
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
+import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.utils.logger
 import com.zaxxer.hikari.HikariConfig
@@ -24,6 +25,7 @@ object DatabaseManager {
 
     fun getTables() = listOf(
         QExpense(),
+        QSubcategory(),
         QCategory(),
         QUser(),
     )

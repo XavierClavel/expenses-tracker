@@ -9,11 +9,11 @@ import kotlinx.serialization.Serializable
  * @property name Display name of the category.
  */
 @Serializable
-data class CategoryOut(
+data class SubcategoryOut(
     val id: Long,
     val name: String,
-    val color: String,
-    val icon: String,
     val type: ExpenseType,
-    val subcategories: List<SubcategoryOut>
+    val icon: String,
+    val color: String,
+    val isDefault: Boolean,
 )

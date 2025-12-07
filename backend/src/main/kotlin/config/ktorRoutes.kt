@@ -3,6 +3,7 @@ package com.xavierclavel.config
 import com.xavierclavel.routes.setupAuthController
 import com.xavierclavel.routes.setupCategoryController
 import com.xavierclavel.routes.setupExpenseController
+import com.xavierclavel.routes.setupSubcategoryController
 import com.xavierclavel.routes.setupSummaryController
 import com.xavierclavel.routes.setupUserController
 import io.ktor.server.application.Application
@@ -15,6 +16,7 @@ fun Application.serveRoutes() {
         setupAuthController()
         authenticate("bearer-auth", "auth-session") {
             setupCategoryController()
+            setupSubcategoryController()
             setupExpenseController()
             setupSummaryController()
         }

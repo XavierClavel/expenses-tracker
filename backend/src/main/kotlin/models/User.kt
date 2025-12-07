@@ -6,6 +6,8 @@ import io.ebean.Model
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
@@ -24,6 +26,7 @@ class User(
 
     var googleId: String? = null,
 
+    @Enumerated(EnumType.STRING)
     var role: UserRole = UserRole.USER,
 
     @OneToMany(cascade = [(CascadeType.REMOVE)])

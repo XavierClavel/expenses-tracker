@@ -1,10 +1,8 @@
 package com.xavierclavel.models
 
-import com.xavierclavel.dtos.CategoryOut
+import com.xavierclavel.dtos.SubcategoryOut
 import com.xavierclavel.enums.ExpenseType
-import com.xavierclavel.models.query.QSubcategory
 import io.ebean.Model
-import io.ebean.annotation.DbDefault
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -13,23 +11,23 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "categories")
-class Category(
+@Table(name = "subcategories")
+class Subcategory(
 
     @ManyToOne
     var user: User,
 
     var name: String,
 
-    @DbDefault("#ffffff")
-    var color: String,
-
-    @DbDefault("")
     var icon: String,
 
-    @DbDefault("EXPENSE")
+    val isDefault: Boolean = false,
+
     @Enumerated(EnumType.STRING)
     val type: ExpenseType,
+
+    @ManyToOne
+    var parentCategory: Category,
 
     ): Model() {
 
@@ -37,12 +35,16 @@ class Category(
     var id: Long = 0
 
 
-    fun toOutput() = CategoryOut(
+    fun toOutput() = SubcategoryOut(
         id = this.id,
         name = this.name,
-        color = this.color,
-        icon = this.icon,
-        subcategories = QSubcategory().parentCategory.id.eq(this.id).findList().map { it.toOutput() },
+        color = this.parentCategory.color,
+        icon = if (this.isDefault) {
+            this.parentCategory.icon
+        } else {
+            this.icon
+        },
         type = this.type,
+        isDefault = this.isDefault,
     )
 }

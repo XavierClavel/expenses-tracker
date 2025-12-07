@@ -3,6 +3,7 @@ package com.xavierclavel.controllers
 import com.xavierclavel.ApplicationTest
 import com.xavierclavel.dtos.CategoryIn
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.utils.createCategory
 import com.xavierclavel.utils.createExpense
 import com.xavierclavel.utils.getMe
@@ -20,13 +21,17 @@ class SummaryControllerTest: ApplicationTest() {
         amount = BigDecimal("25.00"),
         currency = "eur",
         date = LocalDate.parse("2020-06-06"),
-        categoryId = null,
+        categoryId = 0,
+        type = ExpenseType.EXPENSE
     )
+
+    val categoryInTemplate = CategoryIn(name = "Groceries", type = ExpenseType.EXPENSE, color = "", icon = "")
+
 
     @Test
     fun `get month summary`() = runTestAsUser {
-            val groceriesId = client.createCategory(CategoryIn(name = "Groceries")).id
-            val activitiesId = client.createCategory(CategoryIn(name = "Activities")).id
+            val groceriesId = client.createCategory(categoryInTemplate.copy(name = "Groceries")).subcategories[0].id
+            val activitiesId = client.createCategory(categoryInTemplate.copy(name = "Activities")).subcategories[0].id
             client.createExpense(expense.copy(
                 amount = BigDecimal("25.00"),
                 date = LocalDate.parse("2020-06-06"),

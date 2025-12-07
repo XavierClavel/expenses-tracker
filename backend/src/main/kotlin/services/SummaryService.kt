@@ -14,6 +14,7 @@ import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.Expense
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
+import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import io.ebean.DB
 import io.ebean.Paging
@@ -76,10 +77,10 @@ class SummaryService: KoinComponent {
             """
             select 
               e.${QExpense.Alias.category}_id as categoryId,
-              c.${QCategory.Alias.name} as categoryName,
+              c.${QSubcategory.Alias.name} as categoryName,
               sum(e.${QExpense.Alias.amount}) as total
             from expenses e
-            left join categories c on c.id = e.${QExpense.Alias.category}_id
+            left join subcategories c on c.id = e.${QExpense.Alias.category}_id
             where e.${QExpense.Alias.user}_id = :userId 
               and e.${QExpense.Alias.date} >= :start 
               and e.${QExpense.Alias.date} < :end

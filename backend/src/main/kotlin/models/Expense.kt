@@ -1,10 +1,13 @@
 package com.xavierclavel.models
 
-import com.xavierclavel.dtos.CategoryOut
 import com.xavierclavel.dtos.ExpenseOut
+import com.xavierclavel.enums.ExpenseType
 import io.ebean.Model
+import io.ebean.annotation.DbDefault
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -22,7 +25,7 @@ class Expense(
 
     @ManyToOne
     @OnDelete(action = OnDeleteAction.SET_NULL)
-    var category: Category? = null,
+    var category: Subcategory?,
 
     var label: String,
 
@@ -37,6 +40,10 @@ class Expense(
 
     var marked: Boolean = false,
 
+    @DbDefault("EXPENSE")
+    @Enumerated(EnumType.STRING)
+    val type: ExpenseType,
+
     ): Model() {
 
     @Id
@@ -50,5 +57,6 @@ class Expense(
         currency = this.currency,
         date = this.date,
         categoryId = this.category?.id,
+        type = this.type,
     )
 }

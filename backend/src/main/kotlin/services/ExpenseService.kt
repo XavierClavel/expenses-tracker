@@ -13,6 +13,7 @@ import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.dtos.ExpenseOut
 import com.xavierclavel.dtos.summary.MonthSummary
+import com.xavierclavel.models.query.QSubcategory
 import io.ebean.DB
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
@@ -52,11 +53,8 @@ class ExpenseService: KoinComponent {
 
     fun create(expenseDto: ExpenseIn, userId: Long): ExpenseOut {
         val user = QUser().id.eq(userId).findOne() ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND)
-        val category = if (expenseDto.categoryId == null) {
-            null
-        } else {
-            QCategory().id.eq(expenseDto.categoryId).findOne() ?: throw NotFoundException(NotFoundCause.CATEGORY_NOT_FOUND)
-        }
+        val category = QSubcategory().id.eq(expenseDto.categoryId).findOne()
+
         val expense = Expense(
             user = user,
             label = expenseDto.label,
@@ -64,13 +62,16 @@ class ExpenseService: KoinComponent {
             date = expenseDto.date,
             amount = expenseDto.amount,
             currency = expenseDto.currency,
+            type = expenseDto.type,
         )
         expense.insert()
         return expense.toOutput()
     }
 
-    fun update(userId: Long, expenseId: Long, expenseDto: ExpenseIn): ExpenseOut =
-        getById(expenseId)
+    fun update(userId: Long, expenseId: Long, expenseDto: ExpenseIn): ExpenseOut {
+        val category = QSubcategory().id.eq(expenseDto.categoryId).findOne()
+
+        return getById(expenseId)
             .checkRights(userId)
             .apply {
                 this.label = expenseDto.label
@@ -81,6 +82,8 @@ class ExpenseService: KoinComponent {
             }
             .apply { this.update() }
             .toOutput()
+    }
+
 
     //TODO: prevent deletion if expense used
     fun delete(userId: Long, expenseId: Long) {
