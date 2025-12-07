@@ -1,7 +1,7 @@
 export default class CategoryIn {
     public constructor(
-        public id: number,
-        public label: string,
+        public name: string,
+        public type: "EXPENSE" | "INCOME",
         public color: string,
         public icon: string) {}
 }

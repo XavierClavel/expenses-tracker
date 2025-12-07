@@ -7,11 +7,12 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import CategoryIn from "@/src/types/CategoryIn";
+import CategoryOut from "@/src/types/CategoryOut";
 
 
 
 type CategoryDisplayProps = {
-    data: CategoryIn;
+    data: CategoryOut;
 };
 
 
@@ -58,7 +59,7 @@ export function CategoryDisplay( { data }: CategoryDisplayProps) {
         >
         {renderIcon(data.color, data.icon)}
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
-            {data.label}
+            {data.name}
         </Text>
     </View>
     </View>

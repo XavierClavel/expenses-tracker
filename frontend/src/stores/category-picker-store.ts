@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import CategoryIn from "@/src/types/CategoryIn";
+import CategoryOut from "@/src/types/CategoryOut";
 
 type PickerStore = {
-    selected: CategoryIn | null;
-    setSelected: (value: CategoryIn | null) => void;
+    selected: CategoryOut | null;
+    setSelected: (value: CategoryOut | null) => void;
 };
 
 export const usePickerStore = create<PickerStore>((set) => ({

@@ -17,7 +17,7 @@ import {createExpense, updateExpense} from "@/src/api/expenses";
 import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
-import CategoryOut from "@/src/types/CategoryOut";
+import {createCategory} from "@/src/api/categories";
 
 
 
@@ -34,9 +34,6 @@ export default function a() {
 
     const [title, setTitle] = useState(selectedExpenseStore.selected?.title || "");
     const [amount, setAmount] = useState(selectedExpenseStore.selected?.amount || "");
-    const [date, setDate] = useState(selectedExpenseStore.selected?.date || new Date());
-    const [open, setOpen] = useState(false);
-    const pickedCategory = usePickerStore((s) => s.selected);
     const setPickedCategory = usePickerStore((s) => s.setSelected)
 
     useEffect(() => {
@@ -45,17 +42,6 @@ export default function a() {
         };
     }, []);
 
-    const onDismissSingle = useCallback(() => {
-        setOpen(false);
-    }, [setOpen]);
-
-    const onConfirmSingle = useCallback(
-        (params) => {
-            setOpen(false);
-            setDate(params.date);
-        },
-        [setOpen, setDate]
-    );
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -93,48 +79,7 @@ export default function a() {
                 value={title}
                 onChangeText={text => setTitle(text)}
             />
-            <TextInput
-                style={{
-                    width: "100%",
-                    marginVertical: 5,
-                    backgroundColor: surfaceColor,
-                    color: 'white',
-                    borderRadius: 15,
-                }}
-                theme={{ colors: { primary: 'transparent'}}}
-                mode='outlined'
-                textColor={textOnSurfaceColor}
-                selectionColor='darkgray'
-                outlineColor={backgroundColor}
-                cursorColor='white'
-                placeholderTextColor={textOnSurfaceColor}
-                label={<Text style={{color: 'white'}}>Amount</Text>}
-                value={amount}
-                onChangeText={text => setAmount(text)}
-                inputMode='decimal'
-            />
-                <DatePickerInput
-                    style={{
-                        width: "100%",
-                        marginVertical: 5,
-                        backgroundColor: surfaceColor,
-                        color: 'white',
-                        borderRadius: 15,
-                    }}
-                    theme={{ colors: { primary: 'transparent', onSurfaceVariant: 'white',}}}
-                    mode='outlined'
-                    textColor={textOnSurfaceColor}
-                    selectionColor='darkgray'
-                    outlineColor={backgroundColor}
-                    cursorColor='white'
-                    placeholderTextColor={textOnSurfaceColor}
-                    iconColor = 'white'
-                    label='Date'
-                    locale="en"
-                    value={date}
-                    onChange={(d) => setDate(d)}
-                    inputMode="start"
-                />
+
              <Pressable
                  style={{
                      marginVertical: 5,
@@ -143,7 +88,6 @@ export default function a() {
                       router.navigate("category/picker");
                   }}
               >
-                  <CategoryDisplay data={ pickedCategory || new CategoryOut(-1, "No category selected", 'lightgray', 'unknown')}></CategoryDisplay>
               </Pressable>
 
               <Pressable
@@ -156,19 +100,18 @@ export default function a() {
                       marginVertical: 5,
                   }}
                   onPress={async () => {
-                      const expense = new ExpenseIn(
+                      const category = new CategoryIn(
                           title,
-                          amount,
-                          "EUR",
-                          date.toLocaleDateString('sv-SE'),
-                          null,
                           "EXPENSE",
+                          '#009FFF',
+                          "school",
+
                       )
                       try {
-                          if (selectedExpenseStore.selected) {
-                              await updateExpense(selectedExpenseStore.selected.id, expense)
+                          if (false) {
+                              //await updateExpense(selectedExpenseStore.selected.id, expense)
                           } else {
-                              await createExpense(expense)
+                              await createCategory(category)
                           }
                           router.replace("/(app)/expenses");
                       } catch (e) {

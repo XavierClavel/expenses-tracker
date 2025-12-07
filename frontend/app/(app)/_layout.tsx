@@ -30,6 +30,13 @@ export default function TabLayout() {
                 tabBarIcon: ({ color }) => <FontAwesome5 size={28} name="receipt" color={color} />,
             }}
         />
+          <Tabs.Screen
+              name="list"
+              options={{
+                  title: 'Categories',
+                  tabBarIcon: ({ color }) => <FontAwesome5 size={28} name="receipt" color={color} />,
+              }}
+          />
       <Tabs.Screen
         name="index"
         options={{
