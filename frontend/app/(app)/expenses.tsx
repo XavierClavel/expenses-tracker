@@ -67,7 +67,6 @@ export default function HomeScreen() {
 
     const loadCategories = async () => {
         const categories = await listCategories()
-        console.log(categories)
         categoriesStore.setSelected(categories)
     }
 

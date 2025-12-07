@@ -10,6 +10,7 @@ type CategoriesStore = {
     reset: () => void;
     subcategories: SubcategoryOut[];
     getSubcategory: (id: number) => SubcategoryOut | undefined;
+    getParent: (id: number) => CategoryOut | undefined;
 };
 
 export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
@@ -23,5 +24,6 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
         selected: [],
         subcategories: [],
     }),
-    getSubcategory: (id: number) => get().subcategories.find((it) => it.id == id)
+    getSubcategory: (id: number) => get().subcategories.find((it) => it.id == id),
+    getParent: (id: number) => get().selected.find((it) => it.subcategories.find((it) => it.id == id)),
 }));

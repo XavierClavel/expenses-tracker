@@ -11,12 +11,16 @@ import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {FAB} from "react-native-paper";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
+import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
+import {usePickerStore} from "@/src/stores/category-picker-store";
 
 export default function HomeScreen() {
     const navigation = useNavigation();
     const backgroundColor = useThemeColor({}, 'background');
     const categoriesStore = useCategoriesStore()
     const selectedCategoryStore = useSelectedCategoryStore()
+    const selectedSubcategoryStore = useSelectedSubcategoryStore()
+    const categoryPickerStore = usePickerStore()
 
 
     return (
@@ -48,9 +52,17 @@ export default function HomeScreen() {
                             <CategoryDisplay data={item}/>
                         </Pressable>
                             {item.subcategories.filter((it) => it.isDefault).map((item) => (
-                                <View style={{marginLeft: 40}}>
+                                <Pressable
+                                    key={item.id}
+                                    style={{marginLeft: 40}}
+                                    onPress={() => {
+                                        selectedSubcategoryStore.setSelected(item)
+                                        categoryPickerStore.setSelected(categoriesStore.getParent(item.id))
+                                        router.navigate("subcategory/edit");
+                                    }}
+                                >
                                 <CategoryDisplay key={item.id} data={item}/>
-                                </View>
+                                </Pressable>
                             ))
                             }
                         </View>

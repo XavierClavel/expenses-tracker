@@ -17,7 +17,7 @@ import {createExpense, updateExpense} from "@/src/api/expenses";
 import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
-import {createCategory} from "@/src/api/categories";
+import {createCategory, updateCategory} from "@/src/api/categories";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 
 
@@ -33,13 +33,8 @@ export default function a() {
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const [title, setTitle] = useState(selectedCategoryStore.selected?.name || "");
-    const setPickedCategory = usePickerStore((s) => s.setSelected)
 
-    useEffect(() => {
-        return () => {
-            setPickedCategory(null);
-        };
-    }, []);
+
 
   return (
       <View style={{ flex: 1}}>
@@ -107,8 +102,8 @@ export default function a() {
 
                       )
                       try {
-                          if (false) {
-                              //await updateExpense(selectedExpenseStore.selected.id, expense)
+                          if (selectedCategoryStore.selected) {
+                              await updateCategory(selectedCategoryStore.selected.id, category)
                           } else {
                               await createCategory(category)
                           }

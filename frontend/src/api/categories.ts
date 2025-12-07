@@ -7,9 +7,6 @@ import CategoryIn from "@/src/types/CategoryIn";
 export async function listCategories(): Promise<CategoryOut[]> {
     const response = await apiClient.get( `/categories`);
 
-    console.log(response.data)
-    console.log(response.data[0].subcategories)
-
     const categories: CategoryOut[] = response.data.map((e: any) =>
         new CategoryOut(
             e.id,
@@ -29,8 +26,6 @@ export async function listCategories(): Promise<CategoryOut[]> {
             })
         )
     );
-
-    console.log(categories)
 
     return categories
 }
