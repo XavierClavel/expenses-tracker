@@ -12,7 +12,7 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
-import Category from "@/src/types/Category";
+import CategoryIn from "@/src/types/CategoryIn";
 import {createExpense, updateExpense} from "@/src/api/expenses";
 import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
@@ -142,7 +142,7 @@ export default function a() {
                       router.navigate("category/picker");
                   }}
               >
-                  <CategoryDisplay data={ pickedCategory || new Category(-1, "No category selected", 'lightgray', '')}></CategoryDisplay>
+                  <CategoryDisplay data={ pickedCategory || new CategoryIn(-1, "No category selected", 'lightgray', '')}></CategoryDisplay>
               </Pressable>
 
               <Pressable
@@ -159,7 +159,7 @@ export default function a() {
                           title,
                           amount,
                           "EUR",
-                          date.toISOString().split("T")[0],
+                          date.toLocaleDateString('sv-SE'),
                           null,
                           "EXPENSE",
                       )
