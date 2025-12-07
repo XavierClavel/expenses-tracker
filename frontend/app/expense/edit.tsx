@@ -154,11 +154,12 @@ export default function a() {
                   }}
                   onPress={async () => {
                       const expense = new ExpenseIn(
-                            title,
+                          title,
                           amount,
                           "EUR",
                           date.toISOString().split("T")[0],
-                          1,
+                          null,
+                          "EXPENSE",
                       )
                       try {
                           await createExpense(expense)

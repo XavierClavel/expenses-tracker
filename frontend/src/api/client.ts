@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(async (config) => {
         config.headers.Authorization = `Bearer ${sessionToken}`;
     }
 
-    console.log("Sending request to", config.url  ,"with token", sessionToken)
+    console.log("Sending request to", config.url  ,"with token", sessionToken, "body", config.data)
 
     return config;
 });

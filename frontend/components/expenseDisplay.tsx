@@ -59,11 +59,11 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
         >
         {renderIcon('#b4f1a7', 'school')}
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
-            {data.label}
+            {data.title}
         </Text>
         <View style={{ flex: 1, alignItems: 'right' }}>
             <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16, marginVertical: 8 }}>
-                {data.amount}€
+                {data.type == "EXPENSE" ? "-" : "+"} {data.amount}€
             </Text>
         </View>
         </View>

@@ -10,11 +10,12 @@ export async function listExpenses(page: number, size: number): Promise<ExpenseO
     const expenses: ExpenseOut[] = response.data.map((e: any) =>
         new ExpenseOut(
             e.id,
-            e.label,
+            e.title,
             e.amount,
             e.currency,
             new Date(e.date),
-            e.categoryId
+            e.categoryId,
+            e.type,
         )
     );
 
