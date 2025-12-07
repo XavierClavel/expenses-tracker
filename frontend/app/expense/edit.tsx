@@ -142,7 +142,7 @@ export default function a() {
                       router.navigate("category/picker");
                   }}
               >
-                  <CategoryDisplay data={ pickedCategory || new CategoryIn(-1, "No category selected", 'lightgray', '')}></CategoryDisplay>
+                  <CategoryDisplay data={ pickedCategory || new CategoryIn(-1, "No category selected", 'lightgray', 'unknown')}></CategoryDisplay>
               </Pressable>
 
               <Pressable

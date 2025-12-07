@@ -6,8 +6,10 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import Category from "@/src/types/Category";
+import CategoryIn from "@/src/types/CategoryIn";
 import ExpenseOut from "@/src/types/ExpenseOut";
+import {useCategoriesStore} from "@/src/stores/categories-store";
+import {sub} from "ob1";
 
 
 type ExpenseDisplayProps = {
@@ -19,6 +21,9 @@ type ExpenseDisplayProps = {
 export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
+    const categoriesStore = useCategoriesStore()
+    const subcategory = categoriesStore.getSubcategory(data.categoryId)
+    console.log(subcategory)
 
     const renderIcon = (color: string, icon: string) => {
         return (
@@ -57,7 +62,10 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
                 justifyContent: "space-between",
             }}
         >
-        {renderIcon('#b4f1a7', 'school')}
+        {renderIcon(
+            subcategory?.color ? subcategory.color : 'lightgray',
+            subcategory?.icon ? subcategory.icon : 'unknown',
+        )}
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {data.title}
         </Text>

@@ -12,6 +12,8 @@ import {useEffect, useState} from "react";
 import ExpenseOut from "@/src/types/ExpenseOut";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
+import {listCategories} from "@/src/api/categories";
+import {useCategoriesStore} from "@/src/stores/categories-store";
 
 const data = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -47,6 +49,7 @@ export default function HomeScreen() {
     const [hasMore, setHasMore] = useState(true);
     const backgroundColor = useThemeColor({}, 'background');
     const selectedExpenseStore = useSelectedExpenseStore()
+    const categoriesStore = useCategoriesStore()
 
     const loadExpenses = async (pageToLoad: number) => {
         if (loading || !hasMore) return;
@@ -60,8 +63,15 @@ export default function HomeScreen() {
         setLoading(false);
     };
 
+    const loadCategories = async () => {
+        const categories = await listCategories()
+        console.log(categories)
+        categoriesStore.setSelected(categories)
+    }
+
     useEffect(() => {
         loadExpenses(0);
+        loadCategories()
     }, []);
 
 

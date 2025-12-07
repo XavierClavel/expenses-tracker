@@ -6,16 +6,16 @@ import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {router, useFocusEffect, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
-import Category from "@/src/types/Category";
+import CategoryIn from "@/src/types/CategoryIn";
 import {useCallback} from "react";
 
 const OPTIONS = [
-    new Category(1, 'Accomodation & charges', '#009FFF', 'house'),
-    new Category(2,  'Leisure', '#93FCF8', 'train'),
-    new Category(3, 'Food', '#BDB2FA', 'groceries'),
-    new Category(4, 'Shopping', '#FFA5BA', 'trip'),
-    new Category(5, 'Video games', '#e1d481', 'video-games'),
-    new Category(6,  'School', '#b4f1a7', 'school'),
+    new CategoryIn(1, 'Accomodation & charges', '#009FFF', 'house'),
+    new CategoryIn(2,  'Leisure', '#93FCF8', 'train'),
+    new CategoryIn(3, 'Food', '#BDB2FA', 'groceries'),
+    new CategoryIn(4, 'Shopping', '#FFA5BA', 'trip'),
+    new CategoryIn(5, 'Video games', '#e1d481', 'video-games'),
+    new CategoryIn(6,  'School', '#b4f1a7', 'school'),
 ];
 
 export default function FullPickerScreen() {

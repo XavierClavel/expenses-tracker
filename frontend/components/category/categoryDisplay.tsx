@@ -6,12 +6,12 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import Category from "@/src/types/Category";
+import CategoryIn from "@/src/types/CategoryIn";
 
 
 
 type CategoryDisplayProps = {
-    data: Category;
+    data: CategoryIn;
 };
 
 

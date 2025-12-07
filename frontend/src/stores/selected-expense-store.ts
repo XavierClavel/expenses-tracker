@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import Category from "@/src/types/Category";
+import CategoryIn from "@/src/types/CategoryIn";
 import ExpenseOut from "@/src/types/ExpenseOut";
 
 type SelectedExpenseStore = {

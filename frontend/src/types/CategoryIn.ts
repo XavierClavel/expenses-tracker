@@ -1,4 +1,4 @@
-export default class Category{
+export default class CategoryIn {
     public constructor(
         public id: number,
         public label: string,
