@@ -17,7 +17,7 @@ export async function listCategories(): Promise<CategoryOut[]> {
             e.subcategories.map ((subcategory: any) => {
                 return new SubcategoryOut(
                     subcategory.id,
-                    subcategory.name,
+                    subcategory.isDefault ? `${e.name} - Default`  : subcategory.name,
                     subcategory.type,
                     subcategory.color,
                     subcategory.icon,
