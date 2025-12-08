@@ -18,7 +18,6 @@ type ColorDisplayProps = {
 
 
 export function ColorDisplay( { label, color }: ColorDisplayProps) {
-    console.log("data", label, color)
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 

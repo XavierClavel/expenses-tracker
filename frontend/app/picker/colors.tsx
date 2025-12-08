@@ -10,27 +10,17 @@ import CategoryIn from "@/src/types/CategoryIn";
 import {useCallback} from "react";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {ColorDisplay} from "@/components/category/color-display";
+import {useColorPickerStore} from "@/src/stores/color-picker-store";
+import {colors} from "@/constants/colors";
 
-const colors = new Map([
-    ['Blue', '#009FFF'],
-    ['Light blue', '#93FCF8'],
-    ['Purple', '#BDB2FA'],
-    ['Red', '#FFA5BA'],
-    ['Yellow', '#e1d481'],
-    ['Green', '#b4f1a7'],
-    ['Magenta', '#e193d9'],
-    ['Light green', '#efffa5'],
-    ['Brown', '#bcb8a5'],
-    ['Pink', '#FFA5BA'],
-])
+
 
 
 export default function ColorPickerScreen() {
     const route = useRoute<any>();
     const backgroundColor = useThemeColor({}, 'background');
     const surfaceColor = useThemeColor({}, 'surface');
-    const setPickedCategory = usePickerStore((s) => s.setSelected)
-    const categoriesStore = useCategoriesStore()
+    const colorPickerStore = useColorPickerStore()
 
     return (
         <View style={{
@@ -43,19 +33,18 @@ export default function ColorPickerScreen() {
         }}>
 
             <SafeAreaView>
-                {colors.entries().map((item) => (
+                {Object.entries(colors).map((item) => (
                     <Pressable
-                        key={item.id}
+                        key={item[0]}
                         onPress={() => {
-                            setPickedCategory(item)
-                            //navigation.goBack()
+                            colorPickerStore.setSelected(item[0])
                             router.back()
                         }}
                         style={{
                             width: "100%"
                         }}
                     >
-                        <ColorDisplay data={item}></ColorDisplay>
+                        <ColorDisplay color={item[1]} label={item[0]}></ColorDisplay>
                     </Pressable>
                 ))}
             </SafeAreaView>

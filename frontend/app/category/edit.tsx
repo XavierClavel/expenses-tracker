@@ -21,6 +21,8 @@ import {createCategory, updateCategory} from "@/src/api/categories";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 import {ColorDisplay} from "@/components/category/color-display";
+import {useColorPickerStore} from "@/src/stores/color-picker-store";
+import {colors} from "@/constants/colors";
 
 
 
@@ -30,6 +32,7 @@ export default function a() {
     const selectedCategoryStore = useSelectedCategoryStore()
     const selectedSubcategoryStore = useSelectedSubcategoryStore()
     const categoryPickerStore = usePickerStore()
+    const colorPickerStore = useColorPickerStore()
 
     const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
@@ -86,7 +89,10 @@ export default function a() {
                     router.navigate("picker/colors");
                 }}
             >
-                <ColorDisplay color='#009FFF' label='Blue' ></ColorDisplay>
+                <ColorDisplay
+                    color={ colorPickerStore.selected ? colors[colorPickerStore.selected] : 'lightgray'}
+                    label={colorPickerStore.selected ? colorPickerStore.selected : 'No color selected'}
+                ></ColorDisplay>
             </Pressable>
 
             <Pressable
@@ -122,7 +128,7 @@ export default function a() {
                       const category = new CategoryIn(
                           title,
                           "EXPENSE",
-                          '#009FFF',
+                          colorPickerStore.selected,
                           "school",
 
                       )

@@ -13,6 +13,7 @@ import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 import {usePickerStore} from "@/src/stores/category-picker-store";
+import {useColorPickerStore} from "@/src/stores/color-picker-store";
 
 export default function HomeScreen() {
     const navigation = useNavigation();
@@ -21,6 +22,7 @@ export default function HomeScreen() {
     const selectedCategoryStore = useSelectedCategoryStore()
     const selectedSubcategoryStore = useSelectedSubcategoryStore()
     const categoryPickerStore = usePickerStore()
+    const colorPickerStore = useColorPickerStore()
 
 
     return (
@@ -46,6 +48,7 @@ export default function HomeScreen() {
                             key={item.id}
                             onPress={() => {
                                 selectedCategoryStore.setSelected(item)
+                                colorPickerStore.setSelected(item.color)
                                 router.navigate("category/edit");
                             }}
                         >

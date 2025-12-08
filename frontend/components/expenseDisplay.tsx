@@ -10,6 +10,7 @@ import CategoryIn from "@/src/types/CategoryIn";
 import ExpenseOut from "@/src/types/ExpenseOut";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {sub} from "ob1";
+import {colors} from "@/constants/colors";
 
 
 type ExpenseDisplayProps = {
@@ -32,7 +33,7 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
                     height: 30,
                     width: 30,
                     borderRadius: 15,
-                    backgroundColor: color,
+                    backgroundColor: colors[color],
                     marginRight: 10,
                     alignItems: 'center',
                     justifyContent: 'center',

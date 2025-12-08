@@ -8,6 +8,7 @@ import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import CategoryIn from "@/src/types/CategoryIn";
 import CategoryOut from "@/src/types/CategoryOut";
+import {colors} from "@/constants/colors";
 
 
 
@@ -27,7 +28,7 @@ export function CategoryDisplay( { data }: CategoryDisplayProps) {
                     height: 30,
                     width: 30,
                     borderRadius: 15,
-                    backgroundColor: color,
+                    backgroundColor: colors[color],
                     marginRight: 10,
                     alignItems: 'center',
                     justifyContent: 'center',
