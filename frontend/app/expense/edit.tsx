@@ -4,7 +4,7 @@ import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import {ExpenseDisplay} from "@/components/expenseDisplay";
-import {FAB, TextInput} from "react-native-paper";
+import {FAB, SegmentedButtons, TextInput} from "react-native-paper";
 import {useCallback, useEffect, useState} from "react";
 import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -38,6 +38,8 @@ export default function a() {
     const [open, setOpen] = useState(false);
     const pickedCategory = usePickerStore((s) => s.selected);
     const setPickedCategory = usePickerStore((s) => s.setSelected)
+
+    const [type, setType] = useState("EXPENSE")
 
     useEffect(() => {
         return () => {
@@ -74,6 +76,20 @@ export default function a() {
                 padding: 20,
                 justifyContent: "space-around",
             }}>
+            <SegmentedButtons
+                value={type}
+                onValueChange={setType}
+                buttons={[
+                    {
+                        value: 'EXPENSE',
+                        label: 'Expense',
+                    },
+                    {
+                        value: 'INCOME',
+                        label: 'Income',
+                    },
+                ]}
+            />
             <TextInput
                 style={{
                     width: "100%",
@@ -162,7 +178,7 @@ export default function a() {
                           "EUR",
                           date.toLocaleDateString('sv-SE'),
                           pickedCategory?.id || null,
-                          "EXPENSE",
+                          type,
                       )
                       try {
                           if (selectedExpenseStore.selected) {

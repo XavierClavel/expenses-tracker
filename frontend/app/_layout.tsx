@@ -6,6 +6,7 @@ import { fetchMe } from "@/src/api/auth";
 import * as SplashScreen from "expo-splash-screen";
 import {ThemeProvider} from "@react-navigation/core";
 import {DarkTheme} from "@react-navigation/native";
+import {SafeAreaProvider} from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,9 +48,11 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider value={DarkTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name={authenticated ? "(app)" : "(auth)"} />
-        </Stack>
+            <SafeAreaProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name={authenticated ? "(app)" : "(auth)"} />
+                </Stack>
+            </SafeAreaProvider>
         </ThemeProvider>
     );
 }

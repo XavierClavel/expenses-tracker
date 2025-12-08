@@ -59,7 +59,7 @@ export function IconDisplay( { icon }: ColorDisplayProps) {
         >
         {renderIcon(icon)}
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
-            {icon}
+            {icon || "No icon selected"}
         </Text>
     </View>
     </View>
