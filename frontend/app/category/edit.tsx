@@ -23,6 +23,8 @@ import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-sto
 import {ColorDisplay} from "@/components/category/color-display";
 import {useColorPickerStore} from "@/src/stores/color-picker-store";
 import {colors} from "@/constants/colors";
+import {IconDisplay} from "@/components/category/icon-display";
+import {useIconPickerStore} from "@/src/stores/icon-picker-store";
 
 
 
@@ -33,6 +35,7 @@ export default function a() {
     const selectedSubcategoryStore = useSelectedSubcategoryStore()
     const categoryPickerStore = usePickerStore()
     const colorPickerStore = useColorPickerStore()
+    const iconPickerStore = useIconPickerStore()
 
     const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
@@ -97,6 +100,18 @@ export default function a() {
 
             <Pressable
                 style={{
+                    marginVertical: 5,
+                }}
+                onPress={() => {
+                    router.navigate("picker/icons");
+                }}
+            >
+                <IconDisplay icon={iconPickerStore.selected}
+                ></IconDisplay>
+            </Pressable>
+
+            <Pressable
+                style={{
                     width: "100%",
                     borderRadius: 8,
                     height: 50,
@@ -129,7 +144,7 @@ export default function a() {
                           title,
                           "EXPENSE",
                           colorPickerStore.selected,
-                          "school",
+                          iconPickerStore.selected,
 
                       )
                       try {

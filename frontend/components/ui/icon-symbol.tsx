@@ -6,6 +6,7 @@ import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 import {FontAwesome6, MaterialCommunityIcons} from "@expo/vector-icons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import {icons} from "@/constants/icons";
 
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
@@ -25,12 +26,13 @@ export function IconSymbol({
   color: string | OpaqueColorValue;
   weight?: SymbolWeight;
 }) {
+
     switch (name) {
         case 'house':
-            return <FontAwesome6 color={color} size={size -3} name='house-chimney' />;
+            return <FontAwesome6 color={color} size={size} name='house-chimney' />;
         case 'groceries':
             return <MaterialIcons color={color} size={size} name='local-grocery-store' />;
-        case 'video-games':
+        case 'video_games':
             return <MaterialIcons color={color} size={size} name='sports-esports' />;
         case 'school':
             return <MaterialIcons color={color} size={size} name='school' />;
