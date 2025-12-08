@@ -24,6 +24,8 @@ import {createSubcategory, updateSubcategory} from "@/src/api/subcategories";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 import CategoryOut from "@/src/types/CategoryOut";
 import {useCategoriesStore} from "@/src/stores/categories-store";
+import {IconDisplay} from "@/components/category/icon-display";
+import {useIconPickerStore} from "@/src/stores/icon-picker-store";
 
 
 
@@ -41,6 +43,7 @@ export default function a() {
 
     const [title, setTitle] = useState(selectedSubcategoryStore.selected?.name || "");
     const categoryPickerStore = usePickerStore()
+    const iconPickerStore = useIconPickerStore()
 
 
     return (
@@ -94,6 +97,18 @@ export default function a() {
 
                     <Pressable
                         style={{
+                            marginVertical: 5,
+                        }}
+                        onPress={() => {
+                            router.navigate("picker/icons");
+                        }}
+                    >
+                        <IconDisplay icon={iconPickerStore.selected}
+                        ></IconDisplay>
+                    </Pressable>
+
+                    <Pressable
+                        style={{
                             width: "100%",
                             borderRadius: 8,
                             height: 50,
@@ -105,7 +120,7 @@ export default function a() {
                             const subcategory = new SubcategoryIn(
                                 title,
                                 "EXPENSE",
-                                "school",
+                                iconPickerStore.selected,
                                 categoryPickerStore.selected.id
                             )
                             try {
