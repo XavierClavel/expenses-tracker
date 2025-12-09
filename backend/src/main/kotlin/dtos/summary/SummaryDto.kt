@@ -10,9 +10,14 @@ import java.math.BigDecimal
  * @property name Display name of the category.
  */
 @Serializable
-data class YearSummary(
-    val year: Int,
+data class SummaryDto(
+    val year: Int? = null,
+    val month: Int? = null,
+    val day: Int? = null,
     @Serializable(with = BigDecimalSerializer::class)
     val totalExpenses: BigDecimal,
-    val byCategory: List<CategorySummary>,
+    @Serializable(with = BigDecimalSerializer::class)
+    val totalIncome: BigDecimal,
+    val expensesByCategory: List<CategorySummary>,
+    val incomeByCategory: List<CategorySummary>,
 )
