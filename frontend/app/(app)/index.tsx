@@ -96,6 +96,7 @@ export default function HomeScreen() {
         <SegmentedButtons
             style={{
                 marginTop: 50,
+                padding: 10,
             }}
             value={selectedTypeStore.selected}
             onValueChange={selectType}
