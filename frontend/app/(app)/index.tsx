@@ -9,6 +9,9 @@ import { Link } from 'expo-router';
 import { CustomPieChart } from '@/components/custom-pie-chart';
 import {data} from "browserslist";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {useEffect} from "react";
+import {getYearSummary} from "@/src/api/summary";
+import {useSummaryStore} from "@/src/stores/summary-store";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -22,6 +25,16 @@ const pieData = [
 export default function HomeScreen() {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
+    const summaryStore = useSummaryStore()
+
+    const loadSummary = async () => {
+        const summary = await getYearSummary(2025)
+        summaryStore.setSelected(summary)
+    }
+
+    useEffect(() => {
+        loadSummary()
+    }, []);
 
     return (
 
@@ -44,11 +57,11 @@ export default function HomeScreen() {
                 justifyContent: "space-around"
             }}>
             <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: surfaceColor, borderRadius: 8 }}>
-                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>-2296,99€</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>- {summaryStore.selected?.totalExpenses}€ </Text>
                 <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 12, paddingTop: 5  }}>Expenses</Text>
             </Pressable>
             <Pressable style={{ paddingVertical: 10, width:150, paddingHorizontal: 20, backgroundColor: surfaceColor, borderRadius: 8 }}>
-                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>3067,63€</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{summaryStore.selected?.totalIncome}€</Text>
                 <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 12, paddingTop: 5 }}>Income</Text>
             </Pressable>
 
