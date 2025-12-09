@@ -9,8 +9,8 @@ import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 
 
-suspend fun HttpClient.getSummary(id: Long, year: Int, month: Int): MonthSummary {
-    this.get("$SUMMARY_URL/user/$id/year/$year/month/$month").apply {
+suspend fun HttpClient.getSummary(year: Int, month: Int): MonthSummary {
+    this.get("$SUMMARY_URL/year/$year/month/$month").apply {
         assertEquals(HttpStatusCode.OK, status)
         val expense = Json.decodeFromString<MonthSummary>(bodyAsText())
         return expense

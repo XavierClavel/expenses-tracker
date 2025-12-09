@@ -53,7 +53,7 @@ class SummaryControllerTest: ApplicationTest() {
                 categoryId = activitiesId,
             ))
         val userId = client.getMe().id
-        val result = client.getSummary(id = userId, year = 2020, month = 6)
+        val result = client.getSummary(year = 2020, month = 6)
         assertEquals(BigDecimal("50.00"), result.totalExpenses)
 
         assertEquals(2, result.byCategory.size)
