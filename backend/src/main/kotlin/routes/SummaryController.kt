@@ -18,38 +18,26 @@ fun Route.setupSummaryController() = route(SUMMARY_URL) {
     val summaryService: SummaryService by inject()
     val redisService: RedisService by inject()
 
-    get("/user/{user}/year/{year}") {
+    get("year/{year}") {
         val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
-        val user = call.parameters["user"]?.toLongOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
         val sessionUserId = getSessionUserId(redisService)
-        if (user != sessionUserId) {
-            throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
-        }
         val summary = summaryService.summaryOfYear(userId = sessionUserId, year = year)
         call.respond(summary)
     }
 
-    get("/user/{user}/year/{year}/month/{month}") {
+    get("year/{year}/month/{month}") {
         val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
         val month = call.parameters["month"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
-        val user = call.parameters["user"]?.toLongOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
         val sessionUserId = getSessionUserId(redisService)
-        if (user != sessionUserId) {
-            throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
-        }
         val summary = summaryService.summaryOfMonth(userId = sessionUserId, year = year, month = month)
         call.respond(summary)
     }
 
-    get("/user/{user}/year/{year}/month/{month}/day/{day}") {
+    get("/year/{year}/month/{month}/day/{day}") {
         val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
         val month = call.parameters["month"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
         val day = call.parameters["day"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
-        val user = call.parameters["user"]?.toLongOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
         val sessionUserId = getSessionUserId(redisService)
-        if (user != sessionUserId) {
-            throw ForbiddenException(ForbiddenCause.MUST_BE_PERFORMED_ON_SELF)
-        }
         val summary = summaryService.summaryOfDay(userId = sessionUserId, year = year, month = month, day = day)
         call.respond(summary)
     }
