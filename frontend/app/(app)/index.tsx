@@ -14,6 +14,8 @@ import {getYearSummary} from "@/src/api/summary";
 import {useSummaryStore} from "@/src/stores/summary-store";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {colors} from "@/constants/colors";
+import {SegmentedButtons} from "react-native-paper";
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -30,26 +32,51 @@ export default function HomeScreen() {
     const summaryStore = useSummaryStore()
     const [data, setData] = useState([])
     const categoryStore = useCategoriesStore()
+    const selectedTypeStore = useSelectedTypeStore()
 
     const loadSummary = async () => {
         const summary = await getYearSummary(2025)
         summaryStore.setSelected(summary)
-        const subcategories = summary.expensesByCategory
-        const categories = categoryStore.selected
-            .filter((it) => it.type == 'EXPENSE')
-        const result = categories.map((c) => {
-            return {
-                value: subcategories
-                    .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
-                    .reduce((accumulator, object) => {
-                    return accumulator + Number(object.total);
-                }, 0),
-                label: c.name,
-                color: colors[c.color || 'unknown'],
-                icon: c.icon,
-            }
-        })
-        setData(result)
+
+    }
+
+    const selectType = (type) => {
+        selectedTypeStore.setSelected(type)
+        if (type == 'EXPENSE') {
+            const subcategories = summaryStore.selected?.expensesByCategory || []
+            const categories = categoryStore.selected
+                .filter((it) => it.type == 'EXPENSE')
+            const result = categories.map((c) => {
+                return {
+                    value: subcategories
+                        .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
+                        .reduce((accumulator, object) => {
+                            return accumulator + Number(object.total);
+                        }, 0),
+                    label: c.name,
+                    color: colors[c.color || 'unknown'],
+                    icon: c.icon,
+                }
+            })
+            setData(result)
+        } else {
+            const subcategories = summaryStore.selected?.incomeByCategory || []
+            const categories = categoryStore.selected
+                .filter((it) => it.type == 'INCOME')
+            const result = categories.map((c) => {
+                return {
+                    value: subcategories
+                        .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
+                        .reduce((accumulator, object) => {
+                            return accumulator + Number(object.total);
+                        }, 0),
+                    label: c.name,
+                    color: colors[c.color || 'unknown'],
+                    icon: c.icon,
+                }
+            })
+            setData(result)
+        }
     }
 
     useEffect(() => {
@@ -66,6 +93,23 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
+        <SegmentedButtons
+            style={{
+                marginTop: 50,
+            }}
+            value={selectedTypeStore.selected}
+            onValueChange={selectType}
+            buttons={[
+                {
+                    value: 'EXPENSE',
+                    label: 'Expense',
+                },
+                {
+                    value: 'INCOME',
+                    label: 'Income',
+                },
+            ]}
+        />
         <View
             style={{
                 flex: 1,
@@ -73,7 +117,7 @@ export default function HomeScreen() {
                 alignItems: 'center',
                 width: "100%",
                 padding: 10,
-                marginTop: 70,
+                marginTop: 10,
                 justifyContent: "space-around"
             }}>
             <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: surfaceColor, borderRadius: 8 }}>
