@@ -39,7 +39,7 @@ export default function a() {
     const pickedCategory = usePickerStore((s) => s.selected);
     const setPickedCategory = usePickerStore((s) => s.setSelected)
 
-    const [type, setType] = useState("EXPENSE")
+    const [type, setType] = useState(selectedExpenseStore.selected?.type || "EXPENSE")
 
     useEffect(() => {
         return () => {

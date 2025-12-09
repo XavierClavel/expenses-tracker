@@ -24,7 +24,6 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
     const categoriesStore = useCategoriesStore()
     const subcategory = categoriesStore.getSubcategory(data.categoryId)
-    console.log(subcategory)
 
     const renderIcon = (color: string, icon: string) => {
         return (

@@ -81,7 +81,9 @@ export default function HomeScreen() {
                 icon="plus"
                 style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
                 onPress={() => {
-                    //selectedExpenseStore.setSelected(null)
+                    selectedCategoryStore.setSelected(null)
+                    colorPickerStore.setSelected(null)
+                    iconPickerStore.setSelected(null)
                     navigation.navigate('category/edit')
                 }}
             />
