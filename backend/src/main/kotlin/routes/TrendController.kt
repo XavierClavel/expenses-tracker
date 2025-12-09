@@ -9,13 +9,14 @@ import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.TrendService
 import com.xavierclavel.utils.SUMMARY_URL
+import com.xavierclavel.utils.TREND_URL
 import com.xavierclavel.utils.getSessionUserId
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
-fun Route.setupTrendController() = route(SUMMARY_URL) {
+fun Route.setupTrendController() = route(TREND_URL) {
     val redisService: RedisService by inject()
     val trendService: TrendService by inject()
 
