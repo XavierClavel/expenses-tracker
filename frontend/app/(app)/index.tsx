@@ -9,9 +9,11 @@ import { Link } from 'expo-router';
 import { CustomPieChart } from '@/components/custom-pie-chart';
 import {data} from "browserslist";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {getYearSummary} from "@/src/api/summary";
 import {useSummaryStore} from "@/src/stores/summary-store";
+import {useCategoriesStore} from "@/src/stores/categories-store";
+import {colors} from "@/constants/colors";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -26,10 +28,28 @@ export default function HomeScreen() {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
     const summaryStore = useSummaryStore()
+    const [data, setData] = useState([])
+    const categoryStore = useCategoriesStore()
 
     const loadSummary = async () => {
         const summary = await getYearSummary(2025)
         summaryStore.setSelected(summary)
+        const subcategories = summary.expensesByCategory
+        const categories = categoryStore.selected
+            .filter((it) => it.type == 'EXPENSE')
+        const result = categories.map((c) => {
+            return {
+                value: subcategories
+                    .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
+                    .reduce((accumulator, object) => {
+                    return accumulator + Number(object.total);
+                }, 0),
+                label: c.name,
+                color: colors[c.color || 'unknown'],
+                icon: c.icon,
+            }
+        })
+        setData(result)
     }
 
     useEffect(() => {
@@ -66,7 +86,7 @@ export default function HomeScreen() {
             </Pressable>
 
         </View>
-        <CustomPieChart data={pieData}/>
+        <CustomPieChart data={data}/>
     </ParallaxScrollView>
   );
 }

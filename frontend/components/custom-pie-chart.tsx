@@ -12,6 +12,11 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 export function CustomPieChart({ data }) {
+
+    if (data.length == 0) {
+        return <Text>No data</Text>
+    }
+
     const backgroundColor = useThemeColor({}, 'background');
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
