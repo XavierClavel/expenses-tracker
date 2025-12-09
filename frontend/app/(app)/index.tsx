@@ -37,7 +37,6 @@ export default function HomeScreen() {
     const loadSummary = async () => {
         const summary = await getYearSummary(2025)
         summaryStore.setSelected(summary)
-
     }
 
     const selectType = (type) => {

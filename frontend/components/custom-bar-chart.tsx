@@ -11,6 +11,7 @@ import {time} from "@expo/fingerprint/cli/build/utils/log";
 
 
 export function CustomBarChart({ data }) {
+    if (data.length == 0) return <Text>No data</Text>
     const windowWidth = Dimensions.get('window').width;
     //console.log("window width", windowWidth)
     const [focusedItem, setFocusedItem] = useState([data.length -2, data.length -1])

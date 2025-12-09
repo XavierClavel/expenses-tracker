@@ -8,6 +8,10 @@ import { BarChart } from "react-native-gifted-charts";
 import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {getYearSummary} from "@/src/api/summary";
+import {getMonthTrends} from "@/src/api/trends";
+import {useCategoriesStore} from "@/src/stores/categories-store";
+import {useEffect, useState} from "react";
 
 const colorExpense = '#da451a'
 const colorIncome = '#71cc5d'
@@ -41,6 +45,32 @@ export default function TabTwoScreen() {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
+    const [trends, setTrends] = useState([])
+
+    const loadTrends = async () => {
+        const trends = await getMonthTrends()
+        const result = []
+        console.log(trends)
+        for (const v of trends) {
+            console.log(v)
+            result.push({
+                value: Number(v.totalIncome),
+                frontColor: colorIncome,
+                spacing: 6,
+                label: "pouet"
+            })
+            result.push({
+                value: Number(v.totalExpenses),
+                frontColor: colorExpense,
+            })
+        }
+        setTrends(result)
+    }
+
+    useEffect(() => {
+        loadTrends()
+    }, []);
+
     return (
       <View
         style={{
@@ -58,7 +88,7 @@ export default function TabTwoScreen() {
                   position: 'absolute',
                   bottom: 0,
               }}>
-        <CustomBarChart data={data} />
+        <CustomBarChart data={trends} />
         <View style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly',
