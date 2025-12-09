@@ -9,13 +9,17 @@ import {usePickerStore} from "@/src/stores/category-picker-store";
 import CategoryIn from "@/src/types/CategoryIn";
 import {useCallback} from "react";
 import {useCategoriesStore} from "@/src/stores/categories-store";
+import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 export default function FullPickerScreen() {
   const route = useRoute<any>();
   const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
+  const selectedExpenseStore = useSelectedExpenseStore()
   const setPickedCategory = usePickerStore((s) => s.setSelected)
     const categoriesStore = useCategoriesStore()
+    const selectedTypeStore = useSelectedTypeStore()
 
   return (
     <View style={{
@@ -28,7 +32,8 @@ export default function FullPickerScreen() {
     }}>
 
         <SafeAreaView>
-      {categoriesStore.subcategories.map((item) => (
+      {categoriesStore.subcategories
+          .filter((it) => !selectedExpenseStore.selected || it.type == selectedTypeStore.selected).map((item) => (
           <Pressable
               key={item.id}
               onPress={() => {

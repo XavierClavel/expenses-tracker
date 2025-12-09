@@ -17,6 +17,7 @@ import {useColorPickerStore} from "@/src/stores/color-picker-store";
 import {colors} from "@/constants/colors";
 import {IconDisplay} from "@/components/category/icon-display";
 import {useIconPickerStore} from "@/src/stores/icon-picker-store";
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 
 
@@ -25,6 +26,7 @@ export default function a() {
     const segments = useSegments();
     const selectedCategoryStore = useSelectedCategoryStore()
     const selectedSubcategoryStore = useSelectedSubcategoryStore()
+    const selectedTypeStore = useSelectedTypeStore()
     const categoryPickerStore = usePickerStore()
     const colorPickerStore = useColorPickerStore()
     const iconPickerStore = useIconPickerStore()
@@ -35,7 +37,6 @@ export default function a() {
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const [title, setTitle] = useState(selectedCategoryStore.selected?.name || "");
-    const [type, setType] = useState(selectedCategoryStore.selected?.type || "EXPENSE")
 
 
 
@@ -58,8 +59,8 @@ export default function a() {
                 justifyContent: "space-around",
             }}>
             <SegmentedButtons
-                value={type}
-                onValueChange={setType}
+                value={selectedTypeStore.selected}
+                onValueChange={selectedTypeStore.setSelected}
                 buttons={[
                     {
                         value: 'EXPENSE',
@@ -149,7 +150,7 @@ export default function a() {
                   onPress={async () => {
                       const category = new CategoryIn(
                           title,
-                          type,
+                          selectedCategoryStore.selected?.type || selectedTypeStore.selected, //No updating type of existing category
                           colorPickerStore.selected,
                           iconPickerStore.selected,
                       )

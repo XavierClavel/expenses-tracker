@@ -15,30 +15,7 @@ import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {listCategories} from "@/src/api/categories";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {usePickerStore} from "@/src/stores/category-picker-store";
-
-const data = [
-    {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
-    {value: -736.14, label: 'Leisure', color: '#93FCF8', icon: 'train'},
-    {value: -268.40, label: 'Food', color: '#BDB2FA', icon: 'groceries'},
-    {value: -193.38, label: 'Shopping', color: '#FFA5BA', icon: 'trip'},
-    {value: -13.38, label: 'Video games', color: '#e1d481', icon: 'video-games'},
-    {value: -593.78, label: 'School', color: '#b4f1a7', icon: 'school'},
-    {value: -593.78, label: 'Restaurant', color: '#e193d9', icon: 'restaurant'},
-    {value: -593.78, label: 'Restaurant', color: '#efffa5', icon: 'plane'},
-    {value: -593.78, label: 'Restaurant', color: '#bcb8a5', icon: 'car'},
-    {value: -593.78, label: 'Restaurant', color: '#FFA5BA', icon: 'baby'},
-    {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
-    {value: -736.14, label: 'Leisure', color: '#93FCF8', icon: 'train'},
-    {value: -268.40, label: 'Food', color: '#BDB2FA', icon: 'groceries'},
-    {value: -193.38, label: 'Shopping', color: '#FFA5BA', icon: 'trip'},
-    {value: -13.38, label: 'Video games', color: '#e1d481', icon: 'video-games'},
-    {value: -593.78, label: 'School', color: '#b4f1a7', icon: 'school'},
-    {value: -593.78, label: 'Restaurant', color: '#e193d9', icon: 'restaurant'},
-    {value: -593.78, label: 'Restaurant', color: '#efffa5', icon: 'plane'},
-    {value: -593.78, label: 'Restaurant', color: '#bcb8a5', icon: 'car'},
-    {value: -593.78, label: 'Restaurant', color: '#FFA5BA', icon: 'baby'},
-];
-
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 
 export default function HomeScreen() {
@@ -50,6 +27,7 @@ export default function HomeScreen() {
     const [hasMore, setHasMore] = useState(true);
     const backgroundColor = useThemeColor({}, 'background');
     const selectedExpenseStore = useSelectedExpenseStore()
+    const selectedTypeStore = useSelectedTypeStore()
     const pickedCategoryStore = usePickerStore()
     const categoriesStore = useCategoriesStore()
 
@@ -98,6 +76,7 @@ export default function HomeScreen() {
                         key={item.id}
                         onPress={() => {
                             selectedExpenseStore.setSelected(item)
+                            selectedTypeStore.setSelected(item.type)
                             pickedCategoryStore.setSelected(categoriesStore.getSubcategory(item.categoryId))
                             router.navigate("expense/edit");
                         }}
@@ -121,6 +100,7 @@ export default function HomeScreen() {
                   style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
                   onPress={() => {
                       selectedExpenseStore.setSelected(null)
+                      selectedTypeStore.setSelected("EXPENSE")
                       navigation.navigate('expense/edit')
                   }}
               />

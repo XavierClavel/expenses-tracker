@@ -18,6 +18,7 @@ import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import CategoryOut from "@/src/types/CategoryOut";
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 
 
@@ -25,6 +26,7 @@ import CategoryOut from "@/src/types/CategoryOut";
 export default function a() {
     const segments = useSegments();
     const selectedExpenseStore = useSelectedExpenseStore()
+    const selectedTypeStore = useSelectedTypeStore()
 
     const [selected, setSelected] = useState<string | null>(null);
     const navigation = useNavigation();
@@ -38,8 +40,7 @@ export default function a() {
     const [open, setOpen] = useState(false);
     const pickedCategory = usePickerStore((s) => s.selected);
     const setPickedCategory = usePickerStore((s) => s.setSelected)
-
-    const [type, setType] = useState(selectedExpenseStore.selected?.type || "EXPENSE")
+    const [selectedExpenseCategory, setSelectedExpenseCategory] = useState(selectedTypeStore.selected == 'EXPENSE' ? pickedCategory : null)
 
     useEffect(() => {
         return () => {
@@ -47,17 +48,10 @@ export default function a() {
         };
     }, []);
 
-    const onDismissSingle = useCallback(() => {
-        setOpen(false);
-    }, [setOpen]);
-
-    const onConfirmSingle = useCallback(
-        (params) => {
-            setOpen(false);
-            setDate(params.date);
-        },
-        [setOpen, setDate]
-    );
+    const selectType = (type) => {
+        selectedTypeStore.setSelected(type)
+        setPickedCategory(null)
+    }
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -77,8 +71,8 @@ export default function a() {
                 justifyContent: "space-around",
             }}>
             <SegmentedButtons
-                value={type}
-                onValueChange={setType}
+                value={selectedTypeStore.selected}
+                onValueChange={selectType}
                 buttons={[
                     {
                         value: 'EXPENSE',
@@ -178,7 +172,7 @@ export default function a() {
                           "EUR",
                           date.toLocaleDateString('sv-SE'),
                           pickedCategory?.id || null,
-                          type,
+                          selectedTypeStore.selected,
                       )
                       try {
                           if (selectedExpenseStore.selected) {

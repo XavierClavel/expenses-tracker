@@ -15,6 +15,7 @@ import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-sto
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {useColorPickerStore} from "@/src/stores/color-picker-store";
 import {useIconPickerStore} from "@/src/stores/icon-picker-store";
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 export default function HomeScreen() {
     const navigation = useNavigation();
@@ -25,6 +26,7 @@ export default function HomeScreen() {
     const categoryPickerStore = usePickerStore()
     const colorPickerStore = useColorPickerStore()
     const iconPickerStore = useIconPickerStore()
+    const selectedTypeStore = useSelectedTypeStore()
 
 
     return (
@@ -50,6 +52,7 @@ export default function HomeScreen() {
                             key={item.id}
                             onPress={() => {
                                 selectedCategoryStore.setSelected(item)
+                                selectedTypeStore.setSelected(item.type)
                                 colorPickerStore.setSelected(item.color)
                                 iconPickerStore.setSelected(item.icon)
                                 router.navigate("category/edit");
@@ -84,6 +87,7 @@ export default function HomeScreen() {
                     selectedCategoryStore.setSelected(null)
                     colorPickerStore.setSelected(null)
                     iconPickerStore.setSelected(null)
+                    selectedTypeStore.setSelected("EXPENSE")
                     navigation.navigate('category/edit')
                 }}
             />
