@@ -1,22 +1,14 @@
 import { Image } from 'expo-image';
-import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
-import {ExpenseDisplay} from "@/components/expenseDisplay";
-import {FAB, TextInput} from "react-native-paper";
-import {useCallback, useEffect, useState} from "react";
-import {DatePickerInput, DatePickerModal} from "react-native-paper-dates";
+import {FAB, SegmentedButtons, TextInput} from "react-native-paper";
+import {useState} from "react";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
+import {router, useNavigation, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
-import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import CategoryIn from "@/src/types/CategoryIn";
-import {createExpense, updateExpense} from "@/src/api/expenses";
-import ExpenseIn from "@/src/types/Expense";
-import {login} from "@/src/api/auth";
-import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {createCategory, updateCategory} from "@/src/api/categories";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
@@ -43,6 +35,7 @@ export default function a() {
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const [title, setTitle] = useState(selectedCategoryStore.selected?.name || "");
+    const [type, setType] = useState(selectedCategoryStore.selected?.type || "EXPENSE")
 
 
 
@@ -64,6 +57,20 @@ export default function a() {
                 padding: 20,
                 justifyContent: "space-around",
             }}>
+            <SegmentedButtons
+                value={type}
+                onValueChange={setType}
+                buttons={[
+                    {
+                        value: 'EXPENSE',
+                        label: 'Expense',
+                    },
+                    {
+                        value: 'INCOME',
+                        label: 'Income',
+                    },
+                ]}
+            />
             <TextInput
                 style={{
                     width: "100%",
@@ -142,10 +149,9 @@ export default function a() {
                   onPress={async () => {
                       const category = new CategoryIn(
                           title,
-                          "EXPENSE",
+                          type,
                           colorPickerStore.selected,
                           iconPickerStore.selected,
-
                       )
                       try {
                           if (selectedCategoryStore.selected) {
