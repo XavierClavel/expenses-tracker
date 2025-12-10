@@ -50,14 +50,17 @@ export default function TabTwoScreen() {
     const loadTrends = async () => {
         const trends = await getMonthTrends()
         const result = []
-        console.log(trends)
         for (const v of trends) {
-            console.log(v)
+            const date = new Date(v.year, v.month - 1)
+            const currentDate = new Date()
+            const displayDate= date.getFullYear() == currentDate.getFullYear() ?
+                date.toLocaleString('default', { month: 'short' })
+                : date.toLocaleString('default', { month: 'short', year: 'numeric' })
             result.push({
                 value: Number(v.totalIncome),
                 frontColor: colorIncome,
                 spacing: 6,
-                label: "pouet"
+                label: displayDate
             })
             result.push({
                 value: Number(v.totalExpenses),
