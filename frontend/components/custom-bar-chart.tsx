@@ -69,7 +69,7 @@ export function CustomBarChart({ data }) {
                 width: setSize,
                 backgroundColor: "rgba(255,255,255,0.2)", // light, subtle line
                 zIndex: 0,   // make sure it stays behind
-                marginBottom: 25,
+                marginBottom: 40,
                 borderRadius: 5,
             }}
         />
@@ -77,6 +77,7 @@ export function CustomBarChart({ data }) {
             zIndex: 1,
         }}>
         <BarChart
+            xAxisTextNumberOfLines={2}
             scrollRef={scrollRef}
             //adjustToWidth
             width={windowWidth}

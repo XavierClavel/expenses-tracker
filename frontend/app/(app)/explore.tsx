@@ -16,30 +16,6 @@ import {useEffect, useState} from "react";
 const colorExpense = '#da451a'
 const colorIncome = '#71cc5d'
 
-
-const data = [
-    {value: 2500, frontColor: colorIncome, spacing: 6, label:'Jan'},
-    {value: 2400, frontColor: colorExpense},
-    {value: 3500, frontColor: colorIncome, spacing: 6, label:'Feb'},
-    {value: 3000, frontColor: colorExpense},
-    {value: 4500, frontColor: colorIncome, spacing: 6, label:'Mar'},
-    {value: 4000, frontColor: colorExpense},
-    {value: 5200, frontColor: colorIncome, spacing: 6, label:'Apr'},
-    {value: 4900, frontColor: colorExpense},
-    {value: 3000, frontColor: colorIncome, spacing: 6, label:'May'},
-    {value: 2800, frontColor: colorExpense},
-    {value: 2500, frontColor: colorIncome, spacing: 6, label:'Jan'},
-    {value: 2400, frontColor: colorExpense},
-    {value: 3500, frontColor: colorIncome, spacing: 6, label:'Feb'},
-    {value: 3000, frontColor: colorExpense},
-    {value: 4500, frontColor: colorIncome, spacing: 6, label:'Mar'},
-    {value: 4000, frontColor: colorExpense},
-    {value: 5200, frontColor: colorIncome, spacing: 6, label:'Apr'},
-    {value: 4900, frontColor: colorExpense},
-    {value: 3000, frontColor: colorIncome, spacing: 6, label:'May'},
-    {value: 2800, frontColor: colorExpense},
-];
-
 export default function TabTwoScreen() {
     const backgroundColor = useThemeColor({}, 'background');
     const surfaceColor = useThemeColor({}, 'surface');
