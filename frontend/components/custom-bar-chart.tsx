@@ -67,8 +67,8 @@ export function CustomBarChart({ data }) {
                 top: 0,
                 bottom: 0,
                 width: setSize,
-                backgroundColor: "rgba(255,255,255,0.2)", // light, subtle line
-                zIndex: 0,   // make sure it stays behind
+                backgroundColor: "rgba(255,255,255,0.2)",
+                zIndex: 0,
                 marginBottom: 40,
                 borderRadius: 5,
             }}

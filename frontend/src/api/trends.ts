@@ -19,3 +19,16 @@ export async function getMonthTrends(): Promise<TrendsDto[]> {
     })
     return result
 }
+
+export async function getYearTrends(): Promise<TrendsDto[]> {
+    const response = await apiClient.get( `/trends/year`);
+    const result = response.data.map((it) => {
+        return new TrendsDto(
+            it.year,
+            it.month,
+            it.totalExpenses,
+            it.totalIncome,
+        )
+    })
+    return result
+}

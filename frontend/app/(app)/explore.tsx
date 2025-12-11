@@ -9,9 +9,10 @@ import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {getYearSummary} from "@/src/api/summary";
-import {getMonthTrends} from "@/src/api/trends";
+import {getMonthTrends, getYearTrends} from "@/src/api/trends";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useEffect, useState} from "react";
+import { ToggleButton } from "react-native-paper";
 
 const colorExpense = '#da451a'
 const colorIncome = '#71cc5d'
@@ -23,7 +24,7 @@ export default function TabTwoScreen() {
 
     const [trends, setTrends] = useState([])
 
-    const loadTrends = async () => {
+    const loadMonthTrends = async () => {
         const trends = await getMonthTrends()
         const result = []
         for (const v of trends) {
@@ -46,8 +47,31 @@ export default function TabTwoScreen() {
         setTrends(result)
     }
 
+    const loadYearTrends = async () => {
+        const trends = await getYearTrends()
+        const result = []
+        for (const v of trends) {
+            const date = new Date(v.year, v.month - 1)
+            const currentDate = new Date()
+            const displayDate= date.getFullYear() == currentDate.getFullYear() ?
+                date.toLocaleString('default', { month: 'short' })
+                : date.toLocaleString('default', { month: 'short', year: 'numeric' })
+            result.push({
+                value: Number(v.totalIncome),
+                frontColor: colorIncome,
+                spacing: 6,
+                label: displayDate
+            })
+            result.push({
+                value: Number(v.totalExpenses),
+                frontColor: colorExpense,
+            })
+        }
+        setTrends(result)
+    }
+
     useEffect(() => {
-        loadTrends()
+        loadMonthTrends()
     }, []);
 
     return (
@@ -75,12 +99,16 @@ export default function TabTwoScreen() {
             width: "100%",
             marginVertical: 5
         }}>
-            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: surfaceColor, borderRadius: 8 }}>
+            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: surfaceColor, borderRadius: 8 }}
+                onPress={loadMonthTrends}
+            >
                 <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>
                     Month
                 </Text>
             </Pressable>
-            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: surfaceColor, borderRadius: 8 }}>
+            <Pressable style={{ paddingVertical: 10, width:75, backgroundColor: surfaceColor, borderRadius: 8 }}
+                onPress={loadYearTrends}
+            >
                 <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 14, fontWeight: 'bold' }}>
                     Year
                 </Text>
