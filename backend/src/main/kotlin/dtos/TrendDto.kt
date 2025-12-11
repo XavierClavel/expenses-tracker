@@ -12,4 +12,11 @@ data class TrendDto(
     val totalIncome: BigDecimal,
     @Serializable(with = BigDecimalSerializer::class)
     val totalExpenses: BigDecimal,
-)
+) {
+    constructor(year: Int, totalIncome: BigDecimal, totalExpenses: BigDecimal) : this(
+        year = year,
+        month = null,
+        totalIncome = totalIncome,
+        totalExpenses = totalExpenses,
+    )
+}
