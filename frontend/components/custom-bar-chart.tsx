@@ -6,7 +6,6 @@ import {Dimensions} from 'react-native';
 import {time} from "@expo/fingerprint/cli/build/utils/log";
 
 
-//TODO: prepare input
 //TODO: set y scale
 
 
@@ -20,6 +19,20 @@ export function CustomBarChart({ data }) {
     const setSize = spacing + barSize * 2 + interSpacing
     const scrollRef = useRef(null);
     const isSnapping = useRef(false);
+    const numberOfSteps = 5
+    const maxValue = data.reduce(function(prev, current) {
+        return (prev && prev.value > current.value) ? prev : current
+    },0).value
+    console.log("max", maxValue)
+    const orderOfMagnitude = Math.max(3,Math.floor(Math.log10(maxValue)))
+    const magnitude = Math.pow(10,orderOfMagnitude)
+    console.log("order of magnitude", orderOfMagnitude)
+
+    const roundedMax = Math.ceil(maxValue / magnitude) * magnitude
+    console.log("chart max", roundedMax)
+    const chartStep = Math.ceil(roundedMax  / (numberOfSteps * magnitude)) * magnitude
+    const chartMax = chartStep * numberOfSteps
+    console.log("step", chartStep)
 
     useEffect(() => {
         console.log(data)
@@ -117,8 +130,8 @@ export function CustomBarChart({ data }) {
             //yAxisThickness={0}
             xAxisColor={'lightgray'}
             //yAxisTextStyle={{color: 'lightgray'}}
-            stepValue={1000}
-            maxValue={6000}
+            stepValue={chartStep}
+            maxValue={chartMax}
             labelWidth={40}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
             hideYAxisText
@@ -141,7 +154,7 @@ export function CustomBarChart({ data }) {
             }}
 
             onMomentumScrollEnd={(e) => {
-                console.log("momentum scroll end")
+                //console.log("momentum scroll end")
                 const x = scrollPosition.current
                 let targetX = Math.round((x/setSize))*setSize ;
                 //console.log(targetX)
