@@ -1,7 +1,7 @@
 import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import {BarChart, PieChart} from "react-native-gifted-charts";
-import {PropsWithChildren, SetStateAction, useRef, useState} from 'react';
+import {PropsWithChildren, SetStateAction, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {time} from "@expo/fingerprint/cli/build/utils/log";
 
@@ -11,10 +11,8 @@ import {time} from "@expo/fingerprint/cli/build/utils/log";
 
 
 export function CustomBarChart({ data }) {
-    if (data.length == 0) return <Text>No data</Text>
+    const [focusedItem, setFocusedItem] = useState([]);
     const windowWidth = Dimensions.get('window').width;
-    //console.log("window width", windowWidth)
-    const [focusedItem, setFocusedItem] = useState([data.length -2, data.length -1])
     const scrollPosition = useRef(0)
     const barSize = 16
     const interSpacing = 6
@@ -23,7 +21,22 @@ export function CustomBarChart({ data }) {
     const scrollRef = useRef(null);
     const isSnapping = useRef(false);
 
+    useEffect(() => {
+        console.log(data)
+        if (data.length >= 2) {
+            setFocusedItem([data.length - 2, data.length - 1]);
+        } else if (data.length === 1) {
+            setFocusedItem([0]);
+        } else {
+            setFocusedItem([]);
+        }
+    }, [data]);
+
+    if (data.length === 0) return <Text>No data</Text>;
+
+
     function renderValues() {
+        if (data.length == 0 || focusedItem.some((it) => data.length <= it)) return <Text>No data</Text>
         if (focusedItem.length > 0) return <View style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly',

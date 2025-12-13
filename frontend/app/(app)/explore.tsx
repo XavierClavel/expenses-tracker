@@ -52,10 +52,7 @@ export default function TabTwoScreen() {
         const result = []
         for (const v of trends) {
             const date = new Date(v.year, v.month - 1)
-            const currentDate = new Date()
-            const displayDate= date.getFullYear() == currentDate.getFullYear() ?
-                date.toLocaleString('default', { month: 'short' })
-                : date.toLocaleString('default', { month: 'short', year: 'numeric' })
+            const displayDate= date.toLocaleString('default', { year: 'numeric' })
             result.push({
                 value: Number(v.totalIncome),
                 frontColor: colorIncome,
