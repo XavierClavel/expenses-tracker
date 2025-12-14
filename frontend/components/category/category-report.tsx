@@ -6,6 +6,7 @@ import {ProgressBar} from "@/components/progress-bar";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {StandardIcon} from "@/components/standard-icon";
+import {colors} from "@/constants/colors";
 
 export function CategoryReport({ item, percent }) {
     const surfaceColor = useThemeColor({}, 'surface');
@@ -64,7 +65,7 @@ export function CategoryReport({ item, percent }) {
                 <Text style={{ color: textOnSurfaceColor, fontSize: 14, fontWeight: 'bold', width: 40, justifyContent: 'center' }}>
                     {displayedPercent}
                 </Text>
-                <ProgressBar progress={percent} color={item.color}></ProgressBar>
+                <ProgressBar progress={percent} color={colors[item.color || 'unknown']}></ProgressBar>
             </View>
             </View>
         </View>

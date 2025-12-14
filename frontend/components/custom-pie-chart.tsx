@@ -5,6 +5,7 @@ import { PropsWithChildren, SetStateAction, useState} from 'react';
 import {CategoryReport} from "@/components/category/category-report";
 import {useTheme} from "@react-navigation/core";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {colors} from "@/constants/colors";
 
 
 
@@ -31,7 +32,7 @@ export function CustomPieChart({ data }) {
         .map(it => {
         return {
             value: Math.abs(it.value),
-            color: it.color,
+            color: colors[it.color || 'unknown'],
             icon: it.icon,
             label: it.label,
             gradientCenterColor: it.color,
@@ -39,7 +40,21 @@ export function CustomPieChart({ data }) {
         }
     })
 
-    console.log("pie data", pieData)
+    const categoryData = data
+        .sort((function(a, b) {
+            return b.value - a.value;
+        }))
+        .filter((function(v) {
+            return v.value
+        }))
+        .map(it => {
+            return {
+                value: it.value,
+                color: it.color,
+                icon: it.icon,
+                label: it.label,
+            }
+        })
 
     if (pieData.length == 0) {
         console.log("no data")
@@ -142,7 +157,7 @@ export function CustomPieChart({ data }) {
                 justifyContent: "center",   // vertical center
                 alignItems: "center",        // horizontal center
             }}>
-                {pieData.map((item, index) => (
+                {categoryData.map((item, index) => (
                     <CategoryReport item={item} percent={item.value / total * 100} key={index}/>
                 ))}
             </View>

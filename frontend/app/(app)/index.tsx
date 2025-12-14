@@ -54,7 +54,7 @@ export default function HomeScreen() {
                             return accumulator + Number(object.total);
                         }, 0),
                     label: c.name,
-                    color: colors[c.color || 'unknown'],
+                    color: c.color,
                     icon: c.icon,
                 }
             })
@@ -72,7 +72,7 @@ export default function HomeScreen() {
                             return accumulator + Number(object.total);
                         }, 0),
                     label: c.name,
-                    color: colors[c.color || 'unknown'],
+                    color: c.color,
                     icon: c.icon,
                 }
             })
