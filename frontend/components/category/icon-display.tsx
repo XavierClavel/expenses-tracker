@@ -8,6 +8,7 @@ import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import CategoryIn from "@/src/types/CategoryIn";
 import CategoryOut from "@/src/types/CategoryOut";
+import {StandardIcon} from "@/components/standard-icon";
 
 
 
@@ -19,25 +20,6 @@ type ColorDisplayProps = {
 export function IconDisplay( { icon }: ColorDisplayProps) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
-
-    const renderIcon = (icon: string) => {
-        return (
-            <View
-                style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 15,
-                    backgroundColor: 'white',
-                    marginRight: 10,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <IconSymbol name={icon} color={surfaceColor} size={20} />
-            </View>
-        );
-    };
-
     return <View
         style={{
             flexDirection: 'row',
@@ -57,7 +39,7 @@ export function IconDisplay( { icon }: ColorDisplayProps) {
                 justifyContent: "flex-start",
             }}
         >
-        {renderIcon(icon)}
+        <StandardIcon icon={icon} color={'white'} />
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {icon || "No icon selected"}
         </Text>

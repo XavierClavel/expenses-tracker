@@ -11,6 +11,7 @@ import ExpenseOut from "@/src/types/ExpenseOut";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {sub} from "ob1";
 import {colors} from "@/constants/colors";
+import {StandardIcon} from "@/components/standard-icon";
 
 
 type ExpenseDisplayProps = {
@@ -24,24 +25,6 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
     const categoriesStore = useCategoriesStore()
     const subcategory = categoriesStore.getSubcategory(data.categoryId)
-
-    const renderIcon = (color: string, icon: string) => {
-        return (
-            <View
-                style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 15,
-                    backgroundColor: colors[color],
-                    marginRight: 10,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <IconSymbol name={icon} color={surfaceColor} size={20} />
-            </View>
-        );
-    };
 
     return <View
         style={{
@@ -62,10 +45,10 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
                 justifyContent: "space-between",
             }}
         >
-        {renderIcon(
-            subcategory?.color ? subcategory.color : 'lightgray',
-            subcategory?.icon ? subcategory.icon : 'unknown',
-        )}
+            <StandardIcon
+                icon={subcategory?.icon ? subcategory.icon : 'unknown'}
+                color={subcategory?.color ? subcategory.color : 'lightgray'}
+            />
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {data.title}
         </Text>

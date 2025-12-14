@@ -25,5 +25,8 @@ export const icons = Object.freeze({
     wifi: 'wifi',
     sim: 'sim',
     play: 'play',
+    work: 'briefcase',
+    coffee: 'coffee',
+    rocket: 'rocket',
     unknown: 'unknown',
 })

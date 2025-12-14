@@ -9,35 +9,18 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 import CategoryIn from "@/src/types/CategoryIn";
 import CategoryOut from "@/src/types/CategoryOut";
 import {colors} from "@/constants/colors";
+import {StandardIcon} from "@/components/standard-icon";
 
 
 
 type CategoryDisplayProps = {
-    data: CategoryOut;
+    data: CategoryOut
 };
 
 
 export function CategoryDisplay( { data }: CategoryDisplayProps) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
-
-    const renderIcon = (color: string, icon: string) => {
-        return (
-            <View
-                style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 15,
-                    backgroundColor: colors[color],
-                    marginRight: 10,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <IconSymbol name={icon} color={surfaceColor} size={20} />
-            </View>
-        );
-    };
 
     return <View
         style={{
@@ -58,7 +41,7 @@ export function CategoryDisplay( { data }: CategoryDisplayProps) {
                 justifyContent: "flex-start",
             }}
         >
-        {renderIcon(data.color, data.icon)}
+            <StandardIcon icon={data.icon} color={data.icon} />
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {data.name}
         </Text>

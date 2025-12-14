@@ -5,31 +5,13 @@ import React, { PropsWithChildren, SetStateAction, useState} from 'react';
 import {ProgressBar} from "@/components/progress-bar";
 import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {StandardIcon} from "@/components/standard-icon";
 
 export function CategoryReport({ item, percent }) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
     const displayedPercent = percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
-
-    const renderIcon = (color: string, icon: string) => {
-        return (
-            <View
-                style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 15,
-                    backgroundColor: color,
-                    marginRight: 15,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <IconSymbol name={icon} color={surfaceColor} size={20} />
-            </View>
-        );
-    };
-
 
     return (
         <View
@@ -49,7 +31,7 @@ export function CategoryReport({ item, percent }) {
                 flexDirection: 'row',
                 alignItems: 'center',
             }}>
-            {renderIcon(item.color, item.icon)}
+            <StandardIcon icon={item.icon} color={item.color} />
             <View
                 style={{
                     flex: 1,

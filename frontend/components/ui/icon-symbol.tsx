@@ -73,6 +73,12 @@ export function IconSymbol({
             return <MaterialIcons color={color} size={size} name='sim-card' />
         case 'play':
             return <FontAwesome6 color={color} size={size-3} name='play' />
+        case 'work':
+            return <MaterialCommunityIcons color={color} size={size} name='briefcase' />
+        case 'coffee':
+            return <MaterialCommunityIcons color={color} size={size} name='coffee' />
+        case 'rocket':
+            return <MaterialIcons color={color} size={size} name='rocket-launch' />
         case 'unknown':
             return <FontAwesome5 color={color} size={size-3} name='question' />;
     }
