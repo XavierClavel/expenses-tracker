@@ -39,8 +39,8 @@ class ExpenseService: KoinComponent {
     fun list(userId: Long, paging: Paging): List<ExpenseOut> {
         return QExpense()
             .user.id.eq(userId)
-            .orderBy().date.desc()
             .setPaging(paging)
+            .orderBy().date.desc()
             .findList()
             .map { it.toOutput() }
     }

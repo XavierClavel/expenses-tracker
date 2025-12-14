@@ -93,6 +93,18 @@ class ExpenseControllerTest: ApplicationTest() {
     }
 
     @Test
+    fun `expenses are sorted by date`() = runTestAsUser{
+        client.createExpense(expense.copy(title = "MacDo", date = LocalDate.parse("2021-06-06")))
+        client.createExpense(expense.copy(title = "Coffee", date = LocalDate.parse("2019-06-06")))
+        client.createExpense(expense.copy(title = "Groceries", date = LocalDate.parse("2020-06-06")))
+        val result = client.listExpenses()
+        assertEquals(3, result.size)
+        assertEquals("MacDo", result[0].title)
+        assertEquals("Groceries", result[1].title)
+        assertEquals("Coffee", result[2].title)
+    }
+
+    @Test
     fun `delete expense`() = runTestAsUser {
         val expense = this@ExpenseControllerTest.expense
         val result = client.createExpense(expense)

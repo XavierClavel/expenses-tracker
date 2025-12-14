@@ -9,7 +9,7 @@ export const colors = {
     blue: '#009FFF',
     lightblue: '#93FCF8',
     purple: '#BDB2FA',
-    red: '#FFA5BA',
+    red: '#f6698a',
     yellow: '#e1d481',
     green: '#b4f1a7',
     magenta: '#e193d9',
