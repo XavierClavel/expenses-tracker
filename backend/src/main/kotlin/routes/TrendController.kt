@@ -10,6 +10,7 @@ import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.TrendService
 import com.xavierclavel.utils.SUMMARY_URL
 import com.xavierclavel.utils.TREND_URL
+import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
 import io.ktor.http.*
 import io.ktor.server.response.*
@@ -19,6 +20,20 @@ import org.koin.ktor.ext.inject
 fun Route.setupTrendController() = route(TREND_URL) {
     val redisService: RedisService by inject()
     val trendService: TrendService by inject()
+
+    get("/category/{id}/year") {
+        val categoryId = getPathId()
+        val userId = getSessionUserId(redisService)
+        val result = trendService.categoryTrendByYear(userId = userId, categoryId = categoryId)
+        call.respond(result)
+    }
+
+    get("/category/{id}/month") {
+        val categoryId = getPathId()
+        val userId = getSessionUserId(redisService)
+        val result = trendService.categoryTrendByMonth(userId = userId, categoryId = categoryId)
+        call.respond(result)
+    }
 
     get("year") {
         val sessionUserId = getSessionUserId(redisService)
