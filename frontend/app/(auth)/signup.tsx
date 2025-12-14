@@ -7,7 +7,7 @@ import {TextInput} from "react-native-paper";
 import {useState} from "react";
 import { Button } from 'react-native-paper';
 import {useThemeColor} from "@/hooks/use-theme-color";
-import {login} from "@/src/api/auth";
+import {login, signup} from "@/src/api/auth";
 import {navigate} from "expo-router/build/global-state/routing";
 import {apiClient} from "@/src/api/client";
 import * as AuthSession from 'expo-auth-session';
@@ -31,30 +31,7 @@ export default function ModalScreen() {
 
     return (
         <ThemedView style={styles.container}>
-            <ThemedText type="title">Login</ThemedText>
-            {/*<Button*/}
-            {/*    style={{*/}
-            {/*        width: "100%",*/}
-            {/*        paddingVertical: 5,*/}
-            {/*        backgroundColor: surfaceColor,*/}
-            {/*    }}*/}
-            {/*    textColor='white'*/}
-            {/*    onPress={async () => {*/}
-            {/*        try {*/}
-            {/*            const result = await WebBrowser.openAuthSessionAsync(*/}
-            {/*                authUrl,*/}
-            {/*                redirectUri*/}
-            {/*            );*/}
-
-            {/*            if (result.type === 'success') {*/}
-            {/*                const url = result.url;*/}
-            {/*                console.log(url);*/}
-            {/*            }*/}
-            {/*        } catch (e) {*/}
-            {/*            console.error("Login failed", e);*/}
-            {/*        }*/}
-            {/*    }}*/}
-            {/*/!*>OAuth</Button>*!/*/}
+            <ThemedText type="title">Signup</ThemedText>
             <TextInput
                 style={{
                     width: "100%",
@@ -100,13 +77,13 @@ export default function ModalScreen() {
                 textColor='white'
                 onPress={async () => {
                     try {
-                        await login(mail, password);
-                        router.replace("/(app)/expenses");
+                        await signup(mail, password);
+                        router.replace("login");
                     } catch (e) {
-                        console.error("Login failed", e);
+                        console.error("Signup failed", e);
                     }
                 }}
-            >Log in</Button>
+            >Sign up</Button>
             <Button
                 style={{
                     width: "100%",
@@ -115,9 +92,9 @@ export default function ModalScreen() {
                 }}
                 textColor='white'
                 onPress={async () => {
-                    router.replace("signup");
+                    router.replace("login");
                 }}
-            >Sign up</Button>
+            >Log in</Button>
         </ThemedView>
     );
 }

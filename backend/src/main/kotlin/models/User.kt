@@ -16,7 +16,6 @@ import jakarta.persistence.Table
 @Table(name = "users")
 class User(
 
-    @Column(unique = true)
     var username: String = "",
 
     @Column(unique = true)
