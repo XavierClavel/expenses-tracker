@@ -27,7 +27,7 @@ export function StandardIcon( { icon, color }: ColorDisplayProps) {
                 height: 30,
                 width: 30,
                 borderRadius: 15,
-                backgroundColor: colors[color],
+                backgroundColor: colors[color] || 'white',
                 marginRight: 10,
                 alignItems: 'center',
                 justifyContent: 'center',

@@ -41,7 +41,7 @@ export function CategoryDisplay( { data }: CategoryDisplayProps) {
                 justifyContent: "flex-start",
             }}
         >
-            <StandardIcon icon={data.icon} color={data.icon} />
+            <StandardIcon icon={data.icon} color={data.color} />
         <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
             {data.name}
         </Text>
