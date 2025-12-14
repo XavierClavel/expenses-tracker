@@ -15,6 +15,8 @@ import {colors} from "@/constants/colors";
 import {icons} from "@/constants/icons";
 import {IconDisplay} from "@/components/category/icon-display";
 import {useIconPickerStore} from "@/src/stores/icon-picker-store";
+import {Image} from "expo-image";
+import ParallaxScrollView from "@/components/parallax-scroll-view";
 
 
 
@@ -26,6 +28,7 @@ export default function IconPickerScreen() {
     const iconPickerStore = useIconPickerStore()
 
     return (
+        <ParallaxScrollView>
         <View style={{
             flex: 1,
             padding: 8,
@@ -52,5 +55,6 @@ export default function IconPickerScreen() {
                 ))}
             </SafeAreaView>
         </View>
+        </ParallaxScrollView>
     );
 }
