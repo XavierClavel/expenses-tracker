@@ -11,7 +11,6 @@ import {SafeAreaProvider} from "react-native-safe-area-context";
 SplashScreen.preventAutoHideAsync();
 
 async function isAuthenticated(): Promise<boolean> {
-    return false
     let token = await loadToken();
 
     if (!token) {

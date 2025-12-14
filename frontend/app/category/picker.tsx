@@ -11,6 +11,7 @@ import {useCallback} from "react";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
+import ParallaxScrollView from "@/components/parallax-scroll-view";
 
 export default function FullPickerScreen() {
   const route = useRoute<any>();
@@ -22,6 +23,7 @@ export default function FullPickerScreen() {
     const selectedTypeStore = useSelectedTypeStore()
 
   return (
+      <ParallaxScrollView>
     <View style={{
         flex: 1,
         padding: 8,
@@ -50,5 +52,6 @@ export default function FullPickerScreen() {
       ))}
         </SafeAreaView>
     </View>
+      </ParallaxScrollView>
   );
 }

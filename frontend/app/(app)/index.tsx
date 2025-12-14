@@ -5,11 +5,11 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import {Link, useFocusEffect} from 'expo-router';
 import { CustomPieChart } from '@/components/custom-pie-chart';
 import {data} from "browserslist";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {getYearSummary} from "@/src/api/summary";
 import {useSummaryStore} from "@/src/stores/summary-store";
 import {useCategoriesStore} from "@/src/stores/categories-store";
@@ -35,6 +35,7 @@ export default function HomeScreen() {
     const selectedTypeStore = useSelectedTypeStore()
 
     const loadSummary = async () => {
+        console.log("load summary")
         const summary = await getYearSummary(2025)
         summaryStore.setSelected(summary)
     }
@@ -58,6 +59,7 @@ export default function HomeScreen() {
                 }
             })
             setData(result)
+            console.log("data",data)
         } else {
             const subcategories = summaryStore.selected?.incomeByCategory || []
             const categories = categoryStore.selected
@@ -81,6 +83,26 @@ export default function HomeScreen() {
     useEffect(() => {
         loadSummary()
     }, []);
+
+    async function syncData() {
+        console.log("focused")
+        if (!summaryStore.selected) {
+            await loadSummary()
+        }
+        selectType('EXPENSE')
+    }
+
+    useFocusEffect(
+
+        React.useCallback(() => {
+            syncData()
+            // Do something when the screen is focused
+            return () => {
+                // Do something when the screen is unfocused
+                // Useful for cleanup functions
+            };
+        }, [])
+    );
 
     return (
 

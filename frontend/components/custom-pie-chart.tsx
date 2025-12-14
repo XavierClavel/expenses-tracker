@@ -12,33 +12,44 @@ import {useThemeColor} from "@/hooks/use-theme-color";
 
 
 export function CustomPieChart({ data }) {
-
-    if (data.length == 0) {
-        return <Text>No data</Text>
-    }
+    const [focusedItem, setFocusedItem] = useState(0)
 
     const backgroundColor = useThemeColor({}, 'background');
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
-    const total = data.reduce((accumulator, object) => {
-        return accumulator + object.value;
-    }, 0);
-
     let newFocusedItem = 0
 
-    const pieData = data.map(it => {
+    const pieData = data
+        .sort((function(a, b) {
+            return b.value - a.value;
+        }))
+        .filter((function(v) {
+            return v.value
+        }))
+        .map(it => {
         return {
             value: Math.abs(it.value),
             color: it.color,
             icon: it.icon,
+            label: it.label,
             gradientCenterColor: it.color,
             radius: newFocusedItem === data.indexOf(it) ? 130 : 120,
         }
     })
 
-    const [focusedItem, setFocusedItem] = useState(0)
+    console.log("pie data", pieData)
+
+    if (pieData.length == 0) {
+        console.log("no data")
+        return <Text>No data</Text>
+    }
+
+
+    const total = pieData.reduce((accumulator, object) => {
+        return accumulator + object.value;
+    }, 0);
 
     return <View
         style={{
@@ -64,7 +75,7 @@ export function CustomPieChart({ data }) {
                 innerRadius={90}
                 innerCircleColor={backgroundColor}
                 centerLabelComponent={() => {
-                    if (data[focusedItem] == null) {
+                    if (pieData[focusedItem] == null) {
                         return(
                             <View style={{justifyContent: 'center', alignItems: 'center'}}>
                                 <Text
@@ -74,12 +85,12 @@ export function CustomPieChart({ data }) {
                             </View>
                         )
                     }
-                    const percent = data[focusedItem].value / total * 100
+                    const percent = pieData[focusedItem].value / total * 100
                     return (
                         <View style={{justifyContent: 'center', alignItems: 'center'}}>
                             <Text
                                 style={{fontSize: 22, color: textOnBackgroundColor, fontWeight: 'bold'}}>
-                                {data[focusedItem].value}€
+                                {pieData[focusedItem].value}€
                             </Text>
                             <Text style={{fontSize: 14, color: textOnBackgroundColor}}>{
                                 percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
@@ -98,14 +109,14 @@ export function CustomPieChart({ data }) {
                 marginBottom: 50,
                 marginHorizontal: 50,
                 borderRadius: 15,
-                backgroundColor: focusedItem != -1 ? data[focusedItem].color : surfaceColor,
+                backgroundColor: focusedItem != -1 ? pieData[focusedItem].color : surfaceColor,
                 height: 50,
             }}>
             <Pressable style={{ width: 50, paddingVertical: 14, borderRadius: 8}} onPress={() => {
                 if (focusedItem > 0) {
                     setFocusedItem(focusedItem - 1)
                 } else {
-                    setFocusedItem(data.length - 1)
+                    setFocusedItem(pieData.length - 1)
                 }
             }}
                 >
@@ -113,11 +124,11 @@ export function CustomPieChart({ data }) {
             </Pressable>
             <View style={{ flex: 1, alignItems: 'center' }}>
                 <Text style={{ color: focusedItem == -1 ? textOnSurfaceColor: 'black', textAlign: 'center', fontSize: 14, marginVertical: 8, fontWeight: 'bold' }}>
-                    {data[focusedItem]?.label  || 'Total'}
+                    {pieData[focusedItem]?.label  || 'Total'}
                 </Text>
             </View>
             <Pressable style={{ width: 50, paddingVertical: 14, borderRadius:8}} onPress={() => {
-                if (focusedItem < data.length - 1) {
+                if (focusedItem < pieData.length - 1) {
                     setFocusedItem(focusedItem + 1)
                 } else {
                     setFocusedItem(0)
@@ -131,7 +142,7 @@ export function CustomPieChart({ data }) {
                 justifyContent: "center",   // vertical center
                 alignItems: "center",        // horizontal center
             }}>
-                {data.map((item, index) => (
+                {pieData.map((item, index) => (
                     <CategoryReport item={item} percent={item.value / total * 100} key={index}/>
                 ))}
             </View>

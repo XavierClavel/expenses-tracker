@@ -34,7 +34,7 @@ export default function TabLayout() {
               name="list"
               options={{
                   title: 'Categories',
-                  tabBarIcon: ({ color }) => <FontAwesome5 size={28} name="receipt" color={color} />,
+                  tabBarIcon: ({ color }) => <FontAwesome size={28} name="folder" color={color} />,
               }}
           />
       <Tabs.Screen
