@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import {Pressable, Platform, StyleSheet, Text, View, FlatList, ActivityIndicator} from 'react-native';
+import {Pressable, Platform, StyleSheet, Text, View, FlatList, ActivityIndicator, SectionList} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -16,11 +16,13 @@ import {listCategories} from "@/src/api/categories";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
+import {Section} from "@jridgewell/trace-mapping/src/types";
 
 
 export default function HomeScreen() {
     const navigation = useNavigation();
     const [expenses, setExpenses] = useState<ExpenseOut[]>([]);
+    const [expensesSections, setExpensesSections] = useState<Section<ExpenseOut>[]>([])
     const [page, setPage] = useState(0);
     const [pageSize] = useState(20);
     const [loading, setLoading] = useState(false);
@@ -30,6 +32,8 @@ export default function HomeScreen() {
     const selectedTypeStore = useSelectedTypeStore()
     const pickedCategoryStore = usePickerStore()
     const categoriesStore = useCategoriesStore()
+
+    const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
 
     const loadExpenses = async (pageToLoad: number) => {
         if (loading || !hasMore) return;
@@ -53,6 +57,32 @@ export default function HomeScreen() {
         loadCategories()
     }, []);
 
+    useEffect(() => {
+        console.log("expenses", expenses);
+
+        setExpensesSections(
+            expenses.reduce((acc, expense) => {
+                const date = new Intl.DateTimeFormat("fr", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                }).format(expense.date);
+
+                let section = acc.find(s => s.title === date);
+
+                if (!section) {
+                    section = { title: date, data: [] };
+                    acc.push(section);
+                }
+
+                section.data.push(expense);
+                return acc;
+            }, [] as { title: string; data: ExpenseOut[] }[])
+        );
+
+        console.log("map", expensesSections)
+    }, [expenses]);
+
 
   return (
       <View style={{ flex: 1, backgroundColor: backgroundColor, paddingTop: 50}}>
@@ -65,24 +95,32 @@ export default function HomeScreen() {
                 paddingHorizontal: 10,
                 justifyContent: "space-around"
             }}>
-            <FlatList
+            <SectionList
                 style={{
-                    width: "100%",
+                    width:"100%",
+
                 }}
-                data={expenses}
+                sections={expensesSections}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) =>
+                renderSectionHeader={({ section }) => (
+                    <Text style={{ fontWeight: "bold", marginVertical: 8, color:textOnBackgroundColor }}>
+                        {section.title}
+                    </Text>
+                )}
+                renderItem={({ item }) => (
                     <Pressable
-                        key={item.id}
                         onPress={() => {
-                            selectedExpenseStore.setSelected(item)
-                            selectedTypeStore.setSelected(item.type)
-                            pickedCategoryStore.setSelected(categoriesStore.getSubcategory(item.categoryId))
+                            selectedExpenseStore.setSelected(item);
+                            selectedTypeStore.setSelected(item.type);
+                            pickedCategoryStore.setSelected(
+                                categoriesStore.getSubcategory(item.categoryId)
+                            );
                             router.navigate("expense/edit");
                         }}
                     >
-                        <ExpenseDisplay data={item}/>
-                    </Pressable>}
+                        <ExpenseDisplay data={item} />
+                    </Pressable>
+                )}
                 onEndReached={() => {
                     console.log("end reached")
                     if (!loading && hasMore) {
