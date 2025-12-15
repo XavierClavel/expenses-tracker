@@ -1,7 +1,7 @@
-import { Stack } from "expo-router";
+import {Redirect, Stack} from "expo-router";
 import { useEffect, useState } from "react";
 import { loadToken, clearToken } from "@/src/storage/token";
-import {createApiClient, setSessionToken} from "@/src/api/client";
+import { setSessionToken} from "@/src/api/client";
 import { fetchMe } from "@/src/api/auth";
 import * as SplashScreen from "expo-splash-screen";
 import {ThemeProvider} from "@react-navigation/core";
@@ -49,8 +49,9 @@ export default function RootLayout() {
     return (
         <ThemeProvider value={DarkTheme}>
             <SafeAreaProvider>
+                {!authenticated && <Redirect href="/(auth)/login" />}
+                {authenticated && <Redirect href="/(app)" />}
                 <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name={authenticated ? "(app)" : "(auth)"} />
                 </Stack>
             </SafeAreaProvider>
         </ThemeProvider>
