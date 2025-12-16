@@ -12,6 +12,9 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v3
 
+      - name: 🏗 Set working directory
+        run: cd frontend
+
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
