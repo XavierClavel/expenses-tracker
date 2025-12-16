@@ -27,6 +27,8 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm install
+        working-directory: frontend
 
       - name: 🚀 Build app
         run: eas build -p android --profile preview
+        working-directory: frontend
