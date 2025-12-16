@@ -36,15 +36,18 @@ export default function RootLayout() {
 
     useEffect(() => {
         async function bootstrap() {
-            const result = await isAuthenticated();
-            setAuthenticated(result);
-            await SplashScreen.hideAsync();
+            try {
+                const result = await isAuthenticated();
+                setAuthenticated(result);
+            } finally {
+                await SplashScreen.hideAsync();
+            }
         }
 
         bootstrap();
     }, []);
 
-    if (authenticated === null) return null;
+    if (authenticated === null) return <Stack screenOptions={{ headerShown: false }} />;
 
     return (
         <ThemeProvider value={DarkTheme}>
