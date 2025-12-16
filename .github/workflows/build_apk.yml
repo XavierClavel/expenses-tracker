@@ -28,5 +28,5 @@ jobs:
         working-directory: frontend
 
       - name: 🚀 Build app
-        run: eas build -p android --profile preview
+        run: eas build -p android --profile preview --non-interactive
         working-directory: frontend
