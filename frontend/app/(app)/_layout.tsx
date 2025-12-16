@@ -24,7 +24,7 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}>
         <Tabs.Screen
-            name="expenses"
+            name="index"
             options={{
                 title: 'Expenses',
                 tabBarIcon: ({ color }) => <FontAwesome5 size={28} name="receipt" color={color} />,
