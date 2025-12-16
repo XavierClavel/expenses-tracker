@@ -79,6 +79,8 @@ export function IconSymbol({
             return <MaterialCommunityIcons color={color} size={size} name='coffee' />
         case 'rocket':
             return <MaterialIcons color={color} size={size} name='rocket-launch' />
+        case 'bread':
+            return <MaterialCommunityIcons color={color} size={size} name='baguette' />
         case 'unknown':
             return <FontAwesome5 color={color} size={size-3} name='question' />;
     }

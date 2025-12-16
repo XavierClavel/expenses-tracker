@@ -6,6 +6,7 @@ import {CategoryReport} from "@/components/category/category-report";
 import {useTheme} from "@react-navigation/core";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {colors} from "@/constants/colors";
+import {with2Decimals, withNoDecimals, withReadableThousands} from "@/src/utils/math";
 
 
 
@@ -27,9 +28,10 @@ export function CustomPieChart({ data }) {
             return b.value - a.value;
         }))
         .filter((function(v) {
-            return v.value
+            return v.value > 0
         }))
         .map(it => {
+            console.log(it.value)
         return {
             value: Math.abs(it.value),
             color: colors[it.color || 'unknown'],
@@ -45,7 +47,7 @@ export function CustomPieChart({ data }) {
             return b.value - a.value;
         }))
         .filter((function(v) {
-            return v.value
+            return v.value > 0
         }))
         .map(it => {
             return {
@@ -62,7 +64,7 @@ export function CustomPieChart({ data }) {
     }
 
 
-    const total = pieData.reduce((accumulator, object) => {
+    const total: number = pieData.reduce((accumulator, object) => {
         return accumulator + object.value;
     }, 0);
 
@@ -95,7 +97,7 @@ export function CustomPieChart({ data }) {
                             <View style={{justifyContent: 'center', alignItems: 'center'}}>
                                 <Text
                                     style={{fontSize: 22, color: textOnBackgroundColor, fontWeight: 'bold'}}>
-                                    {(Math.round(total * 100) / 100).toFixed(2)}€
+                                    {withReadableThousands(with2Decimals(total))}€
                                 </Text>
                             </View>
                         )
@@ -105,10 +107,10 @@ export function CustomPieChart({ data }) {
                         <View style={{justifyContent: 'center', alignItems: 'center'}}>
                             <Text
                                 style={{fontSize: 22, color: textOnBackgroundColor, fontWeight: 'bold'}}>
-                                {pieData[focusedItem].value}€
+                                {withReadableThousands(with2Decimals(pieData[focusedItem].value))}€
                             </Text>
                             <Text style={{fontSize: 14, color: textOnBackgroundColor}}>{
-                                percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
+                                percent >= 1 ? `${withNoDecimals(percent)}%` : '<1%'
                             }</Text>
                         </View>
                     );

@@ -10,12 +10,13 @@ import { CustomPieChart } from '@/components/custom-pie-chart';
 import {data} from "browserslist";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import React, {useEffect, useState} from "react";
-import {getYearSummary} from "@/src/api/summary";
+import {getMonthSummary, getYearSummary} from "@/src/api/summary";
 import {useSummaryStore} from "@/src/stores/summary-store";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {colors} from "@/constants/colors";
 import {SegmentedButtons} from "react-native-paper";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
+import {with2Decimals, withReadableThousands} from "@/src/utils/math";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -30,63 +31,53 @@ export default function HomeScreen() {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
     const summaryStore = useSummaryStore()
+    const summary = useSummaryStore(state => state.selected);
     const [data, setData] = useState([])
     const categoryStore = useCategoriesStore()
     const selectedTypeStore = useSelectedTypeStore()
 
     const loadSummary = async () => {
         console.log("load summary")
-        const summary = await getYearSummary(2025)
+        const date = new Date()
+        const summary = await getMonthSummary(date.getFullYear(), date.getMonth()+1)
         summaryStore.setSelected(summary)
     }
 
     const selectType = (type) => {
+        console.log("selecting")
         selectedTypeStore.setSelected(type)
+        let subcategories = []
+        let categories = []
         if (type == 'EXPENSE') {
-            const subcategories = summaryStore.selected?.expensesByCategory || []
-            const categories = categoryStore.selected
-                .filter((it) => it.type == 'EXPENSE')
-            const result = categories.map((c) => {
-                return {
-                    value: subcategories
-                        .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
-                        .reduce((accumulator, object) => {
-                            return accumulator + Number(object.total);
-                        }, 0),
-                    label: c.name,
-                    color: c.color,
-                    icon: c.icon,
-                }
-            })
-            setData(result)
-            console.log("data",data)
+            subcategories = summary?.expensesByCategory || []
+            categories = categoryStore.selected.filter((it) => it.type == 'EXPENSE')
+
         } else {
-            const subcategories = summaryStore.selected?.incomeByCategory || []
-            const categories = categoryStore.selected
-                .filter((it) => it.type == 'INCOME')
-            const result = categories.map((c) => {
-                return {
-                    value: subcategories
-                        .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
-                        .reduce((accumulator, object) => {
-                            return accumulator + Number(object.total);
-                        }, 0),
-                    label: c.name,
-                    color: c.color,
-                    icon: c.icon,
-                }
-            })
-            setData(result)
+            subcategories = summary?.incomeByCategory || []
+            categories = categoryStore.selected.filter((it) => it.type == 'INCOME')
         }
+        const result = categories.map((c) => {
+            const total = subcategories
+                .filter((it) => categoryStore.getParent(it.categoryId)?.id == c.id)
+                .reduce((accumulator, object) => {
+                    return accumulator + Number(object.total);
+                }, 0)
+            return {
+                value: with2Decimals(total),
+                label: c.name,
+                color: c.color,
+                icon: c.icon,
+            }
+        })
+        setData(result)
     }
 
     useEffect(() => {
-        loadSummary()
+        syncData()
     }, []);
 
     async function syncData() {
-        console.log("focused")
-        if (!summaryStore.selected) {
+        if (!summary) {
             await loadSummary()
         }
         selectType('EXPENSE')
@@ -95,7 +86,7 @@ export default function HomeScreen() {
     useFocusEffect(
 
         React.useCallback(() => {
-            syncData()
+            //syncData()
             // Do something when the screen is focused
             return () => {
                 // Do something when the screen is unfocused
@@ -143,11 +134,11 @@ export default function HomeScreen() {
                 justifyContent: "space-around"
             }}>
             <Pressable style={{ paddingVertical: 10, width:150, backgroundColor: surfaceColor, borderRadius: 8 }}>
-                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>- {summaryStore.selected?.totalExpenses}€ </Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>- {withReadableThousands(summary?.totalExpenses)}€ </Text>
                 <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 12, paddingTop: 5  }}>Expenses</Text>
             </Pressable>
             <Pressable style={{ paddingVertical: 10, width:150, paddingHorizontal: 20, backgroundColor: surfaceColor, borderRadius: 8 }}>
-                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{summaryStore.selected?.totalIncome}€</Text>
+                <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>{withReadableThousands(summary?.totalIncome)}€</Text>
                 <Text style={{ color: textOnSurfaceColor, textAlign: 'center', fontSize: 12, paddingTop: 5 }}>Income</Text>
             </Pressable>
 
@@ -175,3 +166,4 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 });
+

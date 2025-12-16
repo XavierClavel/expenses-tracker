@@ -7,12 +7,13 @@ import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {StandardIcon} from "@/components/standard-icon";
 import {colors} from "@/constants/colors";
+import {withNoDecimals, withReadableThousands} from "@/src/utils/math";
 
 export function CategoryReport({ item, percent }) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
-    const displayedPercent = percent >= 1 ? `${Math.round(percent.toFixed(0))}%` : '<1%'
+    const displayedPercent = percent >= 1 ? `${withNoDecimals(percent)}%` : '<1%'
 
     return (
         <View
@@ -51,7 +52,7 @@ export function CategoryReport({ item, percent }) {
                         {item.label}
                     </Text>
                         <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16}}>
-                            {item.value}€
+                            {withReadableThousands(item.value)}€
                         </Text>
                 </View>
 

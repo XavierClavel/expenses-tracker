@@ -18,6 +18,7 @@ export default function TabLayout() {
   return (
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Tabs
+      initialRouteName="expenses"
       screenOptions={{
         tabBarActiveTintColor: 'white',
         headerShown: false,
@@ -38,7 +39,7 @@ export default function TabLayout() {
               }}
           />
       <Tabs.Screen
-        name="index"
+        name="summary"
         options={{
           title: 'Report',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="pie-chart" color={color} />,

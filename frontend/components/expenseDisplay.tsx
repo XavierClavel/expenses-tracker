@@ -12,6 +12,7 @@ import {useCategoriesStore} from "@/src/stores/categories-store";
 import {sub} from "ob1";
 import {colors} from "@/constants/colors";
 import {StandardIcon} from "@/components/standard-icon";
+import {withReadableThousands} from "@/src/utils/math";
 
 
 type ExpenseDisplayProps = {
@@ -54,7 +55,7 @@ export function ExpenseDisplay({ data }: ExpenseDisplayProps) {
         </Text>
         <View style={{ flex: 1, alignItems: 'right' }}>
             <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16, marginVertical: 8 }}>
-                {data.type == "EXPENSE" ? "-" : "+"} {data.amount}€
+                {data.type == "EXPENSE" ? "-" : "+"} {withReadableThousands(data.amount)}€
             </Text>
         </View>
         </View>
