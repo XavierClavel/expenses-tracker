@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
+import {Pressable, Platform, StyleSheet, Text, View, Alert} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -17,10 +17,10 @@ import {createExpense, updateExpense} from "@/src/api/expenses";
 import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
-import {createCategory, listCategories} from "@/src/api/categories";
+import {createCategory, deleteCategory, listCategories} from "@/src/api/categories";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import SubcategoryIn from "@/src/types/SubcategoryIn";
-import {createSubcategory, updateSubcategory} from "@/src/api/subcategories";
+import {createSubcategory, deleteSubcategory, updateSubcategory} from "@/src/api/subcategories";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 import CategoryOut from "@/src/types/CategoryOut";
 import {useCategoriesStore} from "@/src/stores/categories-store";
@@ -44,6 +44,25 @@ export default function a() {
     const [title, setTitle] = useState(selectedSubcategoryStore.selected?.name || "");
     const categoryPickerStore = usePickerStore()
     const iconPickerStore = useIconPickerStore()
+
+    const confirmDelete = () => {
+        Alert.alert(
+            'Confirm action',
+            'Are you sure you want to delete this item?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => {
+                        deleteSubcategory(selectedSubcategoryStore.selected.id)
+                        router.replace("/(app)/list");
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
 
     return (
@@ -130,8 +149,6 @@ export default function a() {
                                     await createSubcategory(subcategory)
                                 }
                                 const categories = await listCategories()
-                                console.log(categories[0].subcategories)
-                                console.log(categories[1].subcategories)
                                 categoriesStore.setSelected(categories)
                                 router.back();
                             } catch (e) {
@@ -144,6 +161,23 @@ export default function a() {
                             style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
                         >Save</Text>
                     </Pressable>
+                    {selectedSubcategoryStore.selected &&
+                        <Pressable
+                            style={{
+                                width: "100%",
+                                borderRadius: 8,
+                                height: 50,
+                                backgroundColor: surfaceColor,
+                                justifyContent: 'center',
+                                marginVertical: 5,
+                            }}
+                            onPress={confirmDelete}
+                        >
+                            <Text
+                                style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
+                            >Delete</Text>
+                        </Pressable>
+                    }
                 </SafeAreaView>
 
             </ParallaxScrollView>

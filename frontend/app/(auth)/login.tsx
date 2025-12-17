@@ -101,7 +101,7 @@ export default function ModalScreen() {
                 onPress={async () => {
                     try {
                         await login(mail, password);
-                        router.replace("/(app)/expenses");
+                        router.replace("/(app)/index");
                     } catch (e) {
                         console.error("Login failed", e);
                     }

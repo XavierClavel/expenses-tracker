@@ -12,3 +12,7 @@ export async function updateSubcategory(id: number, subcategory: SubcategoryIn) 
     const res = await apiClient.put(`/subcategories/${id}`, subcategory)
     return res.data;
 }
+
+export async function deleteSubcategory(id: number) {
+    await apiClient.delete(`subcategories/${id}`)
+}

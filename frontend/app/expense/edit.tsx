@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import {Pressable, Platform, StyleSheet, Text, View} from 'react-native';
+import {Pressable, Platform, StyleSheet, Text, View, Alert, Button} from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -13,7 +13,7 @@ import {router, useFocusEffect, useNavigation, useSegments} from "expo-router";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import CategoryIn from "@/src/types/CategoryIn";
-import {createExpense, updateExpense} from "@/src/api/expenses";
+import {createExpense, deleteExpense, updateExpense} from "@/src/api/expenses";
 import ExpenseIn from "@/src/types/Expense";
 import {login} from "@/src/api/auth";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
@@ -52,6 +52,26 @@ export default function a() {
         selectedTypeStore.setSelected(type)
         setPickedCategory(null)
     }
+
+    const confirmDelete = () => {
+        Alert.alert(
+            'Confirm action',
+            'Are you sure you want to delete this item?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => {
+                        deleteExpense(selectedExpenseStore.selected.id)
+                        router.replace("/(app)/index");
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
   return (
       <View style={{ flex: 1}}>
       <ParallaxScrollView
@@ -180,7 +200,7 @@ export default function a() {
                           } else {
                               await createExpense(expense)
                           }
-                          router.replace("/(app)/expenses");
+                          router.replace("/(app)/index");
                       } catch (e) {
                           console.error("Expense creation failed", e);
                       }
@@ -191,6 +211,23 @@ export default function a() {
                         style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
                   >Save</Text>
               </Pressable>
+            {selectedExpenseStore.selected &&
+            <Pressable
+                style={{
+                    width: "100%",
+                    borderRadius: 8,
+                    height: 50,
+                    backgroundColor: surfaceColor,
+                    justifyContent: 'center',
+                    marginVertical: 5,
+                }}
+                onPress={confirmDelete}
+            >
+                <Text
+                    style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
+                >Delete</Text>
+            </Pressable>
+          }
         </SafeAreaView>
 
       </ParallaxScrollView>

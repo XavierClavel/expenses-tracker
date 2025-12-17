@@ -35,3 +35,7 @@ export async function updateExpense(id: number, expense: ExpenseIn) {
     const res = await apiClient.put(`/expenses/${id}`, expense)
     return res.data;
 }
+
+export async function deleteExpense(id: number) {
+    await apiClient.delete(`/expenses/${id}`)
+}
