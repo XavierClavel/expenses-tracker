@@ -137,7 +137,7 @@ export default function a() {
                 <IconDisplay icon={iconPickerStore.selected}
                 ></IconDisplay>
             </Pressable>
-
+            {selectedCategoryStore.selected &&
             <Pressable
                 style={{
                     width: "100%",
@@ -157,6 +157,7 @@ export default function a() {
                     style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
                 >New subcategory</Text>
             </Pressable>
+            }
 
               <Pressable
                   style={{

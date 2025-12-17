@@ -2,7 +2,7 @@ import {router, useNavigation} from "expo-router";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {FlatList, Pressable, Text, View} from "react-native";
-import {FAB} from "react-native-paper";
+import {FAB, SegmentedButtons} from "react-native-paper";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
@@ -11,7 +11,6 @@ import {useColorPickerStore} from "@/src/stores/color-picker-store";
 import {useIconPickerStore} from "@/src/stores/icon-picker-store";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import React, {useState} from "react";
-import {IconSymbol} from "@/components/ui/icon-symbol";
 import {StandardIcon} from "@/components/standard-icon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
@@ -25,7 +24,10 @@ export default function HomeScreen() {
     const categoryPickerStore = usePickerStore()
     const colorPickerStore = useColorPickerStore()
     const iconPickerStore = useIconPickerStore()
+    const [type, setType] = useState<string>("EXPENSE")
     const selectedTypeStore = useSelectedTypeStore()
+
+
 
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
@@ -41,6 +43,23 @@ export default function HomeScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: backgroundColor, paddingTop: 50}}>
+            <SegmentedButtons
+                style={{
+                    margin: 5
+                }}
+                value={type}
+                onValueChange={setType}
+                buttons={[
+                    {
+                        value: 'EXPENSE',
+                        label: 'Expense',
+                    },
+                    {
+                        value: 'INCOME',
+                        label: 'Income',
+                    },
+                ]}
+            />
             <View
                 style={{
                     flex: 1,
@@ -52,7 +71,7 @@ export default function HomeScreen() {
                 }}>
                 <FlatList
                     style={{ width: "100%" }}
-                    data={categoriesStore.selected}
+                    data={categoriesStore.selected.filter((it) => it.type == type)}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
                         const isExpanded = expanded.has(item.id);

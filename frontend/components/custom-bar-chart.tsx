@@ -4,7 +4,7 @@ import {BarChart, PieChart} from "react-native-gifted-charts";
 import {PropsWithChildren, SetStateAction, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {time} from "@expo/fingerprint/cli/build/utils/log";
-import {withReadableThousands} from "@/src/utils/math";
+import {with2Decimals, withReadableThousands} from "@/src/utils/math";
 
 
 //TODO: set y scale
@@ -59,10 +59,10 @@ export function CustomBarChart({ data }) {
             marginVertical: 20
         }}>
                 <Text style={{ color: '#71cc5d', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
-                    {withReadableThousands(data[focusedItem[0]].value)}€
+                    {withReadableThousands(with2Decimals(data[focusedItem[0]].value))}€
                 </Text>
                 <Text style={{ color: '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
-                    -{withReadableThousands(data[focusedItem[1]].value)}€
+                    -{withReadableThousands(with2Decimals(data[focusedItem[1]].value))}€
                 </Text>
         </View>
         else return

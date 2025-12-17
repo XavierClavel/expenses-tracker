@@ -8,10 +8,7 @@ import {useState} from "react";
 import { Button } from 'react-native-paper';
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {login} from "@/src/api/auth";
-import {navigate} from "expo-router/build/global-state/routing";
-import {apiClient} from "@/src/api/client";
 import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 
 export default function ModalScreen() {
     const navigation = useNavigation();
