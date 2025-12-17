@@ -35,6 +35,20 @@ fun Route.setupTrendController() = route(TREND_URL) {
         call.respond(result)
     }
 
+    get("/subcategory/{id}/year") {
+        val categoryId = getPathId()
+        val userId = getSessionUserId(redisService)
+        val result = trendService.subcategoryTrendByYear(userId = userId, categoryId = categoryId)
+        call.respond(result)
+    }
+
+    get("/subcategory/{id}/month") {
+        val categoryId = getPathId()
+        val userId = getSessionUserId(redisService)
+        val result = trendService.subcategoryTrendByMonth(userId = userId, categoryId = categoryId)
+        call.respond(result)
+    }
+
     get("year") {
         val sessionUserId = getSessionUserId(redisService)
         val summary = trendService.trendByYear(userId = sessionUserId)
