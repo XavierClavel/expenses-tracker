@@ -1,10 +1,10 @@
 package com.xavierclavel.routes
 
-import com.xavierclavel.dtos.investment.InvestmentAccountIn
+import com.xavierclavel.dtos.investment.AccountReportIn
 import com.xavierclavel.plugins.RedisService
+import com.xavierclavel.services.AccountReportService
 import com.xavierclavel.services.AccountService
-import com.xavierclavel.utils.ACCOUNT_URL
-import com.xavierclavel.utils.CATEGORY_URL
+import com.xavierclavel.utils.ACCOUNT_REPORT_URL
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
 import io.ktor.http.*
@@ -13,8 +13,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
-fun Route.setupAccountController() = route(ACCOUNT_URL) {
-    val accountService: AccountService by inject()
+fun Route.setupAccountReportController() = route(ACCOUNT_REPORT_URL) {
+    val accountReportService: AccountReportService by inject()
     val redisService: RedisService by inject()
 
         /**
@@ -24,8 +24,8 @@ fun Route.setupAccountController() = route(ACCOUNT_URL) {
          */
         get {
             val sessionUserId = getSessionUserId(redisService)
-            val accounts = accountService.list(userId = sessionUserId)
-            call.respond(accounts)
+            val reports = accountReportService.list(userId = sessionUserId)
+            call.respond(reports)
         }
 
         /**
@@ -36,30 +36,30 @@ fun Route.setupAccountController() = route(ACCOUNT_URL) {
          */
         get("/{id}") {
             val userId = getSessionUserId(redisService)
-            val accountId = getPathId()
-            val account = accountService.get(userId = userId, accountId = accountId)
-            call.respond(account)
+            val reportId = getPathId()
+            val report = accountReportService.get(userId = userId, reportId = reportId)
+            call.respond(report)
         }
 
         post {
             val userId = getSessionUserId(redisService)
-            val accountDto = call.receive<InvestmentAccountIn>()
-            val account = accountService.create(userId = userId, accountDto = accountDto)
-            call.respond(account)
+            val reportDto = call.receive<AccountReportIn>()
+            val report = accountReportService.create(userId = userId, reportDto = reportDto)
+            call.respond(report)
         }
 
         put("/{id}") {
-            val accountId = getPathId()
+            val reportId = getPathId()
             val userId = getSessionUserId(redisService)
-            val accountDto = call.receive<InvestmentAccountIn>()
-            val account = accountService.update(userId = userId, accountId = accountId, accountDto = accountDto)
-            call.respond(account)
+            val reportDto = call.receive<AccountReportIn>()
+            val report = accountReportService.update(userId = userId, reportId = reportId, reportDto = reportDto)
+            call.respond(report)
         }
 
         delete("/{id}") {
-            val accountId = getPathId()
+            val reportId = getPathId()
             val userId = getSessionUserId(redisService)
-            accountService.delete(userId = userId, accountId = accountId)
+            accountReportService.delete(userId = userId, reportId = reportId)
             call.respond(HttpStatusCode.OK)
         }
 

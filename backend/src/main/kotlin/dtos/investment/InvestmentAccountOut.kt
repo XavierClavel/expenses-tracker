@@ -1,4 +1,4 @@
-package com.xavierclavel.dtos
+package com.xavierclavel.dtos.investment
 
 import com.xavierclavel.utils.BigDecimalSerializer
 import kotlinx.serialization.Serializable

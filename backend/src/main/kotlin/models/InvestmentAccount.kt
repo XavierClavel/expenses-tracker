@@ -1,6 +1,6 @@
 package com.xavierclavel.models
 
-import com.xavierclavel.dtos.InvestmentAccountOut
+import com.xavierclavel.dtos.investment.InvestmentAccountOut
 import io.ebean.Model
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

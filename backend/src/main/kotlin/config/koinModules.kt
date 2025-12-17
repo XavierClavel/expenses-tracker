@@ -1,6 +1,7 @@
 package com.xavierclavel.config
 
 import com.xavierclavel.plugins.RedisService
+import com.xavierclavel.services.AccountReportService
 import com.xavierclavel.services.AccountService
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
@@ -26,4 +27,5 @@ val koinModules = module {
     single { SummaryService() }
     single { TrendService() }
     single { AccountService() }
+    single { AccountReportService() }
 }

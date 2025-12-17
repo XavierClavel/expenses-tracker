@@ -31,6 +31,7 @@ enum class NotFoundCause(val key: String) {
     SUBCATEGORY_NOT_FOUND("subcategory_not_found"),
     EXPENSE_NOT_FOUND("expense_not_found"),
     ACCOUNT_NOT_FOUND("account_not_found"),
+    ACCOUNT_REPORT_NOT_FOUND("account_report_not_found"),
 }
 
 enum class BadRequestCause (val key: String) {

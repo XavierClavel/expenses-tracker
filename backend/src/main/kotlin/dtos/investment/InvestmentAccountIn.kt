@@ -1,4 +1,4 @@
-package com.xavierclavel.dtos
+package com.xavierclavel.dtos.investment
 
 import kotlinx.serialization.Serializable
 
