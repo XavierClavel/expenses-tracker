@@ -64,7 +64,7 @@ export default function a() {
                     style: 'destructive',
                     onPress: () => {
                         deleteExpense(selectedExpenseStore.selected.id)
-                        router.replace("/(app)/index");
+                        router.navigate("/(app)");
                     },
                 },
             ],
@@ -200,7 +200,7 @@ export default function a() {
                           } else {
                               await createExpense(expense)
                           }
-                          router.replace("/(app)/index");
+                          router.replace("/(app)");
                       } catch (e) {
                           console.error("Expense creation failed", e);
                       }
