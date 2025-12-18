@@ -27,6 +27,7 @@ export default function a() {
     const segments = useSegments();
     const selectedExpenseStore = useSelectedExpenseStore()
     const selectedTypeStore = useSelectedTypeStore()
+    const setSelectedType = useSelectedTypeStore((s) => s.setSelected)
 
     const [selected, setSelected] = useState<string | null>(null);
     const navigation = useNavigation();
@@ -40,7 +41,6 @@ export default function a() {
     const [open, setOpen] = useState(false);
     const pickedCategory = usePickerStore((s) => s.selected);
     const setPickedCategory = usePickerStore((s) => s.setSelected)
-    const [selectedExpenseCategory, setSelectedExpenseCategory] = useState(selectedTypeStore.selected == 'EXPENSE' ? pickedCategory : null)
 
     useEffect(() => {
         return () => {
@@ -49,7 +49,7 @@ export default function a() {
     }, []);
 
     const selectType = (type) => {
-        selectedTypeStore.setSelected(type)
+        setSelectedType(type)
         setPickedCategory(null)
     }
 
@@ -170,6 +170,7 @@ export default function a() {
                      marginVertical: 5,
                  }}
                   onPress={() => {
+                      console.log(selectedExpenseStore.selected, selectedTypeStore.selected)
                       router.navigate("category/picker");
                   }}
               >

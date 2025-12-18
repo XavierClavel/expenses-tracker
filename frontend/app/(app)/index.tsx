@@ -17,6 +17,8 @@ import {useCategoriesStore} from "@/src/stores/categories-store";
 import {usePickerStore} from "@/src/stores/category-picker-store";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import {Section} from "@jridgewell/trace-mapping/src/types";
+import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
+import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 
 
 export default function HomeScreen() {
@@ -32,6 +34,8 @@ export default function HomeScreen() {
     const selectedTypeStore = useSelectedTypeStore()
     const pickedCategoryStore = usePickerStore()
     const categoriesStore = useCategoriesStore()
+    const setSelectedCategory = useSelectedCategoryStore((s) => s.setSelected)
+    const setSelectedSubcategory = useSelectedSubcategoryStore((s) => s.setSelected)
 
     const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
 
@@ -139,6 +143,8 @@ export default function HomeScreen() {
                   onPress={() => {
                       selectedExpenseStore.setSelected(null)
                       selectedTypeStore.setSelected("EXPENSE")
+                      setSelectedCategory(null)
+                      setSelectedSubcategory(null)
                       navigation.navigate('expense/edit')
                   }}
               />

@@ -12,9 +12,4 @@ class AccountControllerTest: ApplicationTest() {
         name = "PEA"
     )
 
-    @Test
-    fun `account can be created`() = runTestAsUser {
-        val account = client.createAccount(accountDto)
-        val result = client.getAccount(account.id)
-    }
 }

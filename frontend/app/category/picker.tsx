@@ -12,15 +12,17 @@ import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useSelectedExpenseStore} from "@/src/stores/selected-expense-store";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
+import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 
 export default function FullPickerScreen() {
   const route = useRoute<any>();
   const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
   const selectedExpenseStore = useSelectedExpenseStore()
+    const selectedSubcategory = useSelectedSubcategoryStore((s) => s.selected)
   const setPickedCategory = usePickerStore((s) => s.setSelected)
-    const categoriesStore = useCategoriesStore()
-    const selectedTypeStore = useSelectedTypeStore()
+const categoriesStore = useCategoriesStore()
+const selectedTypeStore = useSelectedTypeStore()
 
   return (
       <ParallaxScrollView>
@@ -35,7 +37,7 @@ export default function FullPickerScreen() {
 
         <SafeAreaView>
       {categoriesStore.subcategories
-          .filter((it) => !selectedExpenseStore.selected || it.type == selectedTypeStore.selected).map((item) => (
+          .filter((it) => selectedSubcategory || it.type == selectedTypeStore.selected).map((item) => (
           <Pressable
               key={item.id}
               onPress={() => {
