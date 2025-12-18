@@ -16,5 +16,6 @@ export const colors = {
     lightgreen: '#efffa5',
     brown: '#bcb8a5',
     pink: '#FFA5BA',
-    orange: '#e3a663'
+    orange: '#e3a663',
+    beige: '#e8d6af',
 }

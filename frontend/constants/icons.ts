@@ -29,5 +29,13 @@ export const icons = Object.freeze({
     coffee: 'coffee',
     rocket: 'rocket',
     bread: 'bread',
+    sofa: 'sofa',
+    phone: 'phone',
+    music: 'music',
+    book: 'book',
+    trend_up: 'trend_up',
+    friends: 'friends',
+    mobile: 'mobile',
+    bank: 'bank',
     unknown: 'unknown',
 })

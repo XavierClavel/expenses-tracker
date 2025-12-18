@@ -171,7 +171,7 @@ export default function a() {
                  }}
                   onPress={() => {
                       console.log(selectedExpenseStore.selected, selectedTypeStore.selected)
-                      router.navigate("category/picker");
+                      router.navigate("/picker/subcategories");
                   }}
               >
                   <CategoryDisplay data={ pickedCategory || new CategoryOut(-1, "No category selected", 'lightgray', 'unknown')}></CategoryDisplay>

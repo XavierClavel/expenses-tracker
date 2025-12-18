@@ -8,6 +8,7 @@ import {FontAwesome6, MaterialCommunityIcons} from "@expo/vector-icons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import {icons} from "@/constants/icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
@@ -73,6 +74,10 @@ export function IconSymbol({
             return <MaterialIcons color={color} size={size} name='sim-card' />
         case 'play':
             return <FontAwesome6 color={color} size={size-3} name='play' />
+        case 'book':
+            return <FontAwesome6 color={color} size={size-3} name='book' />
+        case 'trend_up':
+            return <FontAwesome6 color={color} size={size-3} name='arrow-trend-up' />
         case 'work':
             return <MaterialCommunityIcons color={color} size={size} name='briefcase' />
         case 'coffee':
@@ -81,6 +86,18 @@ export function IconSymbol({
             return <MaterialIcons color={color} size={size} name='rocket-launch' />
         case 'bread':
             return <MaterialCommunityIcons color={color} size={size} name='baguette' />
+        case 'sofa':
+            return <MaterialCommunityIcons color={color} size={size} name='sofa-single' />
+        case 'phone':
+            return <MaterialCommunityIcons color={color} size={size} name='phone' />
+        case 'music':
+            return <MaterialCommunityIcons color={color} size={size} name='music' />
+        case 'friends':
+            return <FontAwesome5 color={color} size={size-3} name='user-friends' />;
+        case 'mobile':
+            return <FontAwesome color={color} size={size+3} name='mobile-phone' />;
+        case 'bank':
+            return <MaterialCommunityIcons color={color} size={size} name='bank' />
         case 'unknown':
             return <FontAwesome5 color={color} size={size-3} name='question' />;
     }
