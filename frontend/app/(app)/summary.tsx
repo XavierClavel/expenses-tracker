@@ -88,6 +88,11 @@ export default function HomeScreen() {
     }
 
     useEffect(() => {
+        const date = new Date()
+        loadSummary(date.getFullYear(), date.getMonth() + 1)
+    }, []);
+
+    useEffect(() => {
         syncData()
     }, [selectedType, summary])
 

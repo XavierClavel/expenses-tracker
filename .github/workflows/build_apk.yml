@@ -78,7 +78,7 @@ jobs:
               await github.rest.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                process.env.TAG
+                tag: process.env.TAG
               });
               core.info(`Release ${process.env.TAG} already exists. Skipping.`);
             } catch (error) {

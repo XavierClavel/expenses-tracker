@@ -24,7 +24,7 @@ export default function HomeScreen() {
     const [expenses, setExpenses] = useState<ExpenseOut[]>([]);
     const [expensesSections, setExpensesSections] = useState<Section<ExpenseOut>[]>([])
     const [page, setPage] = useState(0);
-    const [pageSize] = useState(20);
+    const [pageSize] = useState(50);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const backgroundColor = useThemeColor({}, 'background');
