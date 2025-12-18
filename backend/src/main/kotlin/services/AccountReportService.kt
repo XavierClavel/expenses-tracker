@@ -8,6 +8,8 @@ import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.AccountReport
+import com.xavierclavel.models.query.QAccountReport
+import com.xavierclavel.models.query.QInvestmentAccount
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -41,7 +43,7 @@ class AccountReportService: KoinComponent {
 
 
     fun create(reportDto: AccountReportIn, userId: Long): AccountReportOut {
-        val account = QAccount().id.eq(reportDto.accountId).findOne ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
+        val account = QInvestmentAccount().id.eq(reportDto.accountId).findOne() ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
         if (account.owner.id != userId) {
             throw ForbiddenException(ForbiddenCause.MUST_BE_OWNER)
         }
@@ -60,7 +62,7 @@ class AccountReportService: KoinComponent {
             .checkRights(userId)
             .apply {
                 amount = reportDto.amount
-                account = QAccount().id.eq(reportDto.accountId).findOne ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
+                account = QInvestmentAccount().id.eq(reportDto.accountId).findOne() ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
             }
             .apply { this.update() }
             .toOutput()

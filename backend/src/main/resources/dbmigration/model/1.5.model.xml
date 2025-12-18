@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <createTable name="account_reports" pkName="pk_account_reports">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="amount" type="decimal(15,2)" notnull="true"/>
+            <column name="account_id" type="bigint" notnull="true" references="investment_accounts.id" foreignKeyName="fk_account_reports_account_id" foreignKeyIndex="ix_account_reports_account_id"/>
+            <column name="date" type="date" notnull="true"/>
+        </createTable>
+        <createTable name="investments" pkName="pk_investments">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="amount" type="decimal(15,2)" notnull="true"/>
+            <column name="account_id" type="bigint" notnull="true" references="investment_accounts.id" foreignKeyName="fk_investments_account_id" foreignKeyIndex="ix_investments_account_id"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_investments_user_id" foreignKeyIndex="ix_investments_user_id"/>
+            <column name="date" type="date" notnull="true"/>
+            <column name="type" type="varchar(3)" defaultValue="'EXPENSE'" notnull="true" checkConstraint="check ( type in ('IN','OUT'))" checkConstraintName="ck_investments_type"/>
+        </createTable>
+        <createTable name="investment_accounts" pkName="pk_investment_accounts">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="name" type="varchar" notnull="true"/>
+            <column name="owner_id" type="bigint" notnull="true" uniqueOneToOne="uq_investment_accounts_owner_id" references="users.id" foreignKeyName="fk_investment_accounts_owner_id"/>
+        </createTable>
+        <alterColumn columnName="username" tableName="users" dropUnique="uq_users_username"/>
+    </changeSet>
+</migration>

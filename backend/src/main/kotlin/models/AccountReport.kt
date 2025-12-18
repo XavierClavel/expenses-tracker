@@ -18,11 +18,11 @@ class AccountReport(
     var amount: BigDecimal,
 
     @ManyToOne
-    val account: InvestmentAccount,
+    var account: InvestmentAccount,
 
     val date: LocalDate,
 
-    ): Model() {
+): Model() {
     @Id
     var id: Long = 0
 

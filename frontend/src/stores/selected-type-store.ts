@@ -6,7 +6,7 @@ type SelectedTypeStore = {
 };
 
 export const useSelectedTypeStore = create<SelectedTypeStore>((set) => ({
-    selected: null,
+    selected: "EXPENSE",
     setSelected: (value) => set({ selected: value }),
     reset: () => set({selected: null })
 }));

@@ -17,6 +17,10 @@ import {colors} from "@/constants/colors";
 import {SegmentedButtons} from "react-native-paper";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import {with2Decimals, withReadableThousands} from "@/src/utils/math";
+import DateScroller from "@/components/date-scroller";
+import {SafeAreaView} from "react-native-safe-area-context";
+import CategoryOut from "@/src/types/CategoryOut";
+import CategorySummary from "@/src/types/CategorySummary";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -30,28 +34,38 @@ const pieData = [
 export default function HomeScreen() {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
-    const summaryStore = useSummaryStore()
+    const setSummary = useSummaryStore((s) => s.setSelected)
     const summary = useSummaryStore(state => state.selected);
     const [data, setData] = useState([])
     const categoryStore = useCategoriesStore()
-    const selectedTypeStore = useSelectedTypeStore()
+    const selectTypeInStore = useSelectedTypeStore((s) => s.setSelected)
+    const selectedType = useSelectedTypeStore((s) => s.selected)
 
-    const loadSummary = async () => {
-        console.log("load summary")
-        const date = new Date()
-        const summary = await getMonthSummary(date.getFullYear(), date.getMonth()+1)
-        summaryStore.setSelected(summary)
+
+    const loadSummary = async (year: number, month: number) => {
+        const summary = await getMonthSummary(year, month)
+        setSummary(summary)
     }
 
-    const selectType = (type) => {
-        console.log("selecting")
-        selectedTypeStore.setSelected(type)
+    const selectType = async (type) => {
+        console.log("selecting", type)
+        selectTypeInStore(type)
+    }
+
+    const selectYearAndMonth = async (year: number, month: number) => {
+        console.log("load summary")
+        console.log(year, month)
+        loadSummary(year, month)
+    }
+
+
+    async function syncData() {
+        console.log(selectedType)
         let subcategories = []
         let categories = []
-        if (type == 'EXPENSE') {
+        if (selectedType == 'EXPENSE') {
             subcategories = summary?.expensesByCategory || []
             categories = categoryStore.selected.filter((it) => it.type == 'EXPENSE')
-
         } else {
             subcategories = summary?.incomeByCategory || []
             categories = categoryStore.selected.filter((it) => it.type == 'INCOME')
@@ -70,18 +84,12 @@ export default function HomeScreen() {
             }
         })
         setData(result)
+        console.log("selected", selectedType)
     }
 
     useEffect(() => {
         syncData()
-    }, []);
-
-    async function syncData() {
-        if (!summary) {
-            await loadSummary()
-        }
-        selectType('EXPENSE')
-    }
+    }, [selectedType, summary])
 
     useFocusEffect(
 
@@ -105,12 +113,14 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
+        <SafeAreaView>
+        <DateScroller onMonthChange={({year, month}) => {selectYearAndMonth(year,month)}}/>
         <SegmentedButtons
             style={{
-                marginTop: 50,
+                marginTop: 10,
                 padding: 10,
             }}
-            value={selectedTypeStore.selected}
+            value={selectedType}
             onValueChange={selectType}
             buttons={[
                 {
@@ -144,6 +154,7 @@ export default function HomeScreen() {
 
         </View>
         <CustomPieChart data={data}/>
+        </SafeAreaView>
     </ParallaxScrollView>
   );
 }
