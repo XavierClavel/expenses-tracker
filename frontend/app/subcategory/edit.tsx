@@ -26,6 +26,7 @@ import CategoryOut from "@/src/types/CategoryOut";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {IconDisplay} from "@/components/category/icon-display";
 import {useIconPickerStore} from "@/src/stores/icon-picker-store";
+import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 
 
 
@@ -34,6 +35,7 @@ export default function a() {
     const segments = useSegments();
     const selectedCategoryStore = useSelectedCategoryStore()
     const selectedSubcategoryStore = useSelectedSubcategoryStore()
+    const setSelectedType = useSelectedTypeStore(s => s.setSelected)
     const categoriesStore = useCategoriesStore()
 
     const navigation = useNavigation();
@@ -108,7 +110,8 @@ export default function a() {
                             marginVertical: 5,
                         }}
                         onPress={() => {
-                            router.navigate("category/picker");
+                            setSelectedType(categoryPickerStore.selected.type)
+                            router.navigate("picker/categories");
                         }}
                     >
                         <CategoryDisplay data={ categoryPickerStore.selected}></CategoryDisplay>

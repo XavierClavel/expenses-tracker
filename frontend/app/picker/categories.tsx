@@ -14,52 +14,25 @@ import React, {useState} from "react";
 import {StandardIcon} from "@/components/standard-icon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-export default function HomeScreen() {
+export default function SubcategoriesPicker() {
     const navigation = useNavigation();
     const backgroundColor = useThemeColor({}, 'background');
     const [expanded, setExpanded] = useState<Set<number>>(new Set());
     const categoriesStore = useCategoriesStore()
     const selectedCategoryStore = useSelectedCategoryStore()
-    const selectedSubcategoryStore = useSelectedSubcategoryStore()
-    const categoryPickerStore = usePickerStore()
     const colorPickerStore = useColorPickerStore()
     const iconPickerStore = useIconPickerStore()
-    const [type, setType] = useState<string>("EXPENSE")
-    const selectedTypeStore = useSelectedTypeStore()
+    const selectedType = useSelectedTypeStore(s => s.selected)
+    const pickSubcategory = usePickerStore((s) => s.setSelected);
 
 
 
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
 
-    const toggleCategory = (id: number) => {
-        setExpanded(prev => {
-            const next = new Set(prev);
-            next.has(id) ? next.delete(id) : next.add(id);
-            return next;
-        });
-    };
-
 
     return (
         <View style={{ flex: 1, backgroundColor: backgroundColor, paddingTop: 50}}>
-            <SegmentedButtons
-                style={{
-                    margin: 5
-                }}
-                value={type}
-                onValueChange={setType}
-                buttons={[
-                    {
-                        value: 'EXPENSE',
-                        label: 'Expense',
-                    },
-                    {
-                        value: 'INCOME',
-                        label: 'Income',
-                    },
-                ]}
-            />
             <View
                 style={{
                     flex: 1,
@@ -71,23 +44,18 @@ export default function HomeScreen() {
                 }}>
                 <FlatList
                     style={{ width: "100%" }}
-                    data={categoriesStore.selected.filter((it) => it.type == type)}
+                    data={categoriesStore.selected.filter((it) => it.type == selectedType)}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
                         const isExpanded = expanded.has(item.id);
-                        const children = item.subcategories.filter(it => !it.isDefault);
-
                         return (
                             <View>
                                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                                     <Pressable
                                         style={{ flex: 1 }}
                                         onPress={() => {
-                                            selectedCategoryStore.setSelected(item);
-                                            selectedTypeStore.setSelected(item.type);
-                                            colorPickerStore.setSelected(item.color);
-                                            iconPickerStore.setSelected(item.icon);
-                                            router.navigate("category/edit");
+                                            pickSubcategory(defaultSubcategory)
+                                            router.back()
                                         }}
                                     >
                                         <View
@@ -112,43 +80,11 @@ export default function HomeScreen() {
                                                 <Text style={{ color: textOnSurfaceColor, fontSize: 16, marginVertical: 8 }}>
                                                     {item.name}
                                                 </Text>
-                                                {children.length > 0 && (
-                                                    <Pressable
-                                                        onPress={() => toggleCategory(item.id)}
-                                                        style={{ marginLeft: "auto", padding: 8 }}
-                                                    >
-                                                        <MaterialIcons
-                                                            color={'white'}
-                                                            size={30}
-                                                            name={expanded.has(item.id)  ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} />
-                                                    </Pressable>
-                                                )}
                                             </View>
                                         </View>
                                     </Pressable>
 
                                 </View>
-
-                                {isExpanded &&
-                                    children.map((child) => (
-                                        <Pressable
-                                            key={child.id}
-                                            style={{ marginLeft: 40 }}
-                                            onPress={() => {
-                                                selectedSubcategoryStore.setSelected(child);
-                                                categoryPickerStore.setSelected(
-                                                    categoriesStore.getParent(child.id)
-                                                );
-                                                selectedCategoryStore.setSelected(
-                                                    categoriesStore.getParent(child.id)
-                                                )
-                                                iconPickerStore.setSelected(child.icon);
-                                                router.navigate("subcategory/edit");
-                                            }}
-                                        >
-                                            <CategoryDisplay data={child} />
-                                        </Pressable>
-                                    ))}
                             </View>
                         );
                     }}
@@ -156,17 +92,6 @@ export default function HomeScreen() {
                 />
 
             </View>
-            <FAB
-                icon="plus"
-                style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
-                onPress={() => {
-                    selectedCategoryStore.setSelected(null)
-                    colorPickerStore.setSelected(null)
-                    iconPickerStore.setSelected(null)
-                    selectedTypeStore.setSelected("EXPENSE")
-                    navigation.navigate('category/edit')
-                }}
-            />
 
         </View>
     );
