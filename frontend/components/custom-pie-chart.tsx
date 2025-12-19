@@ -7,6 +7,10 @@ import {useTheme} from "@react-navigation/core";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {colors} from "@/constants/colors";
 import {with2Decimals, withNoDecimals, withReadableThousands} from "@/src/utils/math";
+import {TouchableRipple} from "react-native-paper";
+import {router} from "expo-router";
+import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
+import {useCategoriesStore} from "@/src/stores/categories-store";
 
 
 
@@ -20,6 +24,8 @@ export function CustomPieChart({ data }) {
     const surfaceColor = useThemeColor({}, 'surface');
     const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
+    const setSelectedCategory = useSelectedCategoryStore(s => s.setSelected)
+    const categoriesStore = useCategoriesStore()
 
     let newFocusedItem = 0
 
@@ -39,6 +45,7 @@ export function CustomPieChart({ data }) {
             label: it.label,
             gradientCenterColor: it.color,
             radius: newFocusedItem === data.indexOf(it) ? 130 : 120,
+            id: it.id,
         }
     })
 
@@ -55,6 +62,7 @@ export function CustomPieChart({ data }) {
                 color: it.color,
                 icon: it.icon,
                 label: it.label,
+                id: it.id,
             }
         })
 
@@ -160,7 +168,14 @@ export function CustomPieChart({ data }) {
                 alignItems: "center",        // horizontal center
             }}>
                 {categoryData.map((item, index) => (
-                    <CategoryReport item={item} percent={item.value / total * 100} key={index}/>
+                    <TouchableRipple style={{width: "100%"}} key={index}>
+                    <Pressable onPress={() => {
+                        setSelectedCategory(categoriesStore.getCategory(item.id))
+                        router.navigate("analytics/subcategories")
+                    }}>
+                    <CategoryReport item={item} percent={item.value / total * 100} />
+                    </Pressable>
+                    </TouchableRipple>
                 ))}
             </View>
     </View>

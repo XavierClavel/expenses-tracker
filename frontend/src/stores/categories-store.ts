@@ -9,8 +9,10 @@ type CategoriesStore = {
     setSelected: (value: CategoryOut[]) => void;
     reset: () => void;
     subcategories: SubcategoryOut[];
+    getCategory: (id: number) => CategoryOut | undefined;
     getSubcategory: (id: number) => SubcategoryOut | undefined;
     getParent: (id: number) => CategoryOut | undefined;
+    getChildren: (id: number) => SubcategoryOut[];
 };
 
 export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
@@ -24,6 +26,8 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
         selected: [],
         subcategories: [],
     }),
+    getCategory: (id: number) => get().selected.find(it => it.id == id),
     getSubcategory: (id: number) => get().subcategories.find((it) => it.id == id),
     getParent: (id: number) => get().selected.find((it) => it.subcategories.find((it) => it.id == id)),
+    getChildren: (id: number) => get().getCategory(id)?.subcategories || [],
 }));

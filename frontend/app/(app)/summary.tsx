@@ -81,10 +81,10 @@ export default function HomeScreen() {
                 label: c.name,
                 color: c.color,
                 icon: c.icon,
+                id: c.id,
             }
         })
         setData(result)
-        console.log("selected", selectedType)
     }
 
     useEffect(() => {
