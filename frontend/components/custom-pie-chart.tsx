@@ -11,6 +11,7 @@ import {TouchableRipple} from "react-native-paper";
 import {router} from "expo-router";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useCategoriesStore} from "@/src/stores/categories-store";
+import SummarySubcategories from "@/app/analytics/subcategories";
 
 
 

@@ -7,6 +7,7 @@ import {
     StyleSheet,
 } from "react-native";
 import {generateMonths} from "@/src/utils/misc";
+import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
 
 const { width } = Dimensions.get("window");
 
@@ -15,16 +16,12 @@ const SPACING = (width - ITEM_WIDTH) / 2;
 const months = generateMonths(2023, 2025);
 const defaultIndex = months.length - 1
 
-type MonthPickerProps = {
-    onMonthChange?: (value: {
-        year: number,
-        month: number
-    }) => void;
-};
 
-export default function DateScroller({onMonthChange}: MonthPickerProps) {
+export default function DateScroller() {
     const listRef = useRef<FlatList>(null);
     const [selectedIndex, setSelectedIndex] = useState(defaultIndex);
+    const setSelectedMonth = useSummaryDateStore(s => s.setMonth)
+    const setSelectedYear = useSummaryDateStore(s => s.setYear)
 
     const onMomentumScrollEnd = (event: any) => {
         const index = Math.round(
@@ -33,7 +30,8 @@ export default function DateScroller({onMonthChange}: MonthPickerProps) {
         if (index == selectedIndex) return
         setSelectedIndex(index);
         const value = months[index]
-        onMonthChange?.({year: value.year, month:value.month})
+        setSelectedYear(value.year)
+        setSelectedMonth(value.month)
     };
 
     return (

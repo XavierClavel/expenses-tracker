@@ -12,6 +12,7 @@ import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useSummaryStore} from "@/src/stores/summary-store";
 import {SafeAreaView} from "react-native-safe-area-context";
+import DateScroller from "@/components/date-scroller";
 
 
 
@@ -45,6 +46,7 @@ export default function SummarySubcategories() {
 
 
     return <SafeAreaView style={{backgroundColor: backgroundColor, height: "100%"}}>
+        <DateScroller />
     <View
         style={{
             padding: 16,

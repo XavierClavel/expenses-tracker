@@ -21,6 +21,7 @@ import DateScroller from "@/components/date-scroller";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CategoryOut from "@/src/types/CategoryOut";
 import CategorySummary from "@/src/types/CategorySummary";
+import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
 
 const pieData = [
     {value: -900.97, label: 'Accomodation & charges', color: '#009FFF', icon: 'house'},
@@ -40,6 +41,8 @@ export default function HomeScreen() {
     const categoryStore = useCategoriesStore()
     const selectTypeInStore = useSelectedTypeStore((s) => s.setSelected)
     const selectedType = useSelectedTypeStore((s) => s.selected)
+    const selectedMonth = useSummaryDateStore(s => s.month)
+    const selectedYear = useSummaryDateStore(s => s.year)
 
 
     const loadSummary = async (year: number, month: number) => {
@@ -51,13 +54,6 @@ export default function HomeScreen() {
         console.log("selecting", type)
         selectTypeInStore(type)
     }
-
-    const selectYearAndMonth = async (year: number, month: number) => {
-        console.log("load summary")
-        console.log(year, month)
-        loadSummary(year, month)
-    }
-
 
     async function syncData() {
         console.log(selectedType)
@@ -88,9 +84,8 @@ export default function HomeScreen() {
     }
 
     useEffect(() => {
-        const date = new Date()
-        loadSummary(date.getFullYear(), date.getMonth() + 1)
-    }, []);
+        loadSummary(selectedYear, selectedMonth)
+    }, [selectedYear, selectedMonth]);
 
     useEffect(() => {
         syncData()
@@ -119,7 +114,7 @@ export default function HomeScreen() {
         />
       }>
         <SafeAreaView>
-        <DateScroller onMonthChange={({year, month}) => {selectYearAndMonth(year,month)}}/>
+        <DateScroller />
         <SegmentedButtons
             style={{
                 marginTop: 10,
