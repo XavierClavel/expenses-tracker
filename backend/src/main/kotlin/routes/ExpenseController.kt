@@ -1,6 +1,7 @@
 package com.xavierclavel.routes
 
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
 import com.xavierclavel.exceptions.ForbiddenCause
@@ -27,7 +28,16 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
         get {
             val sessionUserId = getSessionUserId(redisService)
             val paging = getPaging()
-            val users = expenseService.list(userId = sessionUserId, paging = paging)
+            val categoryId = call.parameters["categoryId"]?.toLongOrNull()
+            val subcategoryId = call.parameters["subcategoryId"]?.toLongOrNull()
+            val expenseType = call.parameters["type"]?.let { ExpenseType.valueOf(it.uppercase()) }
+            val users = expenseService.list(
+                userId = sessionUserId,
+                paging = paging,
+                subcategoryId = subcategoryId,
+                expenseType = expenseType,
+                categoryId = categoryId,
+            )
             call.respond(users)
         }
 

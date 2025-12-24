@@ -21,6 +21,7 @@ export const icons = Object.freeze({
     beer: 'beer',
     electricity: 'electricity',
     fire: 'fire',
+    water: 'water',
     umbrella: 'umbrella',
     wifi: 'wifi',
     sim: 'sim',
@@ -37,5 +38,8 @@ export const icons = Object.freeze({
     friends: 'friends',
     mobile: 'mobile',
     bank: 'bank',
+    cocktail: 'cocktail',
+    scissors: 'scissors',
+    pill: 'pill',
     unknown: 'unknown',
 })

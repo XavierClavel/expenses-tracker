@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -49,10 +50,14 @@ suspend fun HttpClient.getExpense(id: Long): ExpenseOut {
     }
 }
 
-suspend fun HttpClient.listExpenses(): List<ExpenseOut>  {
-    this.get(EXPENSES_URL).apply {
+suspend fun HttpClient.listExpenses(params: Map<String, String> = mapOf()): Set<ExpenseOut>  {
+    this.get(EXPENSES_URL, {
+        params.forEach {
+            this.parameter(it.key, it.value)
+        }
+    }).apply {
         assertEquals(HttpStatusCode.OK, status)
-        val categories = Json.decodeFromString<List<ExpenseOut>>(bodyAsText())
+        val categories = Json.decodeFromString<Set<ExpenseOut>>(bodyAsText())
         return categories
     }
 }

@@ -1,13 +1,41 @@
-import {Pressable, View, type ViewProps} from 'react-native';
+import { Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import {BarChart, PieChart} from "react-native-gifted-charts";
 import {PropsWithChildren, SetStateAction, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {time} from "@expo/fingerprint/cli/build/utils/log";
 import {with2Decimals, withReadableThousands} from "@/src/utils/math";
+import {Button, Divider, Menu, PaperProvider} from "react-native-paper";
 
 
-//TODO: set y scale
+const MyComponent = () => {
+    const [visible, setVisible] = useState(true);
+
+    const openMenu = () => setVisible(true);
+
+    const closeMenu = () => setVisible(false);
+
+    return (
+        <PaperProvider>
+            <View
+                style={{
+                    paddingTop: 50,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                }}>
+                <Menu
+                    visible={visible}
+                    onDismiss={closeMenu}
+                    anchor={<Button onPress={openMenu}>Show menu</Button>}>
+                    <Menu.Item onPress={() => {}} title="Item 1" />
+                    <Menu.Item onPress={() => {}} title="Item 2" />
+                    <Divider />
+                    <Menu.Item onPress={() => {}} title="Item 3" />
+                </Menu>
+            </View>
+        </PaperProvider>
+    );
+};
 
 
 export function CustomBarChart({ data }) {
@@ -100,6 +128,11 @@ export function CustomBarChart({ data }) {
                 borderRadius: 5,
             }}
         />
+        <View style={{
+            zIndex: 2,
+        }}>
+            <MyComponent />
+        </View>
         <View style={{
             zIndex: 1,
         }}>

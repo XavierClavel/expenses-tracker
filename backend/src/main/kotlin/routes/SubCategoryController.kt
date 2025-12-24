@@ -29,6 +29,12 @@ fun Route.setupSubcategoryController() = route(SUBCATEGORY_URL) {
             call.respond(user)
         }
 
+        get {
+            val userId = getSessionUserId(redisService)
+            val user = subcategoryService.list(userId = userId)
+            call.respond(user)
+        }
+
         post {
             val userId = getSessionUserId(redisService)
             val categoryDto = call.receive<SubcategoryIn>()

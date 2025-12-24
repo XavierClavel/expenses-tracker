@@ -80,7 +80,6 @@ class CategoryService: KoinComponent {
             .apply { this.update() }
             .toOutput()
 
-    //TODO: prevent deletion if category used
     fun delete(userId: Long, categoryId: Long) {
         val category = getById(categoryId)
             .checkRights(userId)

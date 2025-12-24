@@ -9,6 +9,7 @@ import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.Subcategory
 import com.xavierclavel.models.query.QCategory
+import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import org.koin.core.component.KoinComponent
@@ -85,6 +86,14 @@ class SubcategoryService: KoinComponent {
 
     //TODO: prevent deletion if category used
     fun delete(userId: Long, subcategoryId: Long) {
+        val isCategoryUsed = QExpense()
+            .category.id.eq(subcategoryId)
+            .exists()
+
+        if(isCategoryUsed) {
+            throw ForbiddenException(ForbiddenCause.MUST_OWN_CATEGORY)
+        }
+
         val result = getById(subcategoryId)
             .checkRights(userId)
             .delete()

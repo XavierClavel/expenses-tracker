@@ -62,6 +62,8 @@ export function IconSymbol({
             return <Ionicons color={color} size={20} name='gift' />
         case 'beer':
             return <MaterialCommunityIcons color={color} size={20} name='beer' />
+        case 'water':
+            return <MaterialCommunityIcons color={color} size={20} name='water' />
         case 'electricity':
             return <MaterialIcons color={color} size={20} name='electric-bolt' />
         case 'fire':
@@ -98,6 +100,12 @@ export function IconSymbol({
             return <FontAwesome color={color} size={size+3} name='mobile-phone' />;
         case 'bank':
             return <MaterialCommunityIcons color={color} size={size} name='bank' />
+        case 'cocktail':
+            return <MaterialCommunityIcons color={color} size={size} name='glass-cocktail' />
+        case 'pill':
+            return <MaterialCommunityIcons color={color} size={size} name='pill' />
+        case 'scissors':
+            return <FontAwesome6 color={color} size={size-3} name='scissors' />
         case 'unknown':
             return <FontAwesome5 color={color} size={size-3} name='question' />;
     }

@@ -109,34 +109,34 @@ class TrendsControllerTest: ApplicationTest() {
 
     @Test
     fun `get category trends by month`() = runTestAsUser {
-        val groceriesId = client.createCategory(categoryInTemplate.copy(name = "Groceries")).subcategories[0].id
-        val salaryId = client.createCategory(categoryInTemplate.copy(name = "Salary", type = ExpenseType.INCOME)).subcategories[0].id
+        val cat1 = client.createCategory(categoryInTemplate.copy(name = "Groceries"))
+        val cat2 = client.createCategory(categoryInTemplate.copy(name = "Salary", type = ExpenseType.INCOME))
         client.createExpense(expense.copy(
             amount = BigDecimal("25.00"),
             date = LocalDate.parse("2020-06-06"),
-            categoryId = groceriesId,
+            categoryId = cat1.subcategories[0].id,
         ))
         client.createExpense(expense.copy(
             amount = BigDecimal("15.00"),
             date = LocalDate.parse("2020-06-30"),
-            categoryId = groceriesId,
+            categoryId = cat1.subcategories[0].id,
         ))
         client.createExpense(expense.copy(
             amount = BigDecimal("10.00"),
             date = LocalDate.parse("2020-07-01"),
-            categoryId = groceriesId,
+            categoryId = cat1.subcategories[0].id,
         ))
         client.createExpense(expense.copy(
             amount = BigDecimal("11.00"),
             date = LocalDate.parse("2020-07-01"),
-            categoryId = salaryId,
+            categoryId = cat2.subcategories[0].id,
         ))
-        val result = client.getMonthCategoryTrends(groceriesId)
+        val result = client.getMonthCategoryTrends(cat1.id)
         assertEquals(2, result.size)
         assertEquals(0, BigDecimal("40").compareTo(result[0].total))
         assertEquals(0, BigDecimal("10").compareTo(result[1].total))
 
-        val result2 = client.getMonthCategoryTrends(salaryId)
+        val result2 = client.getMonthCategoryTrends(cat2.id)
         assertEquals(1, result2.size)
         assertEquals(0, BigDecimal("11").compareTo(result2[0].total))
     }

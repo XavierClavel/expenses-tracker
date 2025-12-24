@@ -9,6 +9,7 @@ import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.ExpenseService
+import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.TrendService
 import com.xavierclavel.services.UserService
@@ -55,6 +56,7 @@ abstract class ApplicationTest: KoinTest {
                 single { testConfig }
                 single { EncryptionService() }
                 single { CategoryService() }
+                single { SubcategoryService() }
                 single { ExpenseService() }
                 single { SummaryService() }
                 single { TrendService() }

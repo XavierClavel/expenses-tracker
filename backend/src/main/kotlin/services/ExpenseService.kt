@@ -10,6 +10,7 @@ import com.xavierclavel.models.Expense
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.dtos.ExpenseOut
+import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.models.query.QSubcategory
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
@@ -36,9 +37,26 @@ class ExpenseService: KoinComponent {
             .checkRights(userId)
             .toOutput()
 
-    fun list(userId: Long, paging: Paging): List<ExpenseOut> {
+    fun list(
+        userId: Long,
+        paging: Paging,
+        categoryId: Long?,
+        subcategoryId: Long?,
+        expenseType: ExpenseType?,
+    ): List<ExpenseOut> {
         return QExpense()
             .user.id.eq(userId)
+            .apply{
+                if (subcategoryId != null) {
+                    this.category.id.eq(subcategoryId)
+                }
+                if (categoryId != null) {
+                    this.category.parentCategory.id.eq(categoryId)
+                }
+                if (expenseType != null) {
+                    this.type.eq(expenseType)
+                }
+            }
             .setPaging(paging)
             .orderBy().date.desc()
             .findList()
