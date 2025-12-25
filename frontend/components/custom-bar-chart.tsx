@@ -5,47 +5,21 @@ import {PropsWithChildren, SetStateAction, useEffect, useRef, useState} from 're
 import {Dimensions} from 'react-native';
 import {time} from "@expo/fingerprint/cli/build/utils/log";
 import {with2Decimals, withReadableThousands} from "@/src/utils/math";
-import {Button, Divider, Menu, PaperProvider} from "react-native-paper";
 
 
-const MyComponent = () => {
-    const [visible, setVisible] = useState(true);
-
-    const openMenu = () => setVisible(true);
-
-    const closeMenu = () => setVisible(false);
-
-    return (
-        <PaperProvider>
-            <View
-                style={{
-                    paddingTop: 50,
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                }}>
-                <Menu
-                    visible={visible}
-                    onDismiss={closeMenu}
-                    anchor={<Button onPress={openMenu}>Show menu</Button>}>
-                    <Menu.Item onPress={() => {}} title="Item 1" />
-                    <Menu.Item onPress={() => {}} title="Item 2" />
-                    <Divider />
-                    <Menu.Item onPress={() => {}} title="Item 3" />
-                </Menu>
-            </View>
-        </PaperProvider>
-    );
+type Props = {
+    data: any[],
+    amount: number,
 };
 
-
-export function CustomBarChart({ data }) {
+export function CustomBarChart({ data, amount }: Props) {
     const [focusedItem, setFocusedItem] = useState([]);
     const windowWidth = Dimensions.get('window').width;
     const scrollPosition = useRef(0)
     const barSize = 16
-    const interSpacing = 6
+    const interSpacing = 6 * (amount - 1)
     const spacing = 20
-    const setSize = spacing + barSize * 2 + interSpacing
+    const setSize = spacing + barSize * amount + interSpacing
     const scrollRef = useRef(null);
     const isSnapping = useRef(false);
     const numberOfSteps = 5
@@ -66,7 +40,12 @@ export function CustomBarChart({ data }) {
     useEffect(() => {
         console.log(data)
         if (data.length >= 2) {
-            setFocusedItem([data.length - 2, data.length - 1]);
+            if (amount == 2) {
+                setFocusedItem([data.length - 2, data.length - 1]);
+            } else {
+                setFocusedItem([data.length - 1])
+            }
+
         } else if (data.length === 1) {
             setFocusedItem([0]);
         } else {
@@ -86,12 +65,14 @@ export function CustomBarChart({ data }) {
             width: "100%",
             marginVertical: 20
         }}>
-                <Text style={{ color: '#71cc5d', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
+                <Text style={{ color: data[focusedItem[0]].value > 0 ? '#71cc5d' : '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
                     {withReadableThousands(with2Decimals(data[focusedItem[0]].value))}€
                 </Text>
-                <Text style={{ color: '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
-                    -{withReadableThousands(with2Decimals(data[focusedItem[1]].value))}€
-                </Text>
+            {focusedItem.length > 1 &&
+                <Text style={{color: '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold'}}>
+            -{withReadableThousands(with2Decimals(data[focusedItem[1]].value))}€
+        </Text>
+    }
         </View>
         else return
     }
@@ -129,11 +110,6 @@ export function CustomBarChart({ data }) {
             }}
         />
         <View style={{
-            zIndex: 2,
-        }}>
-            <MyComponent />
-        </View>
-        <View style={{
             zIndex: 1,
         }}>
         <BarChart
@@ -141,8 +117,8 @@ export function CustomBarChart({ data }) {
             scrollRef={scrollRef}
             //adjustToWidth
             width={windowWidth}
-            initialSpacing={(windowWidth / 2) - barSize - interSpacing / 2 }
-            endSpacing={windowWidth/2 - windowWidth /4 - 10}
+            initialSpacing={(windowWidth - barSize * amount - interSpacing) / 2 }
+            endSpacing={windowWidth/2 - windowWidth /4 - interSpacing}
             //focusBarOnPress
             highlightEnabled
             scrollToEnd
@@ -166,7 +142,7 @@ export function CustomBarChart({ data }) {
             //yAxisTextStyle={{color: 'lightgray'}}
             stepValue={chartStep}
             maxValue={chartMax}
-            labelWidth={40}
+            labelWidth={30}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
             hideYAxisText
             secondaryYAxis
@@ -177,9 +153,14 @@ export function CustomBarChart({ data }) {
             //showLine
             onScroll={(item: any)=> {
                 const x = item.nativeEvent.contentOffset.x
-                const index = Math.round((x / setSize) )
                 //console.log(x, index)
-                setFocusedItem([index * 2, index*2+1])
+                if (amount == 2) {
+                    const index = Math.round((x / setSize) )
+                    setFocusedItem([index * 2, index * 2 + 1])
+                } else {
+                    const index = Math.round((x / setSize))
+                    setFocusedItem([index])
+                }
                 scrollPosition.current = x
                 //console.log(x)
             }}
@@ -190,8 +171,7 @@ export function CustomBarChart({ data }) {
             onMomentumScrollEnd={(e) => {
                 //console.log("momentum scroll end")
                 const x = scrollPosition.current
-                let targetX = Math.round((x/setSize))*setSize ;
-                //console.log(targetX)
+                const targetX = Math.round((x/setSize))*setSize
 
                 if (isSnapping.current) return
                 isSnapping.current = true

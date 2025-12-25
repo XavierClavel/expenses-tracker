@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import {ThemeProvider} from "@react-navigation/core";
 import {DarkTheme} from "@react-navigation/native";
 import {SafeAreaProvider} from "react-native-safe-area-context";
+import {Provider} from "react-native-paper";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,12 +52,14 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider value={DarkTheme}>
+            <Provider>
             <SafeAreaProvider>
                 {!authenticated && <Redirect href="/(auth)/login" />}
                 {authenticated && <Redirect href="/(app)" />}
                 <Stack screenOptions={{ headerShown: false }}>
                 </Stack>
             </SafeAreaProvider>
+            </Provider>
         </ThemeProvider>
     );
 }
