@@ -9,7 +9,13 @@ import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {getYearSummary} from "@/src/api/summary";
-import {getMonthCategoryTrends, getMonthTrends, getYearCategoryTrends, getYearTrends} from "@/src/api/trends";
+import {
+    getMonthCategoryTrends, getMonthSubcategoryTrends,
+    getMonthTrends,
+    getYearCategoryTrends,
+    getYearSubcategoryTrends,
+    getYearTrends
+} from "@/src/api/trends";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useEffect, useState} from "react";
 import { ToggleButton } from "react-native-paper";
@@ -177,6 +183,45 @@ export default function TabTwoScreen() {
         setTrends(result)
     }
 
+    const loadMonthSubcategory = async () => {
+        console.log("here")
+        console.log(selectedSubcategory)
+        const trends = await getMonthSubcategoryTrends(selectedSubcategory.id)
+        const result = []
+        for (const v of trends) {
+            const date = new Date(v.year, v.month - 1)
+            const currentDate = new Date()
+            const displayDate= date.getFullYear() == currentDate.getFullYear() ?
+                date.toLocaleString('default', { month: 'short' })
+                : date.toLocaleString('default', { month: 'short', year: 'numeric' })
+            const value = Number(v.totalExpenses)
+            result.push({
+                value: value,
+                frontColor: colors[selectedSubcategory?.color || 'unknown'],
+                label: displayDate
+            })
+        }
+        setTrends(result)
+    }
+
+    const loadYearSubcategory = async () => {
+        console.log("here")
+        console.log(selectedSubcategory)
+        const trends = await getYearSubcategoryTrends(selectedSubcategory.id)
+        const result = []
+        for (const v of trends) {
+            const date = new Date(v.year, v.month - 1)
+            const displayDate= date.toLocaleString('default', { year: 'numeric' })
+            const value = Number(v.totalExpenses)
+            result.push({
+                value: value,
+                frontColor: colors[selectedSubcategory?.color || 'unknown'],
+                label: displayDate
+            })
+        }
+        setTrends(result)
+    }
+
     useEffect(() => {
         if (dataType == "flow") {
             if (timescale == "month") {
@@ -196,9 +241,15 @@ export default function TabTwoScreen() {
             } else {
                 loadYearCategory()
             }
+        } else if (dataType == "subcategory" && selectedSubcategory != null) {
+            if (timescale == "month") {
+                loadMonthSubcategory()
+            } else {
+                loadYearSubcategory()
+            }
         }
 
-    }, [dataType, timescale, selectedCategory]);
+    }, [dataType, timescale, selectedCategory, selectedSubcategory]);
 
     return (
       <View

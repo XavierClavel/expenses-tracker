@@ -24,7 +24,7 @@ export default function SubcategoriesPicker() {
     const iconPickerStore = useIconPickerStore()
     const selectedType = useSelectedTypeStore(s => s.selected)
     const pickSubcategory = usePickerStore((s) => s.setSelected);
-
+    const selectSubcategory = useSelectedSubcategoryStore(s => s.setSelected)
 
 
     const surfaceColor = useThemeColor({}, 'surface');
@@ -65,6 +65,7 @@ export default function SubcategoriesPicker() {
                                         style={{ flex: 1 }}
                                         onPress={() => {
                                             pickSubcategory(defaultSubcategory)
+                                            selectSubcategory(defaultSubcategory)
                                             router.back()
                                         }}
                                     >
@@ -114,6 +115,7 @@ export default function SubcategoriesPicker() {
                                             style={{ marginLeft: 40 }}
                                             onPress={() => {
                                                 pickSubcategory(child)
+                                                selectSubcategory(child)
                                                 router.back()
                                             }}
                                         >
