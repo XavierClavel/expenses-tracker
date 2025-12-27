@@ -32,3 +32,30 @@ export async function getYearTrends(): Promise<TrendsDto[]> {
     })
     return result
 }
+
+export async function getMonthCategoryTrends(id: number): Promise<TrendsDto[]> {
+    const response = await apiClient.get( `/trends/category/${id}/month`);
+    const result = response.data.map((it) => {
+        return new TrendsDto(
+            it.year,
+            it.month,
+            it.total,
+            it.total,
+        )
+    })
+    console.log(response.data)
+    return result
+}
+
+export async function getYearCategoryTrends(id: number): Promise<TrendsDto[]> {
+    const response = await apiClient.get( `/trends/category/${id}/year`);
+    const result = response.data.map((it) => {
+        return new TrendsDto(
+            it.year,
+            it.month,
+            it.total,
+            it.total,
+        )
+    })
+    return result
+}

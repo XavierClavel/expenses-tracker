@@ -9,7 +9,7 @@ import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {getYearSummary} from "@/src/api/summary";
-import {getMonthTrends, getYearTrends} from "@/src/api/trends";
+import {getMonthCategoryTrends, getMonthTrends, getYearCategoryTrends, getYearTrends} from "@/src/api/trends";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useEffect, useState} from "react";
 import { ToggleButton } from "react-native-paper";
@@ -18,6 +18,9 @@ import {useDataTypeStore} from "@/src/stores/data-type-store";
 import {data} from "browserslist";
 import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import {time} from "@expo/fingerprint/cli/build/utils/log";
+import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
+import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
+import {colors} from "@/constants/colors";
 
 
 const colorExpense = '#da451a'
@@ -33,10 +36,18 @@ export default function TabTwoScreen() {
     const dataType = useDataTypeStore(s => s.type)
     const timescale = useDataTypeStore(s => s.timescale)
     const setTimescale = useDataTypeStore(s => s.setTimescale)
+    const categories = useCategoriesStore(s => s.selected)
+    const subcategories = useCategoriesStore(s => s.subcategories)
+    const selectedCategory = useSelectedCategoryStore(s => s.selected)
+    const setSelectedCategory = useSelectedCategoryStore(s => s.setSelected)
+    const selectedSubcategory = useSelectedSubcategoryStore(s => s.selected)
+    const setSelectedSubcategory = useSelectedSubcategoryStore(s => s.setSelected)
 
     const itemsType = [
         { label: 'In / Out', value: 'income_expense' },
         { label: 'Flow', value: 'flow' },
+        { label: 'Category', value: 'category'},
+        { label: 'Subcategory', value: 'subcategory'},
     ];
 
     const itemsTimescale = [
@@ -124,6 +135,41 @@ export default function TabTwoScreen() {
         setTrends(result)
     }
 
+    const loadMonthCategory = async () => {
+        const trends = await getMonthCategoryTrends(selectedCategory.id)
+        const result = []
+        for (const v of trends) {
+            const date = new Date(v.year, v.month - 1)
+            const currentDate = new Date()
+            const displayDate= date.getFullYear() == currentDate.getFullYear() ?
+                date.toLocaleString('default', { month: 'short' })
+                : date.toLocaleString('default', { month: 'short', year: 'numeric' })
+            const value = Number(v.totalExpenses)
+            result.push({
+                value: value,
+                frontColor: colors[selectedCategory?.color || 'unknown'],
+                label: displayDate
+            })
+        }
+        setTrends(result)
+    }
+
+    const loadYearCategory = async () => {
+        const trends = await getYearCategoryTrends(selectedCategory.id)
+        const result = []
+        for (const v of trends) {
+            const date = new Date(v.year, v.month - 1)
+            const displayDate= date.toLocaleString('default', { year: 'numeric' })
+            const value = Number(v.totalExpenses)
+            result.push({
+                value: value,
+                frontColor: colors[selectedCategory?.color || 'unknown'],
+                label: displayDate
+            })
+        }
+        setTrends(result)
+    }
+
     useEffect(() => {
         if (dataType == "flow") {
             if (timescale == "month") {
@@ -131,16 +177,21 @@ export default function TabTwoScreen() {
             } else {
                 loadYearFlow()
             }
-        } else {
+        } else if (dataType == "income_expense") {
             if (timescale == "month") {
                 loadMonthTrends()
             } else {
                 loadYearTrends()
             }
-
+        } else if (dataType == "category") {
+            if (timescale == "month") {
+                loadMonthCategory()
+            } else {
+                loadYearCategory()
+            }
         }
 
-    }, [dataType, timescale]);
+    }, [dataType, timescale, selectedCategory]);
 
     return (
       <View
@@ -201,6 +252,43 @@ export default function TabTwoScreen() {
                 />
             </View>
         </View>
+              { dataType == "category" &&
+              <View style={{ paddingHorizontal: 20, paddingVertical: 5 }}>
+                  <Dropdown
+                      style={{ height: 50, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
+                      placeholderStyle={{ color: "lightgray" }}
+                      selectedTextStyle={{ color: "lightgray" }}
+                      labelField="name"
+                      valueField="id"
+                      placeholder="Select category"
+                      value={selectedCategory}
+                      data={categories}
+                      onChange={item => {
+                          setSelectedCategory(item);
+                      }}
+                      dropdownPosition={"top"}
+                  />
+              </View>
+              }
+
+              { dataType == "subcategory" &&
+                  <View style={{ paddingHorizontal: 20, paddingVertical: 5 }}>
+                      <Dropdown
+                          style={{ height: 50, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
+                          placeholderStyle={{ color: "lightgray" }}
+                          selectedTextStyle={{ color: "lightgray" }}
+                          labelField="name"
+                          valueField="id"
+                          placeholder="Select subcategory"
+                          value={selectedSubcategory}
+                          data={subcategories}
+                          onChange={item => {
+                              setSelectedSubcategory(item);
+                          }}
+                          dropdownPosition={"top"}
+                      />
+                  </View>
+              }
           </View>
     </View>
   );

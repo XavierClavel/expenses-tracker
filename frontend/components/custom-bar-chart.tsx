@@ -27,7 +27,7 @@ export function CustomBarChart({ data, amount }: Props) {
         return (prev && prev.value > current.value) ? prev : current
     },0).value
     console.log("max", maxValue)
-    const orderOfMagnitude = Math.max(3,Math.floor(Math.log10(maxValue)))
+    const orderOfMagnitude = Math.floor(Math.log10(maxValue))
     const magnitude = Math.pow(10,orderOfMagnitude)
     console.log("order of magnitude", orderOfMagnitude)
 
