@@ -21,6 +21,9 @@ import {time} from "@expo/fingerprint/cli/build/utils/log";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
 import {colors} from "@/constants/colors";
+import {router} from "expo-router";
+import {CategoryDisplay} from "@/components/category/categoryDisplay";
+import CategoryOut from "@/src/types/CategoryOut";
 
 
 const colorExpense = '#da451a'
@@ -136,6 +139,8 @@ export default function TabTwoScreen() {
     }
 
     const loadMonthCategory = async () => {
+        console.log("here")
+        console.log(selectedCategory)
         const trends = await getMonthCategoryTrends(selectedCategory.id)
         const result = []
         for (const v of trends) {
@@ -155,6 +160,8 @@ export default function TabTwoScreen() {
     }
 
     const loadYearCategory = async () => {
+        console.log("here")
+        console.log(selectedCategory)
         const trends = await getYearCategoryTrends(selectedCategory.id)
         const result = []
         for (const v of trends) {
@@ -183,7 +190,7 @@ export default function TabTwoScreen() {
             } else {
                 loadYearTrends()
             }
-        } else if (dataType == "category") {
+        } else if (dataType == "category" && selectedCategory != null) {
             if (timescale == "month") {
                 loadMonthCategory()
             } else {
@@ -254,39 +261,32 @@ export default function TabTwoScreen() {
         </View>
               { dataType == "category" &&
               <View style={{ paddingHorizontal: 20, paddingVertical: 5 }}>
-                  <Dropdown
-                      style={{ height: 50, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
-                      placeholderStyle={{ color: "lightgray" }}
-                      selectedTextStyle={{ color: "lightgray" }}
-                      labelField="name"
-                      valueField="id"
-                      placeholder="Select category"
-                      value={selectedCategory}
-                      data={categories}
-                      onChange={item => {
-                          setSelectedCategory(item);
+                  <Pressable
+                      style={{
+                          marginVertical: 5,
                       }}
-                      dropdownPosition={"top"}
-                  />
+                      onPress={() => {
+                          router.navigate("/picker/categories");
+                      }}
+                  >
+                      <CategoryDisplay data={ selectedCategory || new CategoryOut(-1, "No category selected", 'lightgray', 'unknown')}></CategoryDisplay>
+                  </Pressable>
               </View>
               }
 
               { dataType == "subcategory" &&
                   <View style={{ paddingHorizontal: 20, paddingVertical: 5 }}>
-                      <Dropdown
-                          style={{ height: 50, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
-                          placeholderStyle={{ color: "lightgray" }}
-                          selectedTextStyle={{ color: "lightgray" }}
-                          labelField="name"
-                          valueField="id"
-                          placeholder="Select subcategory"
-                          value={selectedSubcategory}
-                          data={subcategories}
-                          onChange={item => {
-                              setSelectedSubcategory(item);
+
+                      <Pressable
+                          style={{
+                              marginVertical: 5,
                           }}
-                          dropdownPosition={"top"}
-                      />
+                          onPress={() => {
+                              router.navigate("/picker/subcategories");
+                          }}
+                      >
+                          <CategoryDisplay data={ selectedSubcategory || new CategoryOut(-1, "No category selected", 'lightgray', 'unknown')}></CategoryDisplay>
+                      </Pressable>
                   </View>
               }
           </View>
