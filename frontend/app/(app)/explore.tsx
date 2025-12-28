@@ -112,19 +112,18 @@ export default function TabTwoScreen() {
         const trends = await getYearTrends()
         const result = []
         for (const v of trends) {
-            const date = new Date(v.year, v.month - 1)
-            const displayDate= date.toLocaleString('default', { year: 'numeric' })
             result.push({
                 value: Number(v.totalIncome),
                 frontColor: colorIncome,
                 spacing: 6,
-                label: displayDate
+                label: v.year
             })
             result.push({
                 value: Number(v.totalExpenses),
                 frontColor: colorExpense,
             })
         }
+        console.log(result)
         setTrends(result)
     }
 
@@ -132,13 +131,11 @@ export default function TabTwoScreen() {
         const trends = await getYearTrends()
         const result = []
         for (const v of trends) {
-            const date = new Date(v.year, v.month - 1)
-            const displayDate= date.toLocaleString('default', { year: 'numeric' })
             const value = Number(v.totalIncome) - Number(v.totalExpenses)
             result.push({
                 value: value,
                 frontColor: value > 0 ? colorIncome :  colorExpense,
-                label: displayDate
+                label: v.year
             })
         }
         setTrends(result)
@@ -171,13 +168,11 @@ export default function TabTwoScreen() {
         const trends = await getYearCategoryTrends(selectedCategory.id)
         const result = []
         for (const v of trends) {
-            const date = new Date(v.year, v.month - 1)
-            const displayDate= date.toLocaleString('default', { year: 'numeric' })
             const value = Number(v.totalExpenses)
             result.push({
                 value: value,
                 frontColor: colors[selectedCategory?.color || 'unknown'],
-                label: displayDate
+                label: v.year
             })
         }
         setTrends(result)
@@ -210,13 +205,11 @@ export default function TabTwoScreen() {
         const trends = await getYearSubcategoryTrends(selectedSubcategory.id)
         const result = []
         for (const v of trends) {
-            const date = new Date(v.year, v.month - 1)
-            const displayDate= date.toLocaleString('default', { year: 'numeric' })
             const value = Number(v.totalExpenses)
             result.push({
                 value: value,
                 frontColor: colors[selectedSubcategory?.color || 'unknown'],
-                label: displayDate
+                label: v.year
             })
         }
         setTrends(result)

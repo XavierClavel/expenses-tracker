@@ -30,6 +30,7 @@ export async function getYearTrends(): Promise<TrendsDto[]> {
             it.totalIncome,
         )
     })
+    console.log(result)
     return result
 }
 
