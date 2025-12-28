@@ -252,8 +252,8 @@ class TrendsControllerTest: ApplicationTest() {
         assertEquals(0, BigDecimal("25").compareTo(result[1].total))
 
         val result2 = client.getYearCategoryTrends(salaryId)
-        assertEquals(1, result2.size)
-        assertEquals(0, BigDecimal("11").compareTo(result2[0].total))
+        assertEquals(2, result2.size)
+        assertEquals(0, BigDecimal("11").compareTo(result2[1].total))
     }
 
     @Test
