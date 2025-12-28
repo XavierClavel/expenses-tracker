@@ -42,3 +42,19 @@ suspend fun HttpClient.getMonthCategoryTrends(categoryId: Long): List<CategoryTr
         return expense
     }
 }
+
+suspend fun HttpClient.getYearSubcategoryTrends(categoryId: Long): List<CategoryTrendDto> {
+    this.get("$TREND_URL/subcategory/${categoryId}/year").apply {
+        assertEquals(HttpStatusCode.OK, status)
+        val expense = Json.decodeFromString<List<CategoryTrendDto>>(bodyAsText())
+        return expense
+    }
+}
+
+suspend fun HttpClient.getMonthSubcategoryTrends(categoryId: Long): List<CategoryTrendDto> {
+    this.get("$TREND_URL/subcategory/${categoryId}/month").apply {
+        assertEquals(HttpStatusCode.OK, status)
+        val expense = Json.decodeFromString<List<CategoryTrendDto>>(bodyAsText())
+        return expense
+    }
+}
