@@ -13,6 +13,7 @@ import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import React, {useState} from "react";
 import {StandardIcon} from "@/components/standard-icon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 export default function SubcategoriesPicker() {
     const navigation = useNavigation();
@@ -40,7 +41,7 @@ export default function SubcategoriesPicker() {
 
 
     return (
-        <View style={{ flex: 1, backgroundColor: backgroundColor, paddingTop: 50}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: backgroundColor}}>
             <View
                 style={{
                     flex: 1,
@@ -129,18 +130,6 @@ export default function SubcategoriesPicker() {
                 />
 
             </View>
-            <FAB
-                icon="plus"
-                style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
-                onPress={() => {
-                    selectedCategoryStore.setSelected(null)
-                    colorPickerStore.setSelected(null)
-                    iconPickerStore.setSelected(null)
-                    selectedTypeStore.setSelected("EXPENSE")
-                    navigation.navigate('category/edit')
-                }}
-            />
-
-        </View>
+        </SafeAreaView>
     );
 }

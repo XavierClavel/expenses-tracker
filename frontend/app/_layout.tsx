@@ -6,7 +6,7 @@ import { fetchMe } from "@/src/api/auth";
 import * as SplashScreen from "expo-splash-screen";
 import {ThemeProvider} from "@react-navigation/core";
 import {DarkTheme} from "@react-navigation/native";
-import {SafeAreaProvider} from "react-native-safe-area-context";
+import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 import {Provider} from "react-native-paper";
 
 SplashScreen.preventAutoHideAsync();

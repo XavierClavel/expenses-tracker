@@ -57,6 +57,7 @@ export default function HomeScreen() {
     }
 
     useEffect(() => {
+        if (expenses.length > 0) return
         loadExpenses(0);
         loadCategories()
     }, []);
@@ -139,6 +140,7 @@ export default function HomeScreen() {
         </View>
               <FAB
                   icon="plus"
+                  color={backgroundColor}
                   style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
                   onPress={() => {
                       selectedExpenseStore.setSelected(null)

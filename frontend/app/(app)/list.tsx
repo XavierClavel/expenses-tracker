@@ -158,7 +158,8 @@ export default function HomeScreen() {
             </View>
             <FAB
                 icon="plus"
-                style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray' }}
+                color={backgroundColor}
+                style={{ position: 'absolute', bottom: 16, alignSelf: 'center', backgroundColor: 'lightgray'}}
                 onPress={() => {
                     selectedCategoryStore.setSelected(null)
                     colorPickerStore.setSelected(null)
