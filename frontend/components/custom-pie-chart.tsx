@@ -1,7 +1,7 @@
 import {Pressable, View, type ViewProps} from 'react-native';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
-import { PropsWithChildren, SetStateAction, useState} from 'react';
+import {PropsWithChildren, SetStateAction, useEffect, useState} from 'react';
 import {CategoryReport} from "@/components/category/category-report";
 import {useTheme} from "@react-navigation/core";
 import {useThemeColor} from "@/hooks/use-theme-color";
@@ -30,6 +30,10 @@ export function CustomPieChart({ data }) {
 
     let newFocusedItem = 0
 
+    useEffect(() => {
+        setFocusedItem(0);
+    }, [data]);
+
     const pieData = data
         .sort((function(a, b) {
             return b.value - a.value;
@@ -38,7 +42,6 @@ export function CustomPieChart({ data }) {
             return v.value > 0
         }))
         .map(it => {
-            console.log(it.value)
         return {
             value: Math.abs(it.value),
             color: colors[it.color || 'unknown'],
@@ -83,18 +86,18 @@ export function CustomPieChart({ data }) {
         }}>
         <View style={{padding: 20, alignItems: 'center'}}>
             <PieChart
-                sectionAutoFocus
+                focusOnPress
+                toggleFocusOnPress
                 focusedPieIndex={focusedItem}
-
                 onPress={(item: any, index: number) => {
+                    console.log("pressed", index)
+                    console.log("focused", focusedItem)
                     if (focusedItem == index) {
                         setFocusedItem(-1)
                     } else {
                         setFocusedItem(index)
                     }
                 }}
-
-
                 data={pieData}
                 donut
                 radius={120}
@@ -135,7 +138,7 @@ export function CustomPieChart({ data }) {
                 marginBottom: 50,
                 marginHorizontal: 50,
                 borderRadius: 15,
-                backgroundColor: focusedItem != -1 ? pieData[focusedItem].color : surfaceColor,
+                backgroundColor: focusedItem != -1 && focusedItem < pieData.length ? pieData[focusedItem].color : surfaceColor,
                 height: 50,
             }}>
             <Pressable style={{ width: 50, paddingVertical: 14, borderRadius: 8}} onPress={() => {

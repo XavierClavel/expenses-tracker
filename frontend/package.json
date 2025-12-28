@@ -37,7 +37,7 @@
     "react-native": "0.81.5",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-gesture-handler": "~2.28.0",
-    "react-native-gifted-charts": "^1.4.67",
+    "react-native-gifted-charts": "^1.4.70",
     "react-native-paper": "^5.14.5",
     "react-native-paper-dates": "^0.22.51",
     "react-native-reanimated": "~4.1.1",
