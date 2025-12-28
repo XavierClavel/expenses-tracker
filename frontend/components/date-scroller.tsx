@@ -13,7 +13,7 @@ const { width } = Dimensions.get("window");
 
 const ITEM_WIDTH = 160;
 const SPACING = (width - ITEM_WIDTH) / 2;
-const months = generateMonths(2023, 2025);
+const months = generateMonths(2023, 2026);
 const defaultIndex = months.length - 1
 
 
@@ -39,7 +39,7 @@ export default function DateScroller() {
             <FlatList
                 ref={listRef}
                 data={months}
-                initialScrollIndex={defaultIndex}
+                initialScrollIndex={selectedIndex}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 snapToInterval={ITEM_WIDTH}

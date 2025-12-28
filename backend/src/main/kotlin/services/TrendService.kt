@@ -55,28 +55,28 @@ class TrendService: KoinComponent {
         return DB.findDto(
             CategoryTrendDto::class.java,
             """
-            WITH months AS (
+WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date) FROM expenses)),
-                    DATE_TRUNC('month', (SELECT MAX(date) FROM expenses)),
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM expenses)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM expenses)),
                     INTERVAL '1 month'
-                ) AS month
+                )::date AS month
             ),
             monthly_totals AS (
                 SELECT
-                    DATE_TRUNC('month', e.date) AS month,
+                    DATE_TRUNC('month', e.date::date)::date AS month,
                     SUM(e.amount) AS total
                 FROM expenses AS e
                 JOIN subcategories AS s
                 ON e.category_id = s.id
                 WHERE e.user_id = :userId
                 AND s.parent_category_id = :categoryId
-                GROUP BY DATE_TRUNC('month', date)
+                GROUP BY DATE_TRUNC('month', date::date)
             )
             SELECT
                 EXTRACT(YEAR FROM m.month)  AS year,
                 EXTRACT(MONTH FROM m.month) AS month,
-                COALESCE(mt.total, 0)       AS total
+                COALESCE(mt.total, 0) AS total
             FROM months m
             LEFT JOIN monthly_totals mt USING (month)
             ORDER BY year, month;
@@ -112,7 +112,6 @@ class TrendService: KoinComponent {
             SELECT
                 EXTRACT(YEAR FROM y.year_date) AS year,
                 COALESCE(t.total, 0) AS total
-
             FROM years y
             LEFT JOIN yearly_totals t USING (year_date)
             ORDER BY year;
@@ -129,26 +128,26 @@ class TrendService: KoinComponent {
             """
             WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date) FROM expenses)),
-                    DATE_TRUNC('month', (SELECT MAX(date) FROM expenses)),
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM expenses)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM expenses)),
                     INTERVAL '1 month'
-                ) AS month
+                )::date AS month
             ),
             monthly_totals AS (
                 SELECT
-                    DATE_TRUNC('month', e.date) AS month,
+                    DATE_TRUNC('month', e.date::date)::date AS month,
                     SUM(e.amount) AS total
                 FROM expenses AS e
                 JOIN subcategories AS s
                 ON e.category_id = s.id
                 WHERE e.user_id = :userId
                 AND s.id = :categoryId
-                GROUP BY DATE_TRUNC('month', date)
+                GROUP BY DATE_TRUNC('month', date::date)
             )
             SELECT
                 EXTRACT(YEAR FROM m.month)  AS year,
                 EXTRACT(MONTH FROM m.month) AS month,
-                COALESCE(mt.total, 0)       AS total
+                COALESCE(mt.total, 0) AS total
             FROM months m
             LEFT JOIN monthly_totals mt USING (month)
             ORDER BY year, month;
@@ -176,6 +175,7 @@ class TrendService: KoinComponent {
                     SUM(CASE WHEN type = 'INCOME'  THEN amount ELSE 0 END) AS totalIncome,
                     SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS totalExpenses
                 FROM expenses
+                WHERE user_id = :userId
                 GROUP BY DATE_TRUNC('year', date::date)
             )
             SELECT
@@ -197,18 +197,19 @@ class TrendService: KoinComponent {
             """
             WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date) FROM expenses)),
-                    DATE_TRUNC('month', (SELECT MAX(date) FROM expenses)),
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM expenses)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM expenses)),
                     INTERVAL '1 month'
-                ) AS month
+                )::date AS month
             ),
             monthly_totals AS (
                 SELECT
-                    DATE_TRUNC('month', date) AS month,
+                    DATE_TRUNC('month', date::date)::date AS month,
                     SUM(CASE WHEN type = 'INCOME'  THEN amount ELSE 0 END) AS totalIncome,
                     SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS totalExpenses
                 FROM expenses
-                GROUP BY DATE_TRUNC('month', date)
+                WHERE user_id = :userId
+                GROUP BY DATE_TRUNC('month', date::date)
             )
             SELECT
                 EXTRACT(YEAR FROM m.month)  AS year,
