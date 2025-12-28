@@ -177,6 +177,7 @@ class TrendsControllerTest: ApplicationTest() {
         val result = client.getYearTrends()
         logger.info {result}
         assertEquals(3, result.size)
+        assertEquals(2018, result[0].year)
         assertEquals(0, BigDecimal("25").compareTo(result[0].totalExpenses))
         assertEquals(0, BigDecimal("0").compareTo(result[1].totalExpenses))
         assertEquals(0, BigDecimal("0").compareTo(result[1].totalIncome))
@@ -319,6 +320,7 @@ class TrendsControllerTest: ApplicationTest() {
         ))
         val result = client.getYearCategoryTrends(groceries.id)
         assertEquals(3, result.size)
+        assertEquals(2018, result[0].year)
         assertEquals(0, BigDecimal("25").compareTo(result[0].total))
         assertEquals(0, BigDecimal("0").compareTo(result[1].total))
         assertEquals(0, BigDecimal("25").compareTo(result[2].total))
@@ -391,6 +393,7 @@ class TrendsControllerTest: ApplicationTest() {
         ))
         val result = client.getYearSubcategoryTrends(groceriesId)
         assertEquals(3, result.size)
+        assertEquals(2018, result[0].year)
         assertEquals(0, BigDecimal("25").compareTo(result[0].total))
         assertEquals(0, BigDecimal("0").compareTo(result[1].total))
         assertEquals(0, BigDecimal("25").compareTo(result[2].total))
