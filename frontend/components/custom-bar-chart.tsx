@@ -26,16 +26,11 @@ export function CustomBarChart({ data, amount }: Props) {
     const maxValue = data.reduce(function(prev, current) {
         return (prev && prev.value > current.value) ? prev : current
     },0).value
-    console.log("max", maxValue)
     const orderOfMagnitude = Math.floor(Math.log10(maxValue))
     const magnitude = Math.pow(10,orderOfMagnitude)
-    console.log("order of magnitude", orderOfMagnitude)
-
     const roundedMax = Math.ceil(maxValue / magnitude) * magnitude
-    console.log("chart max", roundedMax)
     const chartStep = Math.ceil(roundedMax  / (numberOfSteps * magnitude)) * magnitude
     const chartMax = chartStep * numberOfSteps
-    console.log("step", chartStep)
 
     useEffect(() => {
         console.log(data)
@@ -187,11 +182,6 @@ export function CustomBarChart({ data, amount }: Props) {
 
 
             }}
-
-
-
-
-
 
             onPress={(item: any, index: number) => {
                 console.log(index)

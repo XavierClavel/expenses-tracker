@@ -12,7 +12,7 @@ import {getYearSummary} from "@/src/api/summary";
 import {
     getMonthCategoryTrends, getMonthSubcategoryTrends,
     getMonthTrends,
-    getYearCategoryTrends,
+    getYearCategoryTrends, getYearFlowTrends,
     getYearSubcategoryTrends,
     getYearTrends
 } from "@/src/api/trends";
@@ -30,6 +30,7 @@ import {colors} from "@/constants/colors";
 import {router} from "expo-router";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import CategoryOut from "@/src/types/CategoryOut";
+import {useBarChartAggregationStore} from "@/src/stores/barchart-aggregation-store";
 
 
 const colorExpense = '#da451a'
@@ -51,6 +52,8 @@ export default function TabTwoScreen() {
     const setSelectedCategory = useSelectedCategoryStore(s => s.setSelected)
     const selectedSubcategory = useSelectedSubcategoryStore(s => s.selected)
     const setSelectedSubcategory = useSelectedSubcategoryStore(s => s.setSelected)
+    const selectedAggregation = useBarChartAggregationStore(s => s.selected)
+    const setSelectedAggregation = useBarChartAggregationStore(s => s.setSelected)
 
     const itemsType = [
         { label: 'In / Out', value: 'income_expense' },
@@ -63,6 +66,12 @@ export default function TabTwoScreen() {
         { label: 'Month', value: 'month' },
         { label: 'Year', value: 'year' },
     ];
+
+    const itemsAggregation = [
+        {label: 'Total', value: 'total'},
+        {label: 'Average', value: 'average'},
+        {label: 'Median', value: 'median'},
+    ]
 
     const [trends, setTrends] = useState([])
 
@@ -128,10 +137,11 @@ export default function TabTwoScreen() {
     }
 
     const loadYearFlow = async () => {
-        const trends = await getYearTrends()
+        const trends = await getYearFlowTrends()
         const result = []
         for (const v of trends) {
-            const value = Number(v.totalIncome) - Number(v.totalExpenses)
+            const value = Number(v[selectedAggregation])
+            console.log(value)
             result.push({
                 value: value,
                 frontColor: value > 0 ? colorIncome :  colorExpense,
@@ -168,7 +178,7 @@ export default function TabTwoScreen() {
         const trends = await getYearCategoryTrends(selectedCategory.id)
         const result = []
         for (const v of trends) {
-            const value = Number(v.totalExpenses)
+            const value = Number(v[selectedAggregation])
             result.push({
                 value: value,
                 frontColor: colors[selectedCategory?.color || 'unknown'],
@@ -205,7 +215,7 @@ export default function TabTwoScreen() {
         const trends = await getYearSubcategoryTrends(selectedSubcategory.id)
         const result = []
         for (const v of trends) {
-            const value = Number(v.totalExpenses)
+            const value = Number(v[selectedAggregation])
             result.push({
                 value: value,
                 frontColor: colors[selectedSubcategory?.color || 'unknown'],
@@ -242,7 +252,7 @@ export default function TabTwoScreen() {
             }
         }
 
-    }, [dataType, timescale, selectedCategory, selectedSubcategory]);
+    }, [dataType, timescale, selectedCategory, selectedSubcategory, selectedAggregation]);
 
     return (
       <View
@@ -270,7 +280,7 @@ export default function TabTwoScreen() {
         }}>
             <View style={{ marginHorizontal: 0, width: "40%"}}>
                 <Dropdown
-                    style={{ height: 50, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
+                    style={{ height: 40, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
                     placeholderStyle={{ color: "lightgray" }}
                     selectedTextStyle={{ color: "lightgray" }}
                     labelField="label"
@@ -288,7 +298,7 @@ export default function TabTwoScreen() {
 
             <View style={{ paddingHorizontal: 5, width: "40%" }}>
                 <Dropdown
-                    style={{ height: 50, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
+                    style={{ height: 40, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
                     placeholderStyle={{ color: "lightgray" }}
                     selectedTextStyle={{ color: "lightgray" }}
                     labelField="label"
@@ -303,8 +313,33 @@ export default function TabTwoScreen() {
                 />
             </View>
         </View>
+              { timescale == "year" &&
+              <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-evenly',
+                  //flex: 1,
+                  marginVertical: 0,
+              }}>
+              <View style={{ paddingHorizontal: 5, width: "60%" }}>
+                  <Dropdown
+                      style={{ height: 40, borderWidth: 1, borderRadius: 4, paddingHorizontal: 8, borderColor: "lightgray" }}
+                      placeholderStyle={{ color: "lightgray" }}
+                      selectedTextStyle={{ color: "lightgray" }}
+                      labelField="label"
+                      valueField="value"
+                      placeholder="Select data"
+                      value={selectedAggregation}
+                      data={itemsAggregation}
+                      onChange={item => {
+                          setSelectedAggregation(item.value);
+                      }}
+                      dropdownPosition={"top"}
+                  />
+              </View>
+              </View>
+              }
               { dataType == "category" &&
-              <View style={{ paddingHorizontal: 20, paddingVertical: 5 }}>
+              <View style={{ paddingHorizontal: 20, paddingVertical: 0 }}>
                   <Pressable
                       style={{
                           marginVertical: 5,

@@ -5,6 +5,7 @@ import CategoryIn from "@/src/types/CategoryIn";
 import Summary from "@/src/types/Summary";
 import CategorySummary from "@/src/types/CategorySummary";
 import TrendsDto from "@/src/types/TrendsDto";
+import YearTrendDto from "@/src/types/YearTrendDto";
 
 
 export async function getMonthTrends(): Promise<TrendsDto[]> {
@@ -48,14 +49,15 @@ export async function getMonthCategoryTrends(id: number): Promise<TrendsDto[]> {
     return result
 }
 
-export async function getYearCategoryTrends(id: number): Promise<TrendsDto[]> {
+export async function getYearCategoryTrends(id: number): Promise<YearTrendDto[]> {
     const response = await apiClient.get( `/trends/category/${id}/year`);
     const result = response.data.map((it) => {
-        return new TrendsDto(
+        return new YearTrendDto(
             it.year,
             it.month,
             it.total,
-            it.total,
+            it.average,
+            it.median,
         )
     })
     return result
@@ -75,14 +77,30 @@ export async function getMonthSubcategoryTrends(id: number): Promise<TrendsDto[]
     return result
 }
 
-export async function getYearSubcategoryTrends(id: number): Promise<TrendsDto[]> {
+export async function getYearSubcategoryTrends(id: number): Promise<YearTrendDto[]> {
     const response = await apiClient.get( `/trends/subcategory/${id}/year`);
     const result = response.data.map((it) => {
-        return new TrendsDto(
+        return new YearTrendDto(
             it.year,
             it.month,
             it.total,
+            it.average,
+            it.median,
+        )
+    })
+    return result
+}
+
+export async function getYearFlowTrends(): Promise<YearTrendDto[]> {
+    const response = await apiClient.get( `/trends/flow/year`);
+    console.log(response.data)
+    const result = response.data.map((it) => {
+        return new YearTrendDto(
+            it.year,
+            it.month,
             it.total,
+            it.average,
+            it.median,
         )
     })
     return result
