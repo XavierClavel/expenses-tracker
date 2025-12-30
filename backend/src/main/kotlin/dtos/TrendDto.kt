@@ -24,9 +24,23 @@ data class TrendDto(
     ) {
     constructor(year: Int, totalIncome: BigDecimal, totalExpenses: BigDecimal) : this(
         year = year,
-        month = null,
         totalIncome = totalIncome,
         totalExpenses = totalExpenses,
+        meanIncome = null,
+        meanExpenses = null,
+        medianIncome = null,
+        medianExpenses = null,
+    )
+
+    constructor(year: Int, month: Int, totalIncome: BigDecimal, totalExpenses: BigDecimal) : this(
+        year = year,
+        month = month,
+        totalIncome = totalIncome,
+        totalExpenses = totalExpenses,
+        meanIncome = null,
+        meanExpenses = null,
+        medianIncome = null,
+        medianExpenses = null,
     )
 
     constructor(
