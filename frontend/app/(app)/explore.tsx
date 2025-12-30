@@ -69,7 +69,7 @@ export default function TabTwoScreen() {
 
     const itemsAggregation = [
         {label: 'Total', value: 'total'},
-        {label: 'Average', value: 'average'},
+        {label: 'Mean', value: 'average'},
         {label: 'Median', value: 'median'},
     ]
 
@@ -122,13 +122,13 @@ export default function TabTwoScreen() {
         const result = []
         for (const v of trends) {
             result.push({
-                value: Number(v.totalIncome),
+                value: Number(v[`${selectedAggregation}Income`]),
                 frontColor: colorIncome,
                 spacing: 6,
                 label: v.year
             })
             result.push({
-                value: Number(v.totalExpenses),
+                value: Number(v[`${selectedAggregation}Expenses`]),
                 frontColor: colorExpense,
             })
         }

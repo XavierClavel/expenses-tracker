@@ -56,8 +56,8 @@ data class TrendDto(
         month = null,
         totalIncome = totalIncome,
         totalExpenses = totalExpenses,
-        meanIncome = totalIncome,
-        meanExpenses = totalExpenses,
+        meanIncome = meanIncome,
+        meanExpenses = meanExpenses,
         medianIncome = medianIncome,
         medianExpenses = medianExpenses,
     )

@@ -26,9 +26,12 @@ export function CustomBarChart({ data, amount }: Props) {
     const maxValue = data.reduce(function(prev, current) {
         return (prev && prev.value > current.value) ? prev : current
     },0).value
+    const minValue = Math.min(0,data.reduce(function(prev, current) {
+        return (prev && prev.value < current.value) ? prev : current
+    },0).value)
     const orderOfMagnitude = Math.floor(Math.log10(maxValue))
     const magnitude = Math.pow(10,orderOfMagnitude)
-    const roundedMax = Math.ceil(maxValue / magnitude) * magnitude
+    const roundedMax = Math.ceil((maxValue - minValue) / magnitude) * magnitude
     const chartStep = Math.ceil(roundedMax  / (numberOfSteps * magnitude)) * magnitude
     const chartMax = chartStep * numberOfSteps
 
