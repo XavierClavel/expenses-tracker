@@ -4,8 +4,9 @@ export function generateMonths(
 ) {
     const months = [];
     const date = new Date(startYear, 0, 1);
+    const currentDate = new Date()
 
-    while (date.getFullYear() <= endYear) {
+    while (date <= currentDate) {
         months.push({
             key: `${date.getFullYear()}-${date.getMonth()}`,
             label: date.toLocaleString("default", {
