@@ -11,7 +11,6 @@ import com.xavierclavel.utils.getMonthSubcategoryTrends
 import com.xavierclavel.utils.getMonthTrends
 import com.xavierclavel.utils.getYearCategoryTrends
 import com.xavierclavel.utils.getYearFlow
-import com.xavierclavel.utils.getYearMedians
 import com.xavierclavel.utils.getYearSubcategoryTrends
 import com.xavierclavel.utils.getYearTrends
 import com.xavierclavel.utils.logger
@@ -206,10 +205,10 @@ class TrendsControllerTest: ApplicationTest() {
             categoryId = salaryId,
             type = ExpenseType.INCOME,
         ))
-        val result = client.getYearMedians()
+        val result = client.getYearTrends()
         logger.info {result}
         assertEquals(2, result.size)
-        assertEquals(0, BigDecimal("10").compareTo(result[1].totalExpenses))
+        assertEquals(0, BigDecimal("10").compareTo(result[1].medianExpenses))
     }
 
     @Test

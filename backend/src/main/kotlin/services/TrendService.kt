@@ -141,39 +141,6 @@ WITH months AS (
         return DB.findDto(
             TrendDto::class.java,
             """
-            WITH years AS (
-                SELECT generate_series(
-                    DATE_TRUNC('year', (SELECT MIN(date)::date FROM expenses)),
-                    DATE_TRUNC('year', (SELECT MAX(date)::date FROM expenses)),
-                    INTERVAL '1 year'
-                )::date AS year_date
-            ),
-            yearly_totals AS (
-                SELECT
-                    DATE_TRUNC('year', date::date)::date AS year_date,
-                    SUM(CASE WHEN type = 'INCOME'  THEN amount ELSE 0 END) AS totalIncome,
-                    SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS totalExpenses
-                FROM expenses
-                WHERE user_id = :userId
-                GROUP BY DATE_TRUNC('year', date::date)
-            )
-            SELECT
-                EXTRACT(YEAR FROM y.year_date) AS year,
-                COALESCE(t.totalIncome, 0)     AS totalIncome,
-                COALESCE(t.totalExpenses, 0)   AS totalExpenses
-            FROM years y
-            LEFT JOIN yearly_totals t USING (year_date)
-            ORDER BY year;
-            """
-        )
-            .setParameter("userId", userId)
-            .findList()
-    }
-
-    fun medianByYear(userId: Long): List<TrendDto> {
-        return DB.findDto(
-            TrendDto::class.java,
-            """
             $MONTHS_SERIES
             monthly_totals AS (
                 SELECT
@@ -194,14 +161,22 @@ WITH months AS (
             )
             SELECT
                 EXTRACT(YEAR FROM month_date) AS year,
+                
+                SUM(totalIncome) AS totalIncome,
+                
+                SUM(totalExpenses) AS totalExpenses,
+                
+                AVG(totalIncome) AS averageIncome,
+                
+                AVG(totalExpenses) AS averageExpenses,
             
                 percentile_cont(0.5)
                     WITHIN GROUP (ORDER BY totalIncome)
-                    AS medianMonthlyIncome,
+                    AS medianIncome,
             
                 percentile_cont(0.5)
                     WITHIN GROUP (ORDER BY totalExpenses)
-                    AS medianMonthlyExpenses
+                    AS medianExpenses
             
             FROM months_with_totals
             GROUP BY year

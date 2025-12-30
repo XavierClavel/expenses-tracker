@@ -20,14 +20,6 @@ suspend fun HttpClient.getYearTrends(): List<TrendDto> {
     }
 }
 
-suspend fun HttpClient.getYearMedians(): List<TrendDto> {
-    this.get("$TREND_URL/year/median").apply {
-        assertEquals(HttpStatusCode.OK, status)
-        val expense = Json.decodeFromString<List<TrendDto>>(bodyAsText())
-        return expense
-    }
-}
-
 suspend fun HttpClient.getYearFlow(): List<YearTrendDto> {
     this.get("$TREND_URL/flow/year").apply {
         assertEquals(HttpStatusCode.OK, status)
