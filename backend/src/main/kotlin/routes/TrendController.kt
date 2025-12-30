@@ -49,9 +49,22 @@ fun Route.setupTrendController() = route(TREND_URL) {
         call.respond(result)
     }
 
+    get("flow/year") {
+        val userId = getSessionUserId(redisService)
+        val result = trendService.flowByYear(userId = userId)
+        call.respond(result)
+    }
+
     get("year") {
         val sessionUserId = getSessionUserId(redisService)
         val summary = trendService.trendByYear(userId = sessionUserId)
+        call.respond(summary)
+    }
+
+
+    get("year/median") {
+        val sessionUserId = getSessionUserId(redisService)
+        val summary = trendService.medianByYear(userId = sessionUserId)
         call.respond(summary)
     }
 
