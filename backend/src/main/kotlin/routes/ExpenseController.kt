@@ -17,6 +17,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import java.time.LocalDate
 
 fun Route.setupExpenseController() = route(EXPENSES_URL) {
     val expenseService: ExpenseService by inject()
@@ -31,12 +32,16 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val categoryId = call.parameters["categoryId"]?.toLongOrNull()
             val subcategoryId = call.parameters["subcategoryId"]?.toLongOrNull()
             val expenseType = call.parameters["type"]?.let { ExpenseType.valueOf(it.uppercase()) }
+            val from = call.request.queryParameters["from"]?.let { LocalDate.parse(it) }
+            val to = call.request.queryParameters["to"]?.let { LocalDate.parse(it) }
             val users = expenseService.list(
                 userId = sessionUserId,
                 paging = paging,
                 subcategoryId = subcategoryId,
                 expenseType = expenseType,
                 categoryId = categoryId,
+                from = from,
+                to = to,
             )
             call.respond(users)
         }

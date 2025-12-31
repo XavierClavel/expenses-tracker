@@ -15,6 +15,7 @@ import com.xavierclavel.models.query.QSubcategory
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.time.LocalDate
 
 class ExpenseService: KoinComponent {
     val configuration: Configuration by inject()
@@ -43,6 +44,8 @@ class ExpenseService: KoinComponent {
         categoryId: Long?,
         subcategoryId: Long?,
         expenseType: ExpenseType?,
+        from: LocalDate?,
+        to: LocalDate?,
     ): List<ExpenseOut> {
         return QExpense()
             .user.id.eq(userId)
@@ -55,6 +58,12 @@ class ExpenseService: KoinComponent {
                 }
                 if (expenseType != null) {
                     this.type.eq(expenseType)
+                }
+                if (from != null) {
+                    this.date.ge(from)
+                }
+                if (to != null) {
+                    this.date.le(to)
                 }
             }
             .setPaging(paging)
