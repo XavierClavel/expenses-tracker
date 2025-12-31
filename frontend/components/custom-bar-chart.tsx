@@ -124,6 +124,7 @@ export function CustomBarChart({ data, amount }: Props) {
             lineBehindBars
             yAxisLabelWidth={0}
             scrollToIndex={focusedItem[0]}
+            autoShiftLabels
 
             //style={{width: "50%"}}
             height={400}
@@ -140,8 +141,8 @@ export function CustomBarChart({ data, amount }: Props) {
             //yAxisTextStyle={{color: 'lightgray'}}
             stepValue={chartStep}
             maxValue={chartMax}
-            labelWidth={30}
-            xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center'}}
+            labelWidth={40}
+            xAxisLabelTextStyle={{color: 'lightgray',  backgroundColor: 'red', fontSize: 10, marginHorizontal: "auto"}}
             hideYAxisText
             secondaryYAxis
             yAxisThickness={0}

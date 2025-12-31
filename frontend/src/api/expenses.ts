@@ -4,8 +4,22 @@ import {apiClient} from "@/src/api/client";
 import ExpenseOut from "@/src/types/ExpenseOut";
 
 
-export async function listExpenses(page: number, size: number): Promise<ExpenseOut[]> {
-    const response = await apiClient.get( `/expenses?page=${page}&size=${size}`);
+export async function listExpenses(page: number, size: number, subcategory: number | null, from: Date | null, to: Date | null): Promise<ExpenseOut[]> {
+    const params = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+    });
+    if (subcategory != null) {
+        params.append("subcategoryId", subcategory!.toString())
+    }
+    if (from != null) {
+        params.append("from", from.toISOString().split('T')[0])
+    }
+    if (to != null) {
+        params.append("to", to.toISOString().split('T')[0])
+    }
+
+    const response = await apiClient.get( `/expenses?${params}`);
 
     const expenses: ExpenseOut[] = response.data.map((e: any) =>
         new ExpenseOut(

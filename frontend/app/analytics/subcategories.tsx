@@ -13,6 +13,8 @@ import {useCategoriesStore} from "@/src/stores/categories-store";
 import {useSummaryStore} from "@/src/stores/summary-store";
 import {SafeAreaView} from "react-native-safe-area-context";
 import DateScroller from "@/components/date-scroller";
+import {router} from "expo-router";
+import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
 
 
 
@@ -29,6 +31,7 @@ export default function SummarySubcategories() {
     const categoryStore = useCategoriesStore()
     const selectedCategory = useSelectedCategoryStore(s => s.selected)
     const summary = useSummaryStore(s => s.selected)
+    const setSummarySubcategory = useSummaryStore(s => s.setSubcategory)
     const data = summary?.expensesByCategory
         .filter((it) => categoryStore.getParent(it.categoryId)?.id == selectedCategory.id)
         .map(it => {return {
@@ -58,7 +61,12 @@ export default function SummarySubcategories() {
             renderItem={({ item }) => {
                 return (
                 <TouchableRipple style={{width: "100%"}}>
-                    <Pressable>
+                    <Pressable
+                    onPress={() => {
+                        setSummarySubcategory(item.id)
+                        router.navigate("analytics/expenses")
+                    }}
+                    >
                         <CategoryReport item={item} percent={Number(item.value) / total * 100} />
                     </Pressable>
                 </TouchableRipple>
