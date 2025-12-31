@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {
     FlatList,
     View,
@@ -13,22 +13,37 @@ const { width } = Dimensions.get("window");
 
 const ITEM_WIDTH = 160;
 const SPACING = (width - ITEM_WIDTH) / 2;
-const months = generateMonths(2023, 2026);
+const months = generateMonths(2023);
 const defaultIndex = months.length - 1
 
 
 export default function DateScroller() {
-    const listRef = useRef<FlatList>(null);
-    const [selectedIndex, setSelectedIndex] = useState(defaultIndex);
     const setSelectedMonth = useSummaryDateStore(s => s.setMonth)
     const setSelectedYear = useSummaryDateStore(s => s.setYear)
+    const selectedMonth = useSummaryDateStore(s => s.month)
+    const selectedYear = useSummaryDateStore(s => s.year)
+    const listRef = useRef<FlatList>(null);
+    const selectedIndex = months.findIndex(
+        it => it.month === selectedMonth && it.year === selectedYear
+    );
+    const didMountRef = useRef(false);
+
+    useEffect(() => {
+        if (selectedIndex < 0) return;
+
+        listRef.current?.scrollToIndex({
+            index: selectedIndex,
+            animated: didMountRef.current,
+        });
+        didMountRef.current = true
+    }, [selectedIndex]);
+
 
     const onMomentumScrollEnd = (event: any) => {
         const index = Math.round(
             event.nativeEvent.contentOffset.x / ITEM_WIDTH
         );
         if (index == selectedIndex) return
-        setSelectedIndex(index);
         const value = months[index]
         setSelectedYear(value.year)
         setSelectedMonth(value.month)

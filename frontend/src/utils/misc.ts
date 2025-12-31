@@ -1,6 +1,5 @@
 export function generateMonths(
     startYear: number,
-    endYear: number
 ) {
     const months = [];
     const date = new Date(startYear, 0, 1);
