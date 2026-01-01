@@ -43,10 +43,16 @@ export default function HomeScreen() {
     const selectedType = useSelectedTypeStore((s) => s.selected)
     const selectedMonth = useSummaryDateStore(s => s.month)
     const selectedYear = useSummaryDateStore(s => s.year)
+    const selectedTimescale = useSummaryDateStore(s => s.timescale)
 
 
     const loadSummary = async (year: number, month: number) => {
-        const summary = await getMonthSummary(year, month)
+        let summary;
+        if (selectedTimescale == "month") {
+            summary = await getMonthSummary(year, month)
+        } else {
+            summary = await getYearSummary(year)
+        }
         setSummary(summary)
     }
 
@@ -85,7 +91,7 @@ export default function HomeScreen() {
 
     useEffect(() => {
         loadSummary(selectedYear, selectedMonth)
-    }, [selectedYear, selectedMonth]);
+    }, [selectedYear, selectedMonth, selectedTimescale]);
 
     useEffect(() => {
         syncData()

@@ -9,13 +9,17 @@ type SelectedCategoryStore = {
     setMonth: (value: number) => void;
     oldest: Date | null;
     setOldest: (value: Date) => void;
+    timescale: "year" | "month";
+    setTimescale: (value: "year" | "month") => void;
 };
 
 export const useSummaryDateStore = create<SelectedCategoryStore>((set) => ({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     oldest: null,
+    timescale: "year",
     setYear: (value) => set({year: value}),
     setMonth: (value) => set({month: value}),
     setOldest: (value) => set({oldest: value}),
+    setTimescale: (value) => set({timescale: value}),
 }));

@@ -43,11 +43,12 @@ export default function HomeScreen() {
     const textOnBackgroundColor = useThemeColor({}, 'textOnBackground');
     const summaryMonth = useSummaryDateStore(s => s.month)
     const summaryYear = useSummaryDateStore(s => s.year)
+    const timescale = useSummaryDateStore(s => s.timescale)
 
     const loadExpenses = async (pageToLoad: number) => {
         setLoading(true);
-        const from = new Date(Date.UTC(summaryYear, summaryMonth-1, 1))
-        const to = new Date(Date.UTC(summaryYear, summaryMonth, 0))
+        const from = timescale == "month" ? new Date(Date.UTC(summaryYear, summaryMonth-1, 1)) : new Date(Date.UTC(summaryYear, 0, 1))
+        const to = timescale == "month" ? new Date(Date.UTC(summaryYear, summaryMonth, 0)) : new Date(Date.UTC(summaryYear, 12, 0))
 
         const newExpenses = await listExpenses(pageToLoad, pageSize, summarySubcategory, from, to);
 
