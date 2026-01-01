@@ -1,8 +1,8 @@
 export function generateMonths(
-    startYear: number,
+    startDate: Date,
 ) {
     const months = [];
-    const date = new Date(startYear, 0, 1);
+    const date = new Date(startDate);
     const currentDate = new Date()
 
     while (date <= currentDate) {

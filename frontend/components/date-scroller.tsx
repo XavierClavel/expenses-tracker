@@ -22,11 +22,21 @@ export default function DateScroller() {
     const setSelectedYear = useSummaryDateStore(s => s.setYear)
     const selectedMonth = useSummaryDateStore(s => s.month)
     const selectedYear = useSummaryDateStore(s => s.year)
+    const oldest = useSummaryDateStore(s => s.oldest)
     const listRef = useRef<FlatList>(null);
-    const selectedIndex = months.findIndex(
+    let months = generateMonths(oldest);
+    let selectedIndex = months.findIndex(
         it => it.month === selectedMonth && it.year === selectedYear
     );
     const didMountRef = useRef(false);
+
+    useEffect(() => {
+        console.log("new value", oldest)
+        months = generateMonths(oldest);
+        selectedIndex = months.findIndex(
+            it => it.month === selectedMonth && it.year === selectedYear
+        );
+    }, [oldest]);
 
     useEffect(() => {
         if (selectedIndex < 0) return;

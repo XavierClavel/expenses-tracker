@@ -32,16 +32,11 @@ export async function listExpenses(page: number, size: number, subcategory: numb
             e.type,
         )
     );
-
-    console.log(expenses)
-
     return expenses
 }
 
 export async function createExpense(expense: ExpenseIn) {
     const res = await apiClient.post("/expenses", expense)
-    console.log(res.request.data)
-    console.log(res.data)
     return res.data;
 }
 
@@ -52,4 +47,12 @@ export async function updateExpense(id: number, expense: ExpenseIn) {
 
 export async function deleteExpense(id: number) {
     await apiClient.delete(`/expenses/${id}`)
+}
+
+export async function getOldestExpenseDate(): Promise<Date> {
+    const res = await apiClient.get("/expenses/oldest")
+    console.log(res.request.data)
+    console.log(res.data)
+    const date = res.data.date != null ? new Date(res.data.date) : new Date()
+    return date;
 }

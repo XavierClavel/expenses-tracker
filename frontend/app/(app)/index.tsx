@@ -7,7 +7,7 @@ import {ExpenseDisplay} from "@/components/expenseDisplay";
 import {FAB} from "react-native-paper";
 import {router, useNavigation} from "expo-router";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import {listExpenses} from "@/src/api/expenses";
+import {getOldestExpenseDate, listExpenses} from "@/src/api/expenses";
 import {useEffect, useState} from "react";
 import ExpenseOut from "@/src/types/ExpenseOut";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -19,6 +19,7 @@ import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
 import {Section} from "@jridgewell/trace-mapping/src/types";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
+import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
 
 
 export default function HomeScreen() {
@@ -34,6 +35,7 @@ export default function HomeScreen() {
     const selectedTypeStore = useSelectedTypeStore()
     const pickedCategoryStore = usePickerStore()
     const categoriesStore = useCategoriesStore()
+    const setOldestExpenseDate = useSummaryDateStore(s => s.setOldest)
     const setSelectedCategory = useSelectedCategoryStore((s) => s.setSelected)
     const setSelectedSubcategory = useSelectedSubcategoryStore((s) => s.setSelected)
 
@@ -56,10 +58,16 @@ export default function HomeScreen() {
         categoriesStore.setSelected(categories)
     }
 
+    const setupDateScroller = async () => {
+        const date = await getOldestExpenseDate()
+        setOldestExpenseDate(date)
+    }
+
     useEffect(() => {
         if (expenses.length > 0) return
         loadExpenses(0);
         loadCategories()
+        setupDateScroller()
     }, []);
 
     useEffect(() => {
