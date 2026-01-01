@@ -9,6 +9,7 @@ import com.xavierclavel.utils.assertExpenseExists
 import com.xavierclavel.utils.createExpense
 import com.xavierclavel.utils.deleteExpense
 import com.xavierclavel.utils.getExpense
+import com.xavierclavel.utils.getOldestActivity
 import com.xavierclavel.utils.listExpenses
 import com.xavierclavel.utils.updateExpense
 import io.ktor.client.request.delete
@@ -22,6 +23,7 @@ import io.ktor.http.contentType
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.Month
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
@@ -120,6 +122,31 @@ class ExpenseControllerTest: ApplicationTest() {
             client.delete("${EXPENSES_URL}/$expenseId").apply {
                 assertEquals(HttpStatusCode.Forbidden, status)
             }
+        }
+    }
+
+    @Test
+    fun `get oldest expense`() = runTest{
+        runAsUser1 {
+            client.createExpense(expense.copy(title = "MacDo", date = LocalDate.parse("2021-06-06")))
+            client.createExpense(expense.copy(title = "Coffee", date = LocalDate.parse("2019-06-06")))
+            client.createExpense(expense.copy(title = "Groceries", date = LocalDate.parse("2020-06-06")))
+        }
+
+        runAsUser2 {
+            client.createExpense(expense.copy(title = "MacDo", date = LocalDate.parse("2011-01-06")))
+        }
+
+        runAsUser1 {
+            val date = client.getOldestActivity()!!
+            assertEquals(2019, date.year)
+            assertEquals(Month.JUNE, date.month)
+        }
+
+        runAsUser2 {
+            val date = client.getOldestActivity()!!
+            assertEquals(2011, date.year)
+            assertEquals(Month.JANUARY, date.month)
         }
     }
 

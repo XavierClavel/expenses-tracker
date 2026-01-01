@@ -1,5 +1,6 @@
 package com.xavierclavel.utils
 
+import com.xavierclavel.dtos.DateDto
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.dtos.ExpenseOut
 import io.ktor.client.HttpClient
@@ -16,6 +17,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 import kotlin.test.assertEquals
 
 suspend fun HttpClient.createExpense(expense: ExpenseIn): ExpenseOut {
@@ -47,6 +49,14 @@ suspend fun HttpClient.getExpense(id: Long): ExpenseOut {
         assertEquals(HttpStatusCode.OK, status)
         val expense = Json.decodeFromString<ExpenseOut>(bodyAsText())
         return expense
+    }
+}
+
+suspend fun HttpClient.getOldestActivity(): LocalDate? {
+    this.get("$EXPENSES_URL/oldest").apply {
+        assertEquals(HttpStatusCode.OK, status)
+        val expense = Json.decodeFromString<DateDto>(bodyAsText())
+        return expense.date
     }
 }
 

@@ -72,6 +72,18 @@ class ExpenseService: KoinComponent {
             .map { it.toOutput() }
     }
 
+    fun getOldestActivity(
+        userId: Long,
+    ): LocalDate? =
+        QExpense()
+            .user.id.eq(userId)
+            .orderBy().date.asc()
+            .setMaxRows(1)
+            .findList()
+            .firstOrNull()
+            ?.toOutput()
+            ?.date
+
 
     fun create(expenseDto: ExpenseIn, userId: Long): ExpenseOut {
         val user = QUser().id.eq(userId).findOne() ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND)

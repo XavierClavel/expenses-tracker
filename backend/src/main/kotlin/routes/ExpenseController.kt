@@ -1,5 +1,6 @@
 package com.xavierclavel.routes
 
+import com.xavierclavel.dtos.DateDto
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.exceptions.BadRequestCause
@@ -55,6 +56,12 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val user = expenseService.export(userId = userId, expenseId = expenseId)
             call.respond(user)
         }
+
+    get("/oldest") {
+        val userId = getSessionUserId(redisService)
+        val oldestExpenseDate = expenseService.getOldestActivity(userId = userId)
+        call.respond(DateDto(oldestExpenseDate))
+    }
 
         post {
             val userId = getSessionUserId(redisService)
