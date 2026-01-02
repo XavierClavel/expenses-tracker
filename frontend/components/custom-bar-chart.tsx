@@ -34,21 +34,48 @@ export function CustomBarChart({ data, amount }: Props) {
     const roundedMax = Math.ceil((maxValue - minValue) / magnitude) * magnitude
     const chartStep = Math.ceil(roundedMax  / (numberOfSteps * magnitude)) * magnitude
     const chartMax = chartStep * numberOfSteps
+    const [prevDataLength, setPrevDataLength] = useState(-1)
 
     useEffect(() => {
-        console.log(data)
+        if (data.length == 0) {
+            return
+        }
+        console.log("data updated for bar chart")
+        console.log(data.length, prevDataLength)
+        console.log(focusedItem)
+        if (prevDataLength == data.length) {
+            console.log("same sample size")
+            setFocusedItem(focusedItem)
+            return
+        }
+        let newFocusedItem = [];
+
         if (data.length >= 2) {
             if (amount == 2) {
-                setFocusedItem([data.length - 2, data.length - 1]);
+                newFocusedItem = [data.length - 2, data.length - 1]
             } else {
-                setFocusedItem([data.length - 1])
+                newFocusedItem = [data.length - 1]
             }
 
         } else if (data.length === 1) {
-            setFocusedItem([0]);
+            newFocusedItem = [0]
         } else {
-            setFocusedItem([]);
+            newFocusedItem = []
         }
+
+        console.log("here", prevDataLength, data.length)
+
+        if (prevDataLength != data.length) {
+            const targetX = newFocusedItem[0] * setSize / amount
+            console.log("target x", targetX, setSize)
+
+            scrollRef.current?.scrollTo({
+                x: targetX,
+                animated: false,
+            });
+        }
+        setFocusedItem(newFocusedItem)
+        setPrevDataLength(data.length)
     }, [data]);
 
     if (data.length === 0) return <Text>No data</Text>;
@@ -119,7 +146,6 @@ export function CustomBarChart({ data, amount }: Props) {
             endSpacing={windowWidth/2 - windowWidth /4 - interSpacing}
             //focusBarOnPress
             highlightEnabled
-            scrollToEnd
             focusedBarIndex={focusedItem}
             lineBehindBars
             yAxisLabelWidth={0}
@@ -171,6 +197,8 @@ export function CustomBarChart({ data, amount }: Props) {
                 //console.log("momentum scroll end")
                 const x = scrollPosition.current
                 const targetX = Math.round((x/setSize))*setSize
+
+                console.log(x, targetX, setSize)
 
                 if (isSnapping.current) return
                 isSnapping.current = true

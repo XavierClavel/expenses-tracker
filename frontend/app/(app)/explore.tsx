@@ -54,12 +54,15 @@ export default function TabTwoScreen() {
     const setSelectedSubcategory = useSelectedSubcategoryStore(s => s.setSelected)
     const selectedAggregation = useBarChartAggregationStore(s => s.selected)
     const setSelectedAggregation = useBarChartAggregationStore(s => s.setSelected)
+    const setSelectedType = useSelectedTypeStore(s => s.setSelected)
 
     const itemsType = [
         { label: 'In / Out', value: 'income_expense' },
         { label: 'Flow', value: 'flow' },
-        { label: 'Category', value: 'category'},
-        { label: 'Subcategory', value: 'subcategory'},
+        { label: 'Category In', value: 'category_in'},
+        { label: 'Category Out', value: 'category_out'},
+        { label: 'Subcategory In', value: 'subcategory_in'},
+        { label: 'Subcategory Out', value: 'subcategory_out'},
     ];
 
     const itemsTimescale = [
@@ -226,6 +229,24 @@ export default function TabTwoScreen() {
     }
 
     useEffect(() => {
+        if (dataType == "category_in" || dataType == "subcategory_in") {
+            setSelectedType("INCOME")
+        }
+        if (dataType == "category_out" || dataType == "subcategory_out") {
+            setSelectedType("EXPENSE")
+        }
+        if (dataType == "category_in" && selectedCategory?.type != "INCOME") {
+            setSelectedCategory(null)
+        }
+        if (dataType == "category_out" && selectedCategory?.type != "EXPENSE") {
+            setSelectedCategory(null)
+        }
+        if (dataType == "subcategory_in" && selectedSubcategory?.type != "INCOME") {
+            setSelectedSubcategory(null)
+        }
+        if (dataType == "subcategory_out" && selectedSubcategory?.type != "EXPENSE") {
+            setSelectedSubcategory(null)
+        }
         if (dataType == "flow") {
             if (timescale == "month") {
                 loadMonthFlow()
@@ -238,13 +259,13 @@ export default function TabTwoScreen() {
             } else {
                 loadYearTrends()
             }
-        } else if (dataType == "category" && selectedCategory != null) {
+        } else if ((dataType == "category_in" || dataType == "category_out") && selectedCategory != null) {
             if (timescale == "month") {
                 loadMonthCategory()
             } else {
                 loadYearCategory()
             }
-        } else if (dataType == "subcategory" && selectedSubcategory != null) {
+        } else if ((dataType == "subcategory_in" || dataType == "subcategory_out") && selectedSubcategory != null) {
             if (timescale == "month") {
                 loadMonthSubcategory()
             } else {
@@ -338,7 +359,7 @@ export default function TabTwoScreen() {
               </View>
               </View>
               }
-              { dataType == "category" &&
+              { (dataType == "category_in" || dataType == "category_out") &&
               <View style={{ paddingHorizontal: 20, paddingVertical: 0 }}>
                   <Pressable
                       style={{
@@ -353,7 +374,7 @@ export default function TabTwoScreen() {
               </View>
               }
 
-              { dataType == "subcategory" &&
+              { (dataType == "subcategory_in" || dataType == "subcategory_out") &&
                   <View style={{ paddingHorizontal: 20, paddingVertical: 5 }}>
 
                       <Pressable
