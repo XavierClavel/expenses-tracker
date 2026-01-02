@@ -8,12 +8,13 @@ import {
 } from "react-native";
 import {generateMonths, generateYears} from "@/src/utils/misc";
 import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
-import {IconButton, Menu, Modal, PaperProvider, Portal, RadioButton} from "react-native-paper";
+import {Divider, IconButton, Menu, Modal, PaperProvider, Portal, RadioButton, Title} from "react-native-paper";
 import {useThemeColor} from "@/hooks/use-theme-color";
+import {useSummaryStore} from "@/src/stores/summary-store";
 
 const { width } = Dimensions.get("window");
 
-const ITEM_WIDTH = 160;
+const ITEM_WIDTH = 120;
 const SPACING = (width - ITEM_WIDTH) / 2;
 const months = generateMonths(2023);
 const defaultIndex = months.length - 1
@@ -21,8 +22,15 @@ const defaultIndex = months.length - 1
 export function PeriodSelector() {
     const [visible, setVisible] = React.useState(false);
     const backgroundColor = useThemeColor({}, 'background');
-    const setTimescale = useSummaryDateStore(s => s.setTimescale)
+
     const timescale = useSummaryDateStore(s => s.timescale)
+    const setTimescale = useSummaryDateStore(s => s.setTimescale)
+
+    const agglomeration = useSummaryStore(s => s.agglomeration)
+    const setAgglomeration = useSummaryStore(s => s.setAgglomeration)
+
+    const percentReferential = useSummaryStore(s => s.percentReferential)
+    const setPercentReferential = useSummaryStore(s => s.setPercentReferential)
 
     return (
         <View style={{justifyContent: 'center'}}>
@@ -44,15 +52,44 @@ export function PeriodSelector() {
                     }}
                 >
 
+                    <Text style={{color: "white", fontWeight: "bold"}}>Timescale</Text>
                     <RadioButton.Group
                         onValueChange={newValue => {
                             setTimescale(newValue)
-                            setVisible(false)
                         }}
                         value={timescale}
                     >
                         <RadioButton.Item label="Month" value="month" />
                         <RadioButton.Item label="Year" value="year" />
+                    </RadioButton.Group>
+
+                    <Divider style={{backgroundColor: "white"}}/>
+
+                    <Text style={{color: "white", fontWeight: "bold", marginTop: 10}}>Agglomeration</Text>
+
+                    <RadioButton.Group
+                        onValueChange={newValue => {
+                            setAgglomeration(newValue)
+                        }}
+                        value={agglomeration}
+                    >
+                        <RadioButton.Item label="Sum" value="sum" />
+                        <RadioButton.Item label="Average" value="average" />
+                        <RadioButton.Item label="Median" value="median" />
+                    </RadioButton.Group>
+
+                    <Divider style={{backgroundColor: "white"}}/>
+
+                    <Text style={{color: "white", fontWeight: "bold", marginTop: 10}}>Percent referential</Text>
+
+                    <RadioButton.Group
+                        onValueChange={newValue => {
+                            setPercentReferential(newValue)
+                        }}
+                        value={percentReferential}
+                    >
+                        <RadioButton.Item label="Expense" value="expense" />
+                        <RadioButton.Item label="Income" value="income" />
                     </RadioButton.Group>
                 </Modal>
             </Portal>
@@ -122,11 +159,10 @@ export default function DateScroller() {
             const value =  years[index]
             setSelectedYear(value.year)
         }
-
     };
 
     return (
-        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 16}}>
+        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
             <FlatList
                 ref={listRef}
                 data={timescale == "month" ? months : years}
@@ -166,10 +202,7 @@ export default function DateScroller() {
                     );
                 }}
             />
-            <View style={{alignItems: 'center'}}>
-                <PeriodSelector />
-
-            </View>
+            <PeriodSelector />
         </View>
     );
 }
@@ -184,11 +217,11 @@ const styles = StyleSheet.create({
         transform: [{ scale: 1.1 }],
     },
     text: {
-        fontSize: 16,
+        fontSize: 12,
         color: "#999",
     },
     selectedText: {
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: "600",
         color: "white",
     },

@@ -44,6 +44,7 @@ export default function HomeScreen() {
     const selectedMonth = useSummaryDateStore(s => s.month)
     const selectedYear = useSummaryDateStore(s => s.year)
     const selectedTimescale = useSummaryDateStore(s => s.timescale)
+    const percentReferential = useSummaryStore(s => s.percentReferential)
 
 
     const loadSummary = async (year: number, month: number) => {
@@ -123,7 +124,6 @@ export default function HomeScreen() {
         <DateScroller />
         <SegmentedButtons
             style={{
-                marginTop: 10,
                 padding: 10,
             }}
             value={selectedType}
@@ -159,7 +159,7 @@ export default function HomeScreen() {
             </Pressable>
 
         </View>
-        <CustomPieChart data={data}/>
+        <CustomPieChart data={data} total={percentReferential == "expense" && selectedType == "EXPENSE" ? summary?.totalExpenses : summary?.totalIncome}/>
         </SafeAreaView>
     </ParallaxScrollView>
   );

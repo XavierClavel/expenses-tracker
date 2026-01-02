@@ -12,13 +12,17 @@ import {router} from "expo-router";
 import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
 import {useCategoriesStore} from "@/src/stores/categories-store";
 import SummarySubcategories from "@/app/analytics/subcategories";
+import CategoryOut from "@/src/types/CategoryOut";
 
 
 
+type SummaryProps = {
+    data: any,
+    total: number
+};
 
 
-
-export function CustomPieChart({ data }) {
+export function CustomPieChart({ data, total }: SummaryProps) {
     const [focusedItem, setFocusedItem] = useState(0)
 
     const backgroundColor = useThemeColor({}, 'background');
@@ -76,9 +80,10 @@ export function CustomPieChart({ data }) {
     }
 
 
-    const total: number = pieData.reduce((accumulator, object) => {
+    const accumulatedTotal: number = pieData.reduce((accumulator, object) => {
         return accumulator + object.value;
     }, 0);
+    const accumulatedPercent = accumulatedTotal / total * 100
 
     return <View
         style={{
@@ -109,8 +114,11 @@ export function CustomPieChart({ data }) {
                             <View style={{justifyContent: 'center', alignItems: 'center'}}>
                                 <Text
                                     style={{fontSize: 22, color: textOnBackgroundColor, fontWeight: 'bold'}}>
-                                    {withReadableThousands(with2Decimals(total))}€
+                                    {withReadableThousands(with2Decimals(accumulatedTotal))}€
                                 </Text>
+                                <Text style={{fontSize: 14, color: textOnBackgroundColor}}>{
+                                    accumulatedPercent >= 1 ? `${withNoDecimals(accumulatedPercent)}%` : '<1%'
+                                }</Text>
                             </View>
                         )
                     }
