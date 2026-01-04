@@ -11,6 +11,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import {ThemeProvider} from "@react-navigation/core";
 import {DarkTheme} from "@react-navigation/native";
 import {DefaultTheme} from "react-native-paper";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -50,6 +51,13 @@ export default function TabLayout() {
           title: 'Trend',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="stats-chart" color={color} />,
         }}
+      />
+      <Tabs.Screen
+          name="accounts"
+          options={{
+              title: 'Accounts',
+              tabBarIcon: ({ color }) => <MaterialIcons size={28} name="account-balance" color={color} />,
+          }}
       />
     </Tabs>
       </ThemeProvider>
