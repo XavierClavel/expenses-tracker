@@ -41,10 +41,11 @@ fun Route.setupAccountReportController() = route(ACCOUNT_REPORT_URL) {
             call.respond(report)
         }
 
-        post {
+        post("/account/{id}") {
+            val accountId = getPathId()
             val userId = getSessionUserId(redisService)
             val reportDto = call.receive<AccountReportIn>()
-            val report = accountReportService.create(userId = userId, reportDto = reportDto)
+            val report = accountReportService.create(userId = userId, reportDto = reportDto, accountId = accountId)
             call.respond(report)
         }
 

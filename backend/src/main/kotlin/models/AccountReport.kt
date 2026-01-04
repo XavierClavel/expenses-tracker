@@ -28,7 +28,6 @@ class AccountReport(
 
     fun toOutput() = AccountReportOut(
         id = id,
-        accountId = account.id,
         amount = amount,
         date = date,
     )

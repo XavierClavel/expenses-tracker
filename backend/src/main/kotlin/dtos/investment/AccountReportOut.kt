@@ -13,8 +13,6 @@ data class AccountReportOut(
     @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,
 
-    val accountId: Long,
-
     @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate,
 )

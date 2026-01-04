@@ -1,40 +1,31 @@
-package com.xavierclavel.controllers.controllers
+package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
 import com.xavierclavel.dtos.CategoryIn
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.dtos.SubcategoryIn
 import com.xavierclavel.enums.ExpenseType
-import com.xavierclavel.utils.CATEGORY_URL
 import com.xavierclavel.utils.SUBCATEGORY_URL
-import com.xavierclavel.utils.assertCategoryDoesNotExist
-import com.xavierclavel.utils.assertCategoryExists
 import com.xavierclavel.utils.assertSubcategoryDoesNotExist
 import com.xavierclavel.utils.assertSubcategoryExists
 import com.xavierclavel.utils.createCategory
 import com.xavierclavel.utils.createExpense
 import com.xavierclavel.utils.createSubcategory
-import com.xavierclavel.utils.deleteCategory
 import com.xavierclavel.utils.deleteSubcategory
-import com.xavierclavel.utils.getCategory
 import com.xavierclavel.utils.getSubcategory
-import com.xavierclavel.utils.listCategoriesByUser
 import com.xavierclavel.utils.listSubcategoriesByUser
 import com.xavierclavel.utils.updateSubcategory
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class SubcategoryControllerTest: ApplicationTest() {
 
@@ -127,8 +118,8 @@ class SubcategoryControllerTest: ApplicationTest() {
         val subcategory = client.createSubcategory(subcategoryTemplate.copy(parentCategory = category.id))
 
         client.createExpense(expense.copy(categoryId = subcategory.id))
-        client.delete("$SUBCATEGORY_URL/${subcategory.id}").apply {
-            assertEquals(HttpStatusCode.Forbidden, status)
+        client.delete("${SUBCATEGORY_URL}/${subcategory.id}").apply {
+            assertEquals(HttpStatusCode.Companion.Forbidden, status)
         }
     }
 
@@ -143,11 +134,11 @@ class SubcategoryControllerTest: ApplicationTest() {
 
         runAsUser2 {
             val categoryId = client.createCategory(categoryInTemplate.copy(name = "Groceries")).id
-            client.put("$SUBCATEGORY_URL/$subcategoryId"){
+            client.put("${SUBCATEGORY_URL}/$subcategoryId"){
                 contentType(ContentType.Application.Json)
                 setBody(subcategoryTemplate.copy(parentCategory = categoryId))
             }.apply {
-                assertEquals(HttpStatusCode.Forbidden, status)
+                assertEquals(HttpStatusCode.Companion.Forbidden, status)
             }
         }
     }
@@ -161,8 +152,8 @@ class SubcategoryControllerTest: ApplicationTest() {
         }
 
         runAsUser2 {
-            client.delete("$SUBCATEGORY_URL/$subcategoryId").apply {
-                assertEquals(HttpStatusCode.Forbidden, status)
+            client.delete("${SUBCATEGORY_URL}/$subcategoryId").apply {
+                assertEquals(HttpStatusCode.Companion.Forbidden, status)
             }
         }
     }
@@ -177,8 +168,8 @@ class SubcategoryControllerTest: ApplicationTest() {
         }
 
         runAsUser2 {
-            client.get("$SUBCATEGORY_URL/$subcategoryId").apply {
-                assertEquals(HttpStatusCode.Forbidden, status)
+            client.get("${SUBCATEGORY_URL}/$subcategoryId").apply {
+                assertEquals(HttpStatusCode.Companion.Forbidden, status)
             }
         }
     }

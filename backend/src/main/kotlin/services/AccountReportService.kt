@@ -42,8 +42,8 @@ class AccountReportService: KoinComponent {
     }
 
 
-    fun create(reportDto: AccountReportIn, userId: Long): AccountReportOut {
-        val account = QInvestmentAccount().id.eq(reportDto.accountId).findOne() ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
+    fun create(reportDto: AccountReportIn, userId: Long, accountId: Long): AccountReportOut {
+        val account = QInvestmentAccount().id.eq(accountId).findOne() ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
         if (account.owner.id != userId) {
             throw ForbiddenException(ForbiddenCause.MUST_BE_OWNER)
         }
@@ -62,7 +62,6 @@ class AccountReportService: KoinComponent {
             .checkRights(userId)
             .apply {
                 amount = reportDto.amount
-                account = QInvestmentAccount().id.eq(reportDto.accountId).findOne() ?: throw NotFoundException(NotFoundCause.ACCOUNT_NOT_FOUND)
             }
             .apply { this.update() }
             .toOutput()

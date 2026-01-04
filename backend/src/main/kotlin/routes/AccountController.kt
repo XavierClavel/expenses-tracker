@@ -4,7 +4,6 @@ import com.xavierclavel.dtos.investment.InvestmentAccountIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AccountService
 import com.xavierclavel.utils.ACCOUNT_URL
-import com.xavierclavel.utils.CATEGORY_URL
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
 import io.ktor.http.*
