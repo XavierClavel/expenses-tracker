@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <alterColumn columnName="owner_id" tableName="investment_accounts" dropUnique="uq_investment_accounts_owner_id"/>
+    </changeSet>
+</migration>

@@ -6,7 +6,7 @@ import io.ebean.DB
 import io.ebean.Model
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
-import jakarta.persistence.OneToOne
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.math.BigDecimal
 
@@ -15,7 +15,7 @@ import java.math.BigDecimal
 class InvestmentAccount(
     var name: String = "",
 
-    @OneToOne
+    @ManyToOne
     val owner: User,
 ): Model() {
     @Id
