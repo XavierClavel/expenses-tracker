@@ -362,34 +362,35 @@ class TrendsControllerTest: ApplicationTest() {
 
     @Test
     fun `get category trends by year`() = runTestAsUser {
-        val groceriesId = client.createCategory(categoryInTemplate.copy(name = "Groceries")).subcategories[0].id
-        val salaryId = client.createCategory(categoryInTemplate.copy(name = "Salary", type = ExpenseType.INCOME)).subcategories[0].id
+        val groceriesId = client.createCategory(categoryInTemplate.copy(name = "Groceries"))
+        val salaryId = client.createCategory(categoryInTemplate.copy(name = "Salary", type = ExpenseType.INCOME))
         client.createExpense(expense.copy(
             amount = BigDecimal("25.00"),
             date = LocalDate.parse("2019-06-06"),
-            categoryId = groceriesId,
+            categoryId = groceriesId.subcategories[0].id,
         ))
         client.createExpense(expense.copy(
             amount = BigDecimal("15.00"),
             date = LocalDate.parse("2020-06-30"),
-            categoryId = groceriesId,
+            categoryId = groceriesId.subcategories[0].id,
         ))
         client.createExpense(expense.copy(
             amount = BigDecimal("10.00"),
             date = LocalDate.parse("2020-07-01"),
-            categoryId = groceriesId,
+            categoryId = groceriesId.subcategories[0].id,
         ))
         client.createExpense(expense.copy(
             amount = BigDecimal("11.00"),
             date = LocalDate.parse("2020-07-01"),
-            categoryId = salaryId,
+            categoryId = salaryId.subcategories[0].id,
         ))
-        val result = client.getYearCategoryTrends(groceriesId)
+        val result = client.getYearCategoryTrends(groceriesId.id)
+        println(result)
         assertEquals(2, result.size)
         assertEquals(0, BigDecimal("25").compareTo(result[0].total))
         assertEquals(0, BigDecimal("25").compareTo(result[1].total))
 
-        val result2 = client.getYearCategoryTrends(salaryId)
+        val result2 = client.getYearCategoryTrends(salaryId.id)
         assertEquals(2, result2.size)
         assertEquals(0, BigDecimal("11").compareTo(result2[1].total))
     }
@@ -498,7 +499,7 @@ class TrendsControllerTest: ApplicationTest() {
         assertEquals(0, BigDecimal("0").compareTo(result[1].total))
         assertEquals(0, BigDecimal("10").compareTo(result[2].total))
 
-        val result2 = client.getMonthCategoryTrends(cat2.subcategories[0].id)
+        val result2 = client.getMonthSubcategoryTrends(cat2.subcategories[0].id)
         assertEquals(3, result2.size)
         assertEquals(0, BigDecimal("11").compareTo(result2[2].total))
     }
