@@ -2,6 +2,7 @@ package com.xavierclavel.utils
 
 import com.xavierclavel.dtos.investment.AccountReportIn
 import com.xavierclavel.dtos.investment.AccountReportOut
+import com.xavierclavel.dtos.investment.AccountTrendDto
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -17,8 +18,8 @@ import io.ktor.http.contentType
 import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 
-suspend fun HttpClient.createAccountReport(account: AccountReportIn): AccountReportOut {
-    this.post(ACCOUNT_URL){
+suspend fun HttpClient.createAccountReport(accountId: Long, account: AccountReportIn): AccountReportOut {
+    this.post("$ACCOUNT_REPORT_URL/account/$accountId") {
         contentType(ContentType.Application.Json)
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         setBody(account)
@@ -30,7 +31,7 @@ suspend fun HttpClient.createAccountReport(account: AccountReportIn): AccountRep
 }
 
 suspend fun HttpClient.updateAccountReport(id: Long, account: AccountReportIn): AccountReportOut {
-    this.put("$ACCOUNT_URL/$id"){
+    this.put("$ACCOUNT_REPORT_URL/$id"){
         contentType(ContentType.Application.Json)
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         setBody(account)
@@ -42,7 +43,7 @@ suspend fun HttpClient.updateAccountReport(id: Long, account: AccountReportIn): 
 }
 
 suspend fun HttpClient.getAccountReport(id: Long): AccountReportOut {
-    this.get("$ACCOUNT_URL/$id").apply {
+    this.get("$ACCOUNT_REPORT_URL/$id").apply {
         assertEquals(HttpStatusCode.OK, status)
         val account = Json.decodeFromString<AccountReportOut>(bodyAsText())
         return account
@@ -50,7 +51,7 @@ suspend fun HttpClient.getAccountReport(id: Long): AccountReportOut {
 }
 
 suspend fun HttpClient.listAccountReports(): List<AccountReportOut>  {
-    this.get(ACCOUNT_URL).apply {
+    this.get(ACCOUNT_REPORT_URL).apply {
         assertEquals(HttpStatusCode.OK, status)
         val categories = Json.decodeFromString<List<AccountReportOut>>(bodyAsText())
         return categories
@@ -58,19 +59,19 @@ suspend fun HttpClient.listAccountReports(): List<AccountReportOut>  {
 }
 
 suspend fun HttpClient.deleteAccountReport(id: Long)  {
-    this.delete("$ACCOUNT_URL/$id").apply {
+    this.delete("$ACCOUNT_REPORT_URL/$id").apply {
         assertEquals(HttpStatusCode.OK, status)
     }
 }
 
 suspend fun HttpClient.assertAccountReportExists(id: Long) {
-    this.get("$ACCOUNT_URL/$id").apply {
+    this.get("$ACCOUNT_REPORT_URL/$id").apply {
         assertEquals(HttpStatusCode.OK, status)
     }
 }
 
 suspend fun HttpClient.assertAccountReportDoesNotExist(id: Long) {
-    this.get("$ACCOUNT_URL/$id").apply {
+    this.get("$ACCOUNT_REPORT_URL/$id").apply {
         assertEquals(HttpStatusCode.NotFound, status)
     }
 }

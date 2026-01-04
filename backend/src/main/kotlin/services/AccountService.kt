@@ -1,6 +1,8 @@
 package com.xavierclavel.services
 
 import com.xavierclavel.config.Configuration
+import com.xavierclavel.dtos.TrendDto
+import com.xavierclavel.dtos.investment.AccountTrendDto
 import com.xavierclavel.dtos.investment.InvestmentAccountIn
 import com.xavierclavel.dtos.investment.InvestmentAccountOut
 import com.xavierclavel.exceptions.ForbiddenCause
@@ -10,6 +12,7 @@ import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.InvestmentAccount
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QUser
+import io.ebean.DB
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -70,6 +73,42 @@ class AccountService: KoinComponent {
         if (!result) {
             throw Exception("Failed to delete account $accountId")
         }
+    }
+
+    fun trendByAccountByMonth(userId: Long, accountId: Long): List<AccountTrendDto> {
+        return DB.findDto(
+            AccountTrendDto::class.java,
+            """
+            WITH months AS (
+                SELECT generate_series(
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports)),
+                    INTERVAL '1 month'
+                )::date AS month
+            ),
+            monthly_totals AS (
+                SELECT
+                    DATE_TRUNC('month', date::date)::date AS month,
+                    MAX(amount) AS balance
+                FROM account_reports AS ar
+                JOIN investment_accounts AS ia
+                ON ar.account_id = ia.id
+                WHERE ia.owner_id = :userId
+                AND ia.id = :accountId
+                GROUP BY DATE_TRUNC('month', date::date)
+            )
+            SELECT
+                EXTRACT(YEAR FROM m.month)  AS year,
+                EXTRACT(MONTH FROM m.month) AS month,
+                COALESCE(mt.balance, 0) AS balance
+            FROM months m
+            LEFT JOIN monthly_totals mt USING (month)
+            ORDER BY year, month;
+            """
+        )
+            .setParameter("userId", userId)
+            .setParameter("accountId", accountId)
+            .findList()
     }
 
 }

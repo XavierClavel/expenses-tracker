@@ -1,5 +1,6 @@
 package com.xavierclavel.utils
 
+import com.xavierclavel.dtos.investment.AccountTrendDto
 import com.xavierclavel.dtos.investment.InvestmentAccountIn
 import com.xavierclavel.dtos.investment.InvestmentAccountOut
 import io.ktor.client.HttpClient
@@ -72,5 +73,13 @@ suspend fun HttpClient.assertAccountExists(id: Long) {
 suspend fun HttpClient.assertAccountDoesNotExist(id: Long) {
     this.get("$ACCOUNT_URL/$id").apply {
         assertEquals(HttpStatusCode.NotFound, status)
+    }
+}
+
+suspend fun HttpClient.getUserAccountsTrendsReport(accountId: Long): List<AccountTrendDto> {
+    this.get("$ACCOUNT_URL/trends/account/$accountId/month").apply {
+        assertEquals(HttpStatusCode.OK, status)
+        val account = Json.decodeFromString<List<AccountTrendDto>>(bodyAsText())
+        return account
     }
 }

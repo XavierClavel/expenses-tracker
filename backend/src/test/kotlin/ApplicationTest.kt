@@ -5,6 +5,8 @@ import com.xavierclavel.config.testConfig
 import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.plugins.DatabaseManager
 import com.xavierclavel.plugins.RedisService
+import com.xavierclavel.services.AccountReportService
+import com.xavierclavel.services.AccountService
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
@@ -60,6 +62,8 @@ abstract class ApplicationTest: KoinTest {
                 single { ExpenseService() }
                 single { SummaryService() }
                 single { TrendService() }
+                single { AccountService() }
+                single { AccountReportService() }
             }
 
             startKoin {
