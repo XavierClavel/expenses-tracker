@@ -34,9 +34,14 @@ class AccountReportService: KoinComponent {
             .checkRights(userId)
             .toOutput()
 
-    fun list(userId: Long): List<AccountReportOut> {
+    fun list(userId: Long, accountId: Long? = null): List<AccountReportOut> {
         return QAccountReport()
             .account.owner.id.eq(userId)
+            .apply{
+                if (accountId != null) {
+                    this.account.id.eq(accountId)
+                }
+            }
             .findList()
             .map { it.toOutput() }
     }

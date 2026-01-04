@@ -3,7 +3,6 @@ package com.xavierclavel.routes
 import com.xavierclavel.dtos.investment.AccountReportIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AccountReportService
-import com.xavierclavel.services.AccountService
 import com.xavierclavel.utils.ACCOUNT_REPORT_URL
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
@@ -38,6 +37,13 @@ fun Route.setupAccountReportController() = route(ACCOUNT_REPORT_URL) {
             val userId = getSessionUserId(redisService)
             val reportId = getPathId()
             val report = accountReportService.get(userId = userId, reportId = reportId)
+            call.respond(report)
+        }
+
+        get("/account/{id}") {
+            val userId = getSessionUserId(redisService)
+            val accountId = getPathId()
+            val report = accountReportService.list(userId = userId, accountId = accountId)
             call.respond(report)
         }
 
