@@ -10,6 +10,7 @@ import {TabBar, TabView} from "react-native-tab-view";
 import {useState} from "react";
 import AccountBalance from "@/app/account/balance";
 import {with2Decimals, withReadableThousands} from "@/src/utils/math";
+import AccountCharts from "@/app/account/charts";
 
 const routes = [
     { key: 'balance', title: 'Balance' },
@@ -32,7 +33,7 @@ export default function AccountView() {
             case 'history':
                 return <Text>bbbbbb</Text>;
             case 'charts':
-                return <Text>ccccc</Text>;
+                return <AccountCharts/>;
         }
     };
 
