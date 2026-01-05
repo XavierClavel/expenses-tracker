@@ -6,12 +6,8 @@ import AccountOut from "@/src/types/AccountOut";
 import AccountIn from "@/src/types/AccountIn";
 
 
-export async function listAccounts(page: number, size: number): Promise<AccountOut[]> {
-    const params = new URLSearchParams({
-        page: page.toString(),
-        size: size.toString(),
-    });
-    const response = await apiClient.get( `/account?${params}`);
+export async function listAccounts(): Promise<AccountOut[]> {
+    const response = await apiClient.get( `/account`);
 
     const accounts: AccountOut[] = response.data.map((e: any) =>
         new AccountOut(

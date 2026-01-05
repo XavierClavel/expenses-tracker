@@ -30,7 +30,6 @@ class Investment(
 
     val date: LocalDate,
 
-    @DbDefault("EXPENSE")
     @Enumerated(EnumType.STRING)
     val type: InvestmentType,
 
