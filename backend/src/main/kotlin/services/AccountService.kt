@@ -111,4 +111,46 @@ class AccountService: KoinComponent {
             .findList()
     }
 
+    fun trendByUserByMonth(userId: Long): List<AccountTrendDto> {
+        return DB.findDto(
+            AccountTrendDto::class.java,
+            """
+            WITH months AS (
+                SELECT generate_series(
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports)),
+                    INTERVAL '1 month'
+                )::date AS month
+            ),
+            monthly_account_totals AS (
+                SELECT
+                    ia.id AS id,
+                    DATE_TRUNC('month', date::date)::date AS month,
+                    MAX(amount) AS account_balance
+                FROM account_reports AS ar
+                JOIN investment_accounts AS ia
+                ON ar.account_id = ia.id
+                WHERE ia.owner_id = :userId
+                GROUP BY DATE_TRUNC('month', date::date), ia.id
+            ),
+            monthly_totals AS (
+                SELECT
+                    month AS MONTH,
+                    SUM(account_balance) AS balance
+                FROM monthly_account_totals
+                GROUP BY month
+            )
+            SELECT
+                EXTRACT(YEAR FROM m.month)  AS year,
+                EXTRACT(MONTH FROM m.month) AS month,
+                COALESCE(mt.balance, 0) AS balance
+            FROM months m
+            LEFT JOIN monthly_totals mt USING (month)
+            ORDER BY year, month;
+            """
+        )
+            .setParameter("userId", userId)
+            .findList()
+    }
+
 }

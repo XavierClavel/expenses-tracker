@@ -56,7 +56,7 @@ export default function a() {
                     style: 'destructive',
                     onPress: () => {
                         deleteAccountReport(selectedAccountReport.id)
-                        router.navigate("/account/balance");
+                        router.back()
                     },
                 },
             ],
@@ -145,7 +145,7 @@ export default function a() {
                               console.log(selectedAccount)
                               await createAccountReport(selectedAccount.id, accountReport)
                           }
-                          router.navigate("/account/balance")
+                          router.back()
                       } catch (e) {
                           console.error("Expense creation failed", e);
                       }

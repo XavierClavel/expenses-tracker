@@ -34,6 +34,12 @@ fun Route.setupAccountController() = route(ACCOUNT_URL) {
             call.respond(result)
         }
 
+        get("/trends/month") {
+            val sessionUserId = getSessionUserId(redisService)
+            val result = accountService.trendByUserByMonth(userId = sessionUserId)
+            call.respond(result)
+        }
+
         /**
          * Retrieves the user that matches the id.
          *

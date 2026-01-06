@@ -76,8 +76,16 @@ suspend fun HttpClient.assertAccountDoesNotExist(id: Long) {
     }
 }
 
-suspend fun HttpClient.getUserAccountsTrendsReport(accountId: Long): List<AccountTrendDto> {
+suspend fun HttpClient.getAccountTrendsReport(accountId: Long): List<AccountTrendDto> {
     this.get("$ACCOUNT_URL/$accountId/trends/month").apply {
+        assertEquals(HttpStatusCode.OK, status)
+        val account = Json.decodeFromString<List<AccountTrendDto>>(bodyAsText())
+        return account
+    }
+}
+
+suspend fun HttpClient.getUserAccountsTrendsReport(): List<AccountTrendDto> {
+    this.get("$ACCOUNT_URL/trends/month").apply {
         assertEquals(HttpStatusCode.OK, status)
         val account = Json.decodeFromString<List<AccountTrendDto>>(bodyAsText())
         return account
