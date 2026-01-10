@@ -17,7 +17,7 @@ export const useSummaryDateStore = create<SelectedCategoryStore>((set) => ({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     oldest: null,
-    timescale: "year",
+    timescale: "month",
     setYear: (value) => set({year: value}),
     setMonth: (value) => set({month: value}),
     setOldest: (value) => set({oldest: value}),

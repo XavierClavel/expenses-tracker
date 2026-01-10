@@ -32,7 +32,7 @@ export default function SummarySubcategories() {
     const selectedCategory = useSelectedCategoryStore(s => s.selected)
     const summary = useSummaryStore(s => s.selected)
     const setSummarySubcategory = useSummaryStore(s => s.setSubcategory)
-    const data = summary?.expensesByCategory
+    const data = summary?.expensesByCategory.concat(summary?.incomeByCategory)
         .filter((it) => categoryStore.getParent(it.categoryId)?.id == selectedCategory.id)
         .map(it => {return {
             label: it.categoryName,
