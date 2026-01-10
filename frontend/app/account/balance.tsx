@@ -9,7 +9,6 @@ import {Section} from "@jridgewell/trace-mapping/src/types";
 import {listAccountReports} from "@/src/api/account-reports";
 import {useSelectedAccountStore} from "@/src/stores/selected-account-store";
 import {useSelectedAccountReportStore} from "@/src/stores/selected-account-report-store";
-import {with2Decimals, withReadableThousands} from "@/src/utils/math";
 import AccountReportOut from "@/src/types/AccountReportOut";
 
 export default function AccountBalance() {

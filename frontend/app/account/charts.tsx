@@ -31,7 +31,7 @@ import {router} from "expo-router";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import CategoryOut from "@/src/types/CategoryOut";
 import {useBarChartAggregationStore} from "@/src/stores/barchart-aggregation-store";
-import {getAccountTrendsMonth} from "@/src/api/accounts";
+import {getAccountTrendsMonth, getUserTrendsMonth} from "@/src/api/accounts";
 import {useSelectedAccountStore} from "@/src/stores/selected-account-store";
 
 
@@ -54,7 +54,26 @@ export default function AccountCharts() {
     const [trends, setTrends] = useState([])
 
     const loadAccountTrendsMonth = async () => {
-        const trends = await getAccountTrendsMonth(selectedAccount.id)
+        const trends = await getAccountTrendsMonth(selectedAccount?.id)
+        const result = []
+        for (const v of trends) {
+            const date = new Date(v.year, v.month - 1)
+            const currentDate = new Date()
+            const displayDate= date.getFullYear() == currentDate.getFullYear() ?
+                date.toLocaleString('default', { month: 'short' })
+                : date.toLocaleString('default', { month: 'short', year: 'numeric' })
+            const value = Number(v.balance)
+            result.push({
+                value: value,
+                frontColor: value >= 0 ? colorIncome : colorExpense,
+                label: displayDate
+            })
+        }
+        setTrends(result)
+    }
+
+    const loadUserTrendsMonth = async () => {
+        const trends = await getUserTrendsMonth()
         const result = []
         for (const v of trends) {
             const date = new Date(v.year, v.month - 1)
@@ -74,7 +93,14 @@ export default function AccountCharts() {
 
 
     useEffect(() => {
-        loadAccountTrendsMonth()
+        console.log("account", selectedAccount)
+        console.log("is account null", selectedAccount == null)
+        if (selectedAccount == null) {
+            loadUserTrendsMonth()
+        } else {
+            console.log("loading account")
+            loadAccountTrendsMonth()
+        }
 
     }, []);
 

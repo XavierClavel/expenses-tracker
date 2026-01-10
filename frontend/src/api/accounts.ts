@@ -32,6 +32,18 @@ export async function getAccountTrendsMonth(accountId: number) {
     return trends;
 }
 
+export async function getUserTrendsMonth() {
+    const response = await apiClient.get(`/account/trends/month`)
+    const trends: AccountTrendDto[] = response.data.map((e: any) =>
+        new AccountTrendDto(
+            e.year,
+            e.month,
+            e.balance,
+        )
+    );
+    return trends;
+}
+
 export async function createAccount(account: AccountIn) {
     const res = await apiClient.post("/account", account)
     return res.data;

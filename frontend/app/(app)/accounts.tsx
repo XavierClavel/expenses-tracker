@@ -11,6 +11,7 @@ import {with2Decimals, withReadableThousands} from "@/src/utils/math";
 import {TabBar, TabView} from "react-native-tab-view";
 import AccountsList from "@/app/account/list";
 import {useAccountsStore} from "@/src/stores/accounts-store";
+import AccountCharts from "@/app/account/charts";
 
 const routes = [
     { key: 'balance', title: 'Balance' },
@@ -52,7 +53,7 @@ export default function HomeScreen() {
             case 'history':
                 return <Text>bbbbbb</Text>;
             case 'charts':
-                return <Text>ccccc</Text>;
+                return <AccountCharts/>;
         }
     };
 
