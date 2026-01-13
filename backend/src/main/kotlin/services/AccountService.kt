@@ -81,28 +81,41 @@ class AccountService: KoinComponent {
             """
             WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports)),
-                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports)),
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports WHERE account_id = :accountId)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports WHERE account_id = :accountId)),
                     INTERVAL '1 month'
                 )::date AS month
             ),
-            monthly_totals AS (
+            monthly_latest AS (
                 SELECT
-                    DATE_TRUNC('month', date::date)::date AS month,
-                    MAX(amount) AS balance
-                FROM account_reports AS ar
-                JOIN investment_accounts AS ia
-                ON ar.account_id = ia.id
+                    DATE_TRUNC('month', ar.date)::date AS month,
+                    ar.amount,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY DATE_TRUNC('month', ar.date)
+                        ORDER BY ar.date DESC
+                    ) AS rn
+                FROM account_reports ar
+                JOIN investment_accounts ia ON ar.account_id = ia.id
                 WHERE ia.owner_id = :userId
-                AND ia.id = :accountId
-                GROUP BY DATE_TRUNC('month', date::date)
+                  AND ia.id = :accountId
+            ),
+            month_values AS (
+                SELECT
+                    m.month,
+                    ml.amount
+                FROM months m
+                LEFT JOIN monthly_latest ml
+                    ON ml.month = m.month
+                   AND ml.rn = 1
             )
             SELECT
-                EXTRACT(YEAR FROM m.month)  AS year,
-                EXTRACT(MONTH FROM m.month) AS month,
-                COALESCE(mt.balance, 0) AS balance
-            FROM months m
-            LEFT JOIN monthly_totals mt USING (month)
+                EXTRACT(YEAR FROM month)  AS year,
+                EXTRACT(MONTH FROM month) AS month,
+                MAX(amount) OVER (
+                    ORDER BY month
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                ) AS balance
+            FROM month_values
             ORDER BY year, month;
             """
         )
