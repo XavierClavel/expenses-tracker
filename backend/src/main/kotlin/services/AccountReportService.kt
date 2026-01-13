@@ -42,6 +42,7 @@ class AccountReportService: KoinComponent {
                     this.account.id.eq(accountId)
                 }
             }
+            .orderBy().date.desc()
             .findList()
             .map { it.toOutput() }
     }
@@ -67,6 +68,7 @@ class AccountReportService: KoinComponent {
             .checkRights(userId)
             .apply {
                 amount = reportDto.amount
+                date = reportDto.date
             }
             .apply { this.update() }
             .toOutput()

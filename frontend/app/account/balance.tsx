@@ -97,6 +97,8 @@ export default function AccountBalance() {
                     renderItem={({ item }) => (
                         <Pressable
                             onPress={() => {
+                                setSelectedAccountReport(item)
+                                router.navigate("account-report/edit")
                             }}
                         >
                             <ExpenseDisplay data={item} />

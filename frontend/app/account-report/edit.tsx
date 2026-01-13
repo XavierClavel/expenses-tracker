@@ -29,21 +29,13 @@ import {useSelectedAccountStore} from "@/src/stores/selected-account-store";
 
 export default function a() {
     const segments = useSegments();
-    const selectedExpenseStore = useSelectedExpenseStore()
-    const selectedTypeStore = useSelectedTypeStore()
-    const setSelectedType = useSelectedTypeStore((s) => s.setSelected)
-
-    const [selected, setSelected] = useState<string | null>(null);
-    const navigation = useNavigation();
     const surfaceColor = useThemeColor({}, 'surface');
     const backgroundColor = useThemeColor({}, 'background');
     const textOnSurfaceColor = useThemeColor({}, 'textOnSurface');
-
-    const [title, setTitle] = useState(selectedExpenseStore.selected?.title || "");
-    const [amount, setAmount] = useState(selectedExpenseStore.selected?.amount || "");
-    const [date, setDate] = useState(selectedExpenseStore.selected?.date || new Date());
     const selectedAccountReport = useSelectedAccountReportStore(s => s.selected)
     const selectedAccount = useSelectedAccountStore(s => s.selected)
+    const [amount, setAmount] = useState(selectedAccountReport?.amount || "");
+    const [date, setDate] = useState(selectedAccountReport?.date || new Date());
 
     const confirmDelete = () => {
         Alert.alert(
@@ -156,7 +148,7 @@ export default function a() {
                         style={{ color: textOnSurfaceColor, textAlign: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 'bold' }}
                   >Save</Text>
               </Pressable>
-            {selectedExpenseStore.selected &&
+            {selectedAccountReport &&
             <Pressable
                 style={{
                     width: "100%",

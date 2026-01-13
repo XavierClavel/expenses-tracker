@@ -20,9 +20,9 @@ class AccountReport(
     @ManyToOne
     var account: InvestmentAccount,
 
-    val date: LocalDate,
+    var date: LocalDate,
 
-): Model() {
+    ): Model() {
     @Id
     var id: Long = 0
 
