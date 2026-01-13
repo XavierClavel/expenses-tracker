@@ -34,6 +34,13 @@ fun Route.setupAccountController() = route(ACCOUNT_URL) {
             call.respond(result)
         }
 
+        get("/{id}/trends/year") {
+            val sessionUserId = getSessionUserId(redisService)
+            val accountId = getPathId()
+            val result = accountService.trendByAccountByYear(userId = sessionUserId, accountId = accountId)
+            call.respond(result)
+        }
+
         get("/trends/month") {
             val sessionUserId = getSessionUserId(redisService)
             val result = accountService.trendByUserByMonth(userId = sessionUserId)

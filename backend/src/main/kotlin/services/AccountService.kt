@@ -124,6 +124,54 @@ class AccountService: KoinComponent {
             .findList()
     }
 
+    fun trendByAccountByYear(userId: Long, accountId: Long): List<AccountTrendDto> {
+        return DB.findDto(
+            AccountTrendDto::class.java,
+            """
+            WITH years AS (
+                SELECT generate_series(
+                    DATE_TRUNC('year', (SELECT MIN(date)::date FROM account_reports WHERE account_id = :accountId)),
+                    DATE_TRUNC('year', (SELECT MAX(date)::date FROM account_reports WHERE account_id = :accountId)),
+                    INTERVAL '1 year'
+                )::date AS year
+            ),
+            yearly_latest AS (
+                SELECT
+                    DATE_TRUNC('year', ar.date)::date AS year,
+                    ar.amount,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY DATE_TRUNC('year', ar.date)
+                        ORDER BY ar.date DESC
+                    ) AS rn
+                FROM account_reports ar
+                JOIN investment_accounts ia ON ar.account_id = ia.id
+                WHERE ia.owner_id = :userId
+                  AND ia.id = :accountId
+            ),
+            year_values AS (
+                SELECT
+                    m.year,
+                    ml.amount
+                FROM years m
+                LEFT JOIN yearly_latest ml
+                    ON ml.year = m.year
+                   AND ml.rn = 1
+            )
+            SELECT
+                EXTRACT(YEAR FROM year)  AS year,
+                MAX(amount) OVER (
+                    ORDER BY year
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                ) AS balance
+            FROM year_values
+            ORDER BY year;
+            """
+        )
+            .setParameter("userId", userId)
+            .setParameter("accountId", accountId)
+            .findList()
+    }
+
     fun trendByUserByMonth(userId: Long): List<AccountTrendDto> {
         return DB.findDto(
             AccountTrendDto::class.java,
