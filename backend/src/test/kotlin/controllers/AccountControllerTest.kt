@@ -111,8 +111,22 @@ class AccountControllerTest: ApplicationTest() {
         assertEquals(2, result.size)
         assertEquals(0, result[0].balance.compareTo(BigDecimal("15")))
         assertEquals(0, result[1].balance.compareTo(BigDecimal("50")))
+    }
 
-
+    @Test
+    fun `user month trends are extrapolated`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        val account2 = client.createAccount(accountDto.copy(name = "PEG"))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2021-04-01")))
+        val result = client.getUserAccountsTrendsReport()
+        println(result)
+        assertEquals(4, result.size)
+        assertEquals(0, result[0].balance.compareTo(BigDecimal("15")))
+        assertEquals(0, result[1].balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result[2].balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result[3].balance.compareTo(BigDecimal("50")))
     }
 
 }

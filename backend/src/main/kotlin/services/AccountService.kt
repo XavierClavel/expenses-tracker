@@ -178,35 +178,65 @@ class AccountService: KoinComponent {
             """
             WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports)),
-                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports)),
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports AS ar JOIN investment_accounts AS ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports AS ar JOIN investment_accounts AS ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
                     INTERVAL '1 month'
                 )::date AS month
             ),
-            monthly_account_totals AS (
-                SELECT
-                    ia.id AS id,
-                    DATE_TRUNC('month', date::date)::date AS month,
-                    MAX(amount) AS account_balance
-                FROM account_reports AS ar
-                JOIN investment_accounts AS ia
-                ON ar.account_id = ia.id
-                WHERE ia.owner_id = :userId
-                GROUP BY DATE_TRUNC('month', date::date), ia.id
+            accounts AS (
+                SELECT id
+                FROM investment_accounts
+                WHERE owner_id = :userId
             ),
-            monthly_totals AS (
+            account_months AS (
                 SELECT
-                    month AS MONTH,
-                    SUM(account_balance) AS balance
-                FROM monthly_account_totals
-                GROUP BY month
+                    a.id AS account_id,
+                    m.month
+                FROM accounts a
+                CROSS JOIN months m
+            ),
+            reports_by_month AS (
+                SELECT
+                    ar.account_id,
+                    DATE_TRUNC('month', ar.date)::date AS month,
+                    ar.amount,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY ar.account_id, DATE_TRUNC('month', ar.date)
+                        ORDER BY ar.date DESC
+                    ) AS rn
+                FROM account_reports ar
+            ),
+            monthly_latest AS (
+                SELECT
+                    account_id,
+                    month,
+                    amount
+                FROM reports_by_month
+                WHERE rn = 1
+            ),
+            account_balances AS (
+                SELECT
+                    am.account_id,
+                    am.month,
+                    COALESCE(
+                        MAX(ml.amount) OVER (
+                            PARTITION BY am.account_id
+                            ORDER BY am.month
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                        ),
+                        0
+                    ) AS balance
+                FROM account_months am
+                LEFT JOIN monthly_latest ml
+                    ON ml.account_id = am.account_id
+                   AND ml.month = am.month
             )
             SELECT
-                EXTRACT(YEAR FROM m.month)  AS year,
-                EXTRACT(MONTH FROM m.month) AS month,
-                COALESCE(mt.balance, 0) AS balance
-            FROM months m
-            LEFT JOIN monthly_totals mt USING (month)
+                EXTRACT(YEAR FROM month)  AS year,
+                EXTRACT(MONTH FROM month) AS month,
+                SUM(balance) AS balance
+            FROM account_balances
+            GROUP BY month
             ORDER BY year, month;
             """
         )
