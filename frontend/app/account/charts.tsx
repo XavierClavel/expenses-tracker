@@ -17,8 +17,8 @@ import {
     getYearTrends
 } from "@/src/api/trends";
 import {useCategoriesStore} from "@/src/stores/categories-store";
-import {useEffect, useState} from "react";
-import { ToggleButton } from "react-native-paper";
+import React, {useEffect, useState} from "react";
+import {Divider, IconButton, Modal, Portal, Provider, RadioButton, ToggleButton} from "react-native-paper";
 import {Dropdown } from 'react-native-element-dropdown';
 import {useDataTypeStore} from "@/src/stores/data-type-store";
 import {data} from "browserslist";
@@ -31,12 +31,59 @@ import {router} from "expo-router";
 import {CategoryDisplay} from "@/components/category/categoryDisplay";
 import CategoryOut from "@/src/types/CategoryOut";
 import {useBarChartAggregationStore} from "@/src/stores/barchart-aggregation-store";
-import {getAccountTrendsMonth, getUserTrendsMonth} from "@/src/api/accounts";
+import {getAccountTrendsMonth, getAccountTrendsYear, getUserTrendsMonth, getUserTrendsYear} from "@/src/api/accounts";
 import {useSelectedAccountStore} from "@/src/stores/selected-account-store";
+import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
+import {useSummaryStore} from "@/src/stores/summary-store";
 
 
 const colorExpense = '#da451a'
 const colorIncome = '#71cc5d'
+
+
+function PeriodSelector() {
+    const [visible, setVisible] = React.useState(false);
+    const backgroundColor = useThemeColor({}, 'background');
+
+    const timescale = useSummaryDateStore(s => s.timescale)
+    const setTimescale = useSummaryDateStore(s => s.setTimescale)
+
+    return (
+        <View style={{justifyContent: 'center'}}>
+            <IconButton
+                icon="calendar"
+                onPress={() => setVisible(true)}
+                style={{marginVertical: 0}}
+            />
+
+            <Portal>
+                <Modal
+                    visible={visible}
+                    onDismiss={() => setVisible(false)}
+                    contentContainerStyle={{
+                        backgroundColor: backgroundColor,
+                        padding: 20,
+                        margin: 20,
+                        borderRadius: 12,
+                    }}
+                >
+
+                    <Text style={{color: "white", fontWeight: "bold"}}>Timescale</Text>
+                    <RadioButton.Group
+                        onValueChange={newValue => {
+                            setTimescale(newValue)
+                            setVisible(false)
+                        }}
+                        value={timescale}
+                    >
+                        <RadioButton.Item label="Month" value="month" />
+                        <RadioButton.Item label="Year" value="year" />
+                    </RadioButton.Group>
+                </Modal>
+            </Portal>
+        </View>
+    );
+}
 
 export default function AccountCharts() {
     const backgroundColor = useThemeColor({}, 'background');
@@ -45,11 +92,7 @@ export default function AccountCharts() {
     const setTimescale = useDataTypeStore(s => s.setTimescale)
 
     const selectedAccount = useSelectedAccountStore(s => s.selected)
-
-    const itemsTimescale = [
-        { label: 'Month', value: 'month' },
-        { label: 'Year', value: 'year' },
-    ];
+    const timescale = useSummaryDateStore(s => s.timescale)
 
     const [trends, setTrends] = useState([])
 
@@ -67,6 +110,20 @@ export default function AccountCharts() {
                 value: value,
                 frontColor: value >= 0 ? colorIncome : colorExpense,
                 label: displayDate
+            })
+        }
+        setTrends(result)
+    }
+
+    const loadAccountTrendsYear = async () => {
+        const trends = await getAccountTrendsYear(selectedAccount?.id)
+        const result = []
+        for (const v of trends) {
+            const value = Number(v.balance)
+            result.push({
+                value: value,
+                frontColor: value >= 0 ? colorIncome : colorExpense,
+                label: v.year
             })
         }
         setTrends(result)
@@ -91,20 +148,43 @@ export default function AccountCharts() {
         setTrends(result)
     }
 
+    const loadUserTrendsYear = async () => {
+        const trends = await getUserTrendsYear()
+        const result = []
+        for (const v of trends) {
+            const value = Number(v.balance)
+            result.push({
+                value: value,
+                frontColor: value >= 0 ? colorIncome : colorExpense,
+                label: v.year
+            })
+        }
+        setTrends(result)
+    }
+
 
     useEffect(() => {
         console.log("account", selectedAccount)
         console.log("is account null", selectedAccount == null)
         if (selectedAccount == null) {
-            loadUserTrendsMonth()
+            if (timescale == "month") {
+                loadUserTrendsMonth()
+            } else {
+                loadUserTrendsYear()
+            }
         } else {
             console.log("loading account")
-            loadAccountTrendsMonth()
+            if (timescale == "month") {
+                loadAccountTrendsMonth()
+            } else {
+                loadAccountTrendsYear()
+            }
         }
 
-    }, []);
+    }, [timescale]);
 
     return (
+        <Provider>
       <View
         style={{
             flex: 1,
@@ -113,6 +193,7 @@ export default function AccountCharts() {
             height: "100%",
             backgroundColor: backgroundColor,
         }}>
+          <PeriodSelector/>
           <View
               style={{
                   flexDirection: 'column',
@@ -124,6 +205,7 @@ export default function AccountCharts() {
         <CustomBarChart data={trends} amount={1} />
           </View>
     </View>
+        </Provider>
   );
 }
 

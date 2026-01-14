@@ -32,8 +32,32 @@ export async function getAccountTrendsMonth(accountId: number) {
     return trends;
 }
 
+export async function getAccountTrendsYear(accountId: number) {
+    const response = await apiClient.get(`/account/${accountId}/trends/year`)
+    const trends: AccountTrendDto[] = response.data.map((e: any) =>
+        new AccountTrendDto(
+            e.year,
+            e.month,
+            e.balance,
+        )
+    );
+    return trends;
+}
+
 export async function getUserTrendsMonth() {
     const response = await apiClient.get(`/account/trends/month`)
+    const trends: AccountTrendDto[] = response.data.map((e: any) =>
+        new AccountTrendDto(
+            e.year,
+            e.month,
+            e.balance,
+        )
+    );
+    return trends;
+}
+
+export async function getUserTrendsYear() {
+    const response = await apiClient.get(`/account/trends/year`)
     const trends: AccountTrendDto[] = response.data.map((e: any) =>
         new AccountTrendDto(
             e.year,
