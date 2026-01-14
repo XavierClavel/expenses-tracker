@@ -8,7 +8,8 @@ import com.xavierclavel.utils.createAccountReport
 import com.xavierclavel.utils.getAccount
 import com.xavierclavel.utils.getAccountMonthTrendsReport
 import com.xavierclavel.utils.getAccountYearTrendsReport
-import com.xavierclavel.utils.getUserAccountsTrendsReport
+import com.xavierclavel.utils.getUserAccountsMonthTrendsReport
+import com.xavierclavel.utils.getUserAccountsYearTrendsReport
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
@@ -106,7 +107,7 @@ class AccountControllerTest: ApplicationTest() {
         client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
         client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
         client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2021-02-01")))
-        val result = client.getUserAccountsTrendsReport()
+        val result = client.getUserAccountsMonthTrendsReport()
         println(result)
         assertEquals(2, result.size)
         assertEquals(0, result[0].balance.compareTo(BigDecimal("15")))
@@ -120,13 +121,42 @@ class AccountControllerTest: ApplicationTest() {
         client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
         client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
         client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2021-04-01")))
-        val result = client.getUserAccountsTrendsReport()
+        val result = client.getUserAccountsMonthTrendsReport()
         println(result)
         assertEquals(4, result.size)
         assertEquals(0, result[0].balance.compareTo(BigDecimal("15")))
         assertEquals(0, result[1].balance.compareTo(BigDecimal("20")))
         assertEquals(0, result[2].balance.compareTo(BigDecimal("20")))
         assertEquals(0, result[3].balance.compareTo(BigDecimal("50")))
+    }
+
+    @Test
+    fun `user year trends`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        val account2 = client.createAccount(accountDto.copy(name = "PEG"))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2022-02-01")))
+        val result = client.getUserAccountsYearTrendsReport()
+        println(result)
+        assertEquals(2, result.size)
+        assertEquals(0, result[0].balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result[1].balance.compareTo(BigDecimal("50")))
+    }
+
+    @Test
+    fun `user year trends are extrapolated`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        val account2 = client.createAccount(accountDto.copy(name = "PEG"))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2023-04-01")))
+        val result = client.getUserAccountsYearTrendsReport()
+        println(result)
+        assertEquals(3, result.size)
+        assertEquals(0, result[0].balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result[1].balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result[2].balance.compareTo(BigDecimal("50")))
     }
 
 }

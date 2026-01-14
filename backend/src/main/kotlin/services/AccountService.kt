@@ -244,4 +244,75 @@ class AccountService: KoinComponent {
             .findList()
     }
 
+    fun trendByUserByYear(userId: Long): List<AccountTrendDto> {
+        return DB.findDto(
+            AccountTrendDto::class.java,
+            """
+            WITH years AS (
+                SELECT generate_series(
+                    DATE_TRUNC('year', (SELECT MIN(date)::date FROM account_reports AS ar JOIN investment_accounts AS ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
+                    DATE_TRUNC('year', (SELECT MAX(date)::date FROM account_reports AS ar JOIN investment_accounts AS ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
+                    INTERVAL '1 year'
+                )::date AS year
+            ),
+            accounts AS (
+                SELECT id
+                FROM investment_accounts
+                WHERE owner_id = :userId
+            ),
+            account_years AS (
+                SELECT
+                    a.id AS account_id,
+                    m.year
+                FROM accounts a
+                CROSS JOIN years m
+            ),
+            reports_by_year AS (
+                SELECT
+                    ar.account_id,
+                    DATE_TRUNC('year', ar.date)::date AS year,
+                    ar.amount,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY ar.account_id, DATE_TRUNC('year', ar.date)
+                        ORDER BY ar.date DESC
+                    ) AS rn
+                FROM account_reports ar
+            ),
+            yearly_latest AS (
+                SELECT
+                    account_id,
+                    year,
+                    amount
+                FROM reports_by_year
+                WHERE rn = 1
+            ),
+            account_balances AS (
+                SELECT
+                    am.account_id,
+                    am.year,
+                    COALESCE(
+                        MAX(ml.amount) OVER (
+                            PARTITION BY am.account_id
+                            ORDER BY am.year
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                        ),
+                        0
+                    ) AS balance
+                FROM account_years am
+                LEFT JOIN yearly_latest ml
+                    ON ml.account_id = am.account_id
+                   AND ml.year = am.year
+            )
+            SELECT
+                EXTRACT(YEAR FROM year)  AS year,
+                SUM(balance) AS balance
+            FROM account_balances
+            GROUP BY year
+            ORDER BY year;
+            """
+        )
+            .setParameter("userId", userId)
+            .findList()
+    }
+
 }

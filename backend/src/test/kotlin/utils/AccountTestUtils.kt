@@ -92,8 +92,16 @@ suspend fun HttpClient.getAccountYearTrendsReport(accountId: Long): List<Account
     }
 }
 
-suspend fun HttpClient.getUserAccountsTrendsReport(): List<AccountTrendDto> {
+suspend fun HttpClient.getUserAccountsMonthTrendsReport(): List<AccountTrendDto> {
     this.get("$ACCOUNT_URL/trends/month").apply {
+        assertEquals(HttpStatusCode.OK, status)
+        val account = Json.decodeFromString<List<AccountTrendDto>>(bodyAsText())
+        return account
+    }
+}
+
+suspend fun HttpClient.getUserAccountsYearTrendsReport(): List<AccountTrendDto> {
+    this.get("$ACCOUNT_URL/trends/year").apply {
         assertEquals(HttpStatusCode.OK, status)
         val account = Json.decodeFromString<List<AccountTrendDto>>(bodyAsText())
         return account
