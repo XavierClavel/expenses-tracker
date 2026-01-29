@@ -1,40 +1,15 @@
 import { Image } from 'expo-image';
 import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { BarChart } from "react-native-gifted-charts";
-import {CustomPieChart} from "@/components/custom-pie-chart";
 import {CustomBarChart} from "@/components/custom-bar-chart";
 import {useThemeColor} from "@/hooks/use-theme-color";
-import {getYearSummary} from "@/src/api/summary";
-import {
-    getMonthCategoryTrends, getMonthSubcategoryTrends,
-    getMonthTrends,
-    getYearCategoryTrends, getYearFlowTrends,
-    getYearSubcategoryTrends,
-    getYearTrends
-} from "@/src/api/trends";
-import {useCategoriesStore} from "@/src/stores/categories-store";
 import React, {useEffect, useState} from "react";
 import {Divider, IconButton, Modal, Portal, Provider, RadioButton, ToggleButton} from "react-native-paper";
 import {Dropdown } from 'react-native-element-dropdown';
 import {useDataTypeStore} from "@/src/stores/data-type-store";
-import {data} from "browserslist";
-import {useSelectedTypeStore} from "@/src/stores/selected-type-store";
-import {time} from "@expo/fingerprint/cli/build/utils/log";
-import {useSelectedCategoryStore} from "@/src/stores/selected-category-store";
-import {useSelectedSubcategoryStore} from "@/src/stores/selected-subcategory-store";
-import {colors} from "@/constants/colors";
-import {router} from "expo-router";
-import {CategoryDisplay} from "@/components/category/categoryDisplay";
-import CategoryOut from "@/src/types/CategoryOut";
-import {useBarChartAggregationStore} from "@/src/stores/barchart-aggregation-store";
 import {getAccountTrendsMonth, getAccountTrendsYear, getUserTrendsMonth, getUserTrendsYear} from "@/src/api/accounts";
 import {useSelectedAccountStore} from "@/src/stores/selected-account-store";
 import {useSummaryDateStore} from "@/src/stores/sumary-date-store";
-import {useSummaryStore} from "@/src/stores/summary-store";
 
 
 const colorExpense = '#da451a'
@@ -181,7 +156,7 @@ export default function AccountCharts() {
             }
         }
 
-    }, [timescale]);
+    }, [timescale, selectedAccount]);
 
     return (
         <Provider>

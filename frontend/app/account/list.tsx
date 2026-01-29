@@ -1,10 +1,11 @@
 import {ActivityIndicator, FlatList, Pressable, Text, useWindowDimensions, View} from "react-native";
-import {router, useNavigation} from "expo-router";
+import {router, useFocusEffect, useNavigation} from "expo-router";
 import {AccountDisplay} from "@/components/account-display";
 import {FAB} from "react-native-paper";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {useSelectedAccountStore} from "@/src/stores/selected-account-store";
 import {useAccountsStore} from "@/src/stores/accounts-store";
+import {useCallback, useEffect} from "react";
 
 
 export default function AccountsList() {
@@ -15,6 +16,11 @@ export default function AccountsList() {
     const setSelectedAccount = useSelectedAccountStore(s => s.setSelected)
 
     const backgroundColor = useThemeColor({}, 'background');
+
+    useFocusEffect(
+        useCallback(() => {
+            setSelectedAccount(null)
+    }, []))
 
     return <View
         style={{
