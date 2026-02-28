@@ -141,7 +141,7 @@ WITH months AS (
         return DB.findDto(
             TrendDto::class.java,
             """
-            $MONTHS_SERIES
+            $MONTHS_SERIES_UP_TO_CURRENT_DATE
             monthly_totals AS (
                 SELECT
                     DATE_TRUNC('month', date::date)::date AS month_date,
@@ -226,7 +226,7 @@ WITH months AS (
         return DB.findDto(
             YearTrendDto::class.java,
             """
-            $MONTHS_SERIES
+            $MONTHS_SERIES_UP_TO_CURRENT_DATE
             monthly_totals AS (
                 SELECT
                     DATE_TRUNC('month', date::date)::date AS month_date,
@@ -248,6 +248,15 @@ WITH months AS (
             SELECT generate_series(
                 DATE_TRUNC('month', (SELECT MIN(date)::date FROM expenses WHERE user_id = :userId)),
                 DATE_TRUNC('month', (SELECT MAX(date)::date FROM expenses WHERE user_id = :userId)),
+                INTERVAL '1 month'
+            )::date AS month_date
+        ),""".trimIndent()
+
+    private val MONTHS_SERIES_UP_TO_CURRENT_DATE = """
+        WITH months AS (
+            SELECT generate_series(
+                DATE_TRUNC('month', (SELECT MIN(date)::date FROM expenses WHERE user_id = :userId)),
+                DATE_TRUNC('month', (SELECT MAX(date)::date FROM expenses WHERE user_id = :userId AND date < DATE_TRUNC('month', CURRENT_DATE))),
                 INTERVAL '1 month'
             )::date AS month_date
         ),""".trimIndent()
