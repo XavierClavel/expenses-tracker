@@ -149,7 +149,7 @@ WITH months AS (
                     SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS totalExpenses
                 FROM expenses
                 WHERE user_id = :userId
-                AND date < DATE_TRUNC("month", CURRENT_DATE)
+                AND date < DATE_TRUNC('month', CURRENT_DATE)
                 GROUP BY DATE_TRUNC('month', date::date)
             ),
             months_with_totals AS (
@@ -233,7 +233,7 @@ WITH months AS (
                     SUM(CASE WHEN type = 'INCOME'  THEN amount ELSE -amount END) AS total
                 FROM expenses
                 WHERE user_id = :userId
-                AND date < DATE_TRUNC("month", CURRENT_DATE)
+                AND date < DATE_TRUNC('month', CURRENT_DATE)
                 GROUP BY DATE_TRUNC('month', date::date)
             ),
             $OUTPUT
