@@ -107,15 +107,26 @@ class AccountService: KoinComponent {
                 LEFT JOIN monthly_latest ml
                     ON ml.month = m.month
                    AND ml.rn = 1
+            ),
+            balances AS (
+                SELECT
+                    EXTRACT(YEAR FROM month)  AS year,
+                    EXTRACT(MONTH FROM month) AS month,
+                    MAX(amount) OVER (
+                        ORDER BY month
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                    ) AS balance
+                FROM month_values
+                ORDER BY year, month
             )
             SELECT
-                EXTRACT(YEAR FROM month)  AS year,
-                EXTRACT(MONTH FROM month) AS month,
-                MAX(amount) OVER (
-                    ORDER BY month
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                ) AS balance
-            FROM month_values
+                month AS month,
+                year AS year,
+                balance AS balance,
+                balance - LAG(balance) OVER (ORDER BY month) AS change,
+                (balance - LAG(balance) OVER (ORDER BY month))
+                    / NULLIF(LAG(balance) OVER (ORDER BY month), 0) AS proportionalChange
+            FROM balances
             ORDER BY year, month;
             """
         )
@@ -156,14 +167,24 @@ class AccountService: KoinComponent {
                 LEFT JOIN yearly_latest ml
                     ON ml.year = m.year
                    AND ml.rn = 1
+            ),
+            balances AS (
+                SELECT
+                    EXTRACT(YEAR FROM year)  AS year,
+                    MAX(amount) OVER (
+                        ORDER BY year
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                    ) AS balance
+                FROM year_values
+                ORDER BY year
             )
             SELECT
-                EXTRACT(YEAR FROM year)  AS year,
-                MAX(amount) OVER (
-                    ORDER BY year
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                ) AS balance
-            FROM year_values
+                year AS year,
+                balance AS balance,
+                balance - LAG(balance) OVER (ORDER BY year) AS change,
+                (balance - LAG(balance) OVER (ORDER BY year))
+                    / NULLIF(LAG(balance) OVER (ORDER BY year), 0) AS proportionalChange
+            FROM balances
             ORDER BY year;
             """
         )
@@ -230,13 +251,24 @@ class AccountService: KoinComponent {
                 LEFT JOIN monthly_latest ml
                     ON ml.account_id = am.account_id
                    AND ml.month = am.month
+            ),
+            balances AS (
+                SELECT
+                    EXTRACT(YEAR FROM month)  AS year,
+                    EXTRACT(MONTH FROM month) AS month,
+                    SUM(balance) AS balance
+                FROM account_balances
+                GROUP BY month
+                ORDER BY year, month
             )
             SELECT
-                EXTRACT(YEAR FROM month)  AS year,
-                EXTRACT(MONTH FROM month) AS month,
-                SUM(balance) AS balance
-            FROM account_balances
-            GROUP BY month
+                year AS year,
+                month AS month,
+                balance AS balance,
+                balance - LAG(balance) OVER (ORDER BY month) AS change,
+                (balance - LAG(balance) OVER (ORDER BY month))
+                    / NULLIF(LAG(balance) OVER (ORDER BY month), 0) AS proportionalChange
+            FROM balances
             ORDER BY year, month;
             """
         )
@@ -302,12 +334,22 @@ class AccountService: KoinComponent {
                 LEFT JOIN yearly_latest ml
                     ON ml.account_id = am.account_id
                    AND ml.year = am.year
+            ),
+            balances AS (
+                SELECT
+                    EXTRACT(YEAR FROM year)  AS year,
+                    SUM(balance) AS balance
+                FROM account_balances
+                GROUP BY year
+                ORDER BY year
             )
             SELECT
-                EXTRACT(YEAR FROM year)  AS year,
-                SUM(balance) AS balance
-            FROM account_balances
-            GROUP BY year
+                year AS year,
+                balance AS balance,
+                balance - LAG(balance) OVER (ORDER BY year) AS change,
+                (balance - LAG(balance) OVER (ORDER BY year))
+                    / NULLIF(LAG(balance) OVER (ORDER BY year), 0) AS proportionalChange
+            FROM balances
             ORDER BY year;
             """
         )
