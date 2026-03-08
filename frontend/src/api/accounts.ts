@@ -27,6 +27,8 @@ export async function getAccountTrendsMonth(accountId: number) {
             e.year,
             e.month,
             e.balance,
+            e.change,
+            e.proportionalChange,
         )
     );
     return trends;
@@ -39,6 +41,8 @@ export async function getAccountTrendsYear(accountId: number) {
             e.year,
             e.month,
             e.balance,
+            e.change,
+            e.proportionalChange,
         )
     );
     return trends;
@@ -51,6 +55,8 @@ export async function getUserTrendsMonth() {
             e.year,
             e.month,
             e.balance,
+            e.change,
+            e.proportionalChange,
         )
     );
     return trends;
@@ -63,6 +69,8 @@ export async function getUserTrendsYear() {
             e.year,
             e.month,
             e.balance,
+            e.change,
+            e.proportionalChange,
         )
     );
     return trends;

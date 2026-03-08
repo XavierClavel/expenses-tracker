@@ -6,5 +6,7 @@ export default class AccountTrendDto{
         public year: number | null,
         public month: number | null,
         public balance: string,
+        public change: string | null,
+        public proportionalChange: string | null,
         ) {}
 }

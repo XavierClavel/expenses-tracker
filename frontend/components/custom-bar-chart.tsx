@@ -10,9 +10,10 @@ import {with2Decimals, withReadableThousands} from "@/src/utils/math";
 type Props = {
     data: any[],
     amount: number,
+    suffix: string,
 };
 
-export function CustomBarChart({ data, amount }: Props) {
+export function CustomBarChart({ data, amount, suffix = "€" }: Props) {
     const [focusedItem, setFocusedItem] = useState([]);
     const windowWidth = Dimensions.get('window').width;
     const scrollPosition = useRef(0)
@@ -91,11 +92,11 @@ export function CustomBarChart({ data, amount }: Props) {
             marginVertical: 20
         }}>
                 <Text style={{ color: data[focusedItem[0]].value > 0 ? '#71cc5d' : '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold' }}>
-                    {withReadableThousands(with2Decimals(data[focusedItem[0]].value))}€
+                    {withReadableThousands(with2Decimals(data[focusedItem[0]].value))}{suffix}
                 </Text>
             {focusedItem.length > 1 &&
                 <Text style={{color: '#da451a', textAlign: 'center', fontSize: 17, fontWeight: 'bold'}}>
-            -{withReadableThousands(with2Decimals(data[focusedItem[1]].value))}€
+            -{withReadableThousands(with2Decimals(data[focusedItem[1]].value))}{suffix}
         </Text>
     }
         </View>
