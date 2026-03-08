@@ -123,9 +123,9 @@ class AccountService: KoinComponent {
                 month AS month,
                 year AS year,
                 balance AS balance,
-                balance - LAG(balance) OVER (ORDER BY month) AS change,
-                (balance - LAG(balance) OVER (ORDER BY month))
-                    / NULLIF(LAG(balance) OVER (ORDER BY month), 0) AS proportionalChange
+                balance - LAG(balance) OVER (ORDER BY year, month) AS change,
+                (balance - LAG(balance) OVER (ORDER BY year, month))
+                    / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange
             FROM balances
             ORDER BY year, month;
             """
@@ -265,9 +265,9 @@ class AccountService: KoinComponent {
                 year AS year,
                 month AS month,
                 balance AS balance,
-                balance - LAG(balance) OVER (ORDER BY month) AS change,
-                (balance - LAG(balance) OVER (ORDER BY month))
-                    / NULLIF(LAG(balance) OVER (ORDER BY month), 0) AS proportionalChange
+                balance - LAG(balance) OVER (ORDER BY year, month) AS change,
+                (balance - LAG(balance) OVER (ORDER BY year, month))
+                    / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange
             FROM balances
             ORDER BY year, month;
             """
