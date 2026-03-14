@@ -90,14 +90,14 @@ class AccountControllerTest: ApplicationTest() {
     @Test
     fun `account year trends are extrapolated`() = runTestAsUser {
         val account = client.createAccount(accountDto)
-        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
-        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-01-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-02-01")))
         client.createAccountReport(account.id, AccountReportIn(BigDecimal("50"), LocalDate.parse("2023-02-01")))
         val result = client.getAccountYearTrendsReport(account.id)
         println(result)
         assertEquals(3, result.size)
-        assertEquals(0, result.find{it.year == 2021}!!.balance.compareTo(BigDecimal("20")))
-        assertEquals(0, result.find{it.year == 2022}!!.balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result.find{it.year == 2021}!!.balance.compareTo(BigDecimal("15")))
+        assertEquals(0, result.find{it.year == 2022}!!.balance.compareTo(BigDecimal("15")))
         assertEquals(0, result.find{it.year == 2023}!!.balance.compareTo(BigDecimal("50")))
     }
 
@@ -119,30 +119,30 @@ class AccountControllerTest: ApplicationTest() {
     fun `user month trends are extrapolated`() = runTestAsUser {
         val account = client.createAccount(accountDto)
         val account2 = client.createAccount(accountDto.copy(name = "PEG"))
-        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
-        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-01-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-02-01")))
         client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2021-04-01")))
         val result = client.getUserAccountsMonthTrendsReport()
         println(result)
         assertEquals(4, result.size)
-        assertEquals(0, result.find{it.year == 2021 && it.month == 1}!!.balance.compareTo(BigDecimal("15")))
-        assertEquals(0, result.find{it.year == 2021 && it.month == 2}!!.balance.compareTo(BigDecimal("20")))
-        assertEquals(0, result.find{it.year == 2021 && it.month == 3}!!.balance.compareTo(BigDecimal("20")))
-        assertEquals(0, result.find{it.year == 2021 && it.month == 4}!!.balance.compareTo(BigDecimal("50")))
+        assertEquals(0, result.find{it.year == 2021 && it.month == 1}!!.balance.compareTo(BigDecimal("20")))
+        assertEquals(0, result.find{it.year == 2021 && it.month == 2}!!.balance.compareTo(BigDecimal("15")))
+        assertEquals(0, result.find{it.year == 2021 && it.month == 3}!!.balance.compareTo(BigDecimal("15")))
+        assertEquals(0, result.find{it.year == 2021 && it.month == 4}!!.balance.compareTo(BigDecimal("45")))
     }
 
     @Test
     fun `user year trends`() = runTestAsUser {
         val account = client.createAccount(accountDto)
         val account2 = client.createAccount(accountDto.copy(name = "PEG"))
-        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-01-01")))
-        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-01-01")))
+        client.createAccountReport(account.id, AccountReportIn(BigDecimal("15"), LocalDate.parse("2021-02-01")))
         client.createAccountReport(account2.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2022-02-01")))
         val result = client.getUserAccountsYearTrendsReport()
         println(result)
         assertEquals(2, result.size)
-        assertEquals(0, result.find{it.year == 2021}!!.balance.compareTo(BigDecimal("20")))
-        assertEquals(0, result.find{it.year == 2022}!!.balance.compareTo(BigDecimal("50")))
+        assertEquals(0, result.find{it.year == 2021}!!.balance.compareTo(BigDecimal("15")))
+        assertEquals(0, result.find{it.year == 2022}!!.balance.compareTo(BigDecimal("45")))
     }
 
     @Test

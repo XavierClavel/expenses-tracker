@@ -203,8 +203,8 @@ class AccountService: KoinComponent {
             """
             WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports AS ar JOIN investment_accounts AS ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
-                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports AS ar JOIN investment_accounts AS ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
+                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports ar JOIN investment_accounts ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
+                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports ar JOIN investment_accounts ia ON ar.account_id = ia.id WHERE ia.owner_id = :userId)),
                     INTERVAL '1 month'
                 )::date AS month
             ),
@@ -239,23 +239,31 @@ class AccountService: KoinComponent {
                 FROM reports_by_month
                 WHERE rn = 1
             ),
-            account_balances AS (
+            account_month_amounts AS (
                 SELECT
                     am.account_id,
                     am.month,
-                    COALESCE(
-                        MAX(ml.amount) OVER (
-                            PARTITION BY am.account_id
-                            ORDER BY am.month
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        ),
-                        0
-                    ) AS balance
+                    ml.amount,
+                    COUNT(ml.amount) OVER (
+                        PARTITION BY am.account_id
+                        ORDER BY am.month
+                    ) AS grp
                 FROM account_months am
                 LEFT JOIN monthly_latest ml
                     ON ml.account_id = am.account_id
                    AND ml.month = am.month
             ),
+            account_balances AS (
+                SELECT
+                    account_id,
+                    month,
+                    COALESCE(
+                        MAX(amount) OVER (PARTITION BY account_id, grp),
+                        0
+                    ) AS balance
+                FROM account_month_amounts
+            ),
+            
             balances AS (
                 SELECT
                     EXTRACT(YEAR FROM month)  AS year,
@@ -266,9 +274,9 @@ class AccountService: KoinComponent {
                 ORDER BY year, month
             )
             SELECT
-                year AS year,
-                month AS month,
-                balance AS balance,
+                year,
+                month,
+                balance,
                 balance - LAG(balance) OVER (ORDER BY year, month) AS change,
                 (balance - LAG(balance) OVER (ORDER BY year, month))
                     / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange
@@ -322,22 +330,29 @@ class AccountService: KoinComponent {
                 FROM reports_by_year
                 WHERE rn = 1
             ),
+            account_year_amounts AS (
+                SELECT
+                    ay.account_id,
+                    ay.year,
+                    yl.amount,
+                    COUNT(yl.amount) OVER (
+                        PARTITION BY ay.account_id
+                        ORDER BY ay.year
+                    ) AS grp
+                FROM account_years ay
+                LEFT JOIN yearly_latest yl
+                    ON yl.account_id = ay.account_id
+                   AND yl.year = ay.year
+            ),
             account_balances AS (
                 SELECT
-                    am.account_id,
-                    am.year,
+                    account_id,
+                    year,
                     COALESCE(
-                        MAX(ml.amount) OVER (
-                            PARTITION BY am.account_id
-                            ORDER BY am.year
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        ),
+                        MAX(amount) OVER (PARTITION BY account_id, grp),
                         0
                     ) AS balance
-                FROM account_years am
-                LEFT JOIN yearly_latest ml
-                    ON ml.account_id = am.account_id
-                   AND ml.year = am.year
+                FROM account_year_amounts
             ),
             balances AS (
                 SELECT
