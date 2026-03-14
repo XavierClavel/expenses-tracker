@@ -112,16 +112,18 @@ class AccountService: KoinComponent {
                 SELECT
                     EXTRACT(YEAR FROM month)  AS year,
                     EXTRACT(MONTH FROM month) AS month,
-                    MAX(amount) OVER (
-                        ORDER BY month
-                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                    ) AS balance
-                FROM month_values
-                ORDER BY year, month
+                    MAX(amount) OVER (PARTITION BY grp) AS balance
+                        FROM (
+                            SELECT
+                                month,
+                                amount,
+                                COUNT(amount) OVER (ORDER BY month) AS grp
+                            FROM month_values
+                        ) t
             )
             SELECT
-                month AS month,
                 year AS year,
+                month AS month,
                 balance AS balance,
                 balance - LAG(balance) OVER (ORDER BY year, month) AS change,
                 (balance - LAG(balance) OVER (ORDER BY year, month))
@@ -171,12 +173,14 @@ class AccountService: KoinComponent {
             balances AS (
                 SELECT
                     EXTRACT(YEAR FROM year)  AS year,
-                    MAX(amount) OVER (
-                        ORDER BY year
-                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                    ) AS balance
-                FROM year_values
-                ORDER BY year
+                    MAX(amount) OVER (PARTITION BY grp) AS balance
+                        FROM (
+                            SELECT
+                                year,
+                                amount,
+                                COUNT(amount) OVER (ORDER BY year) AS grp
+                            FROM year_values
+                        ) t
             )
             SELECT
                 year AS year,
