@@ -38,6 +38,13 @@ export function CustomPieChart({ data, total }: SummaryProps) {
         setFocusedItem(0);
     }, [data]);
 
+
+    const accumulatedTotal: number = data.reduce((accumulator, object) => {
+        return accumulator + Math.abs(object.value);
+    }, 0);
+    const accumulatedPercent = accumulatedTotal / total * 100
+
+
     const pieData = data
         .sort((function(a, b) {
             return b.value - a.value;
@@ -46,16 +53,31 @@ export function CustomPieChart({ data, total }: SummaryProps) {
             return v.value > 0
         }))
         .map(it => {
-        return {
-            value: Math.abs(it.value),
-            color: colors[it.color || 'unknown'],
-            icon: it.icon,
-            label: it.label,
-            gradientCenterColor: it.color,
-            radius: newFocusedItem === data.indexOf(it) ? 130 : 120,
-            id: it.id,
-        }
-    })
+            return {
+                value: Math.abs(it.value),
+                color: colors[it.color || 'unknown'],
+                icon: it.icon,
+                label: it.label,
+                gradientCenterColor: it.color,
+                radius: newFocusedItem === data.indexOf(it) ? 130 : 120,
+                id: it.id,
+            }
+        })
+
+    const savings = total - accumulatedTotal
+    console.log(savings / total * 100)
+    if (savings >= 0.1) {
+        pieData.push({
+            value: Math.abs(total - accumulatedTotal),
+            color: 'white',
+            icon: 'savings',
+            label: 'Savings',
+            gradientCenterColor: '#ffffff',
+            radius:  120,
+            id: 0,
+        })
+    }
+
 
     const categoryData = data
         .sort((function(a, b) {
@@ -79,11 +101,6 @@ export function CustomPieChart({ data, total }: SummaryProps) {
         return <Text>No data</Text>
     }
 
-
-    const accumulatedTotal: number = pieData.reduce((accumulator, object) => {
-        return accumulator + object.value;
-    }, 0);
-    const accumulatedPercent = accumulatedTotal / total * 100
 
     return <View
         style={{
@@ -179,6 +196,11 @@ export function CustomPieChart({ data, total }: SummaryProps) {
                 justifyContent: "center",   // vertical center
                 alignItems: "center",        // horizontal center
             }}>
+                { savings > 0.1 &&
+                    <TouchableRipple style={{width: "100%"}} key={-1}>
+                        <CategoryReport item={pieData[pieData.length -1]} percent={savings / total * 100} />
+                    </TouchableRipple>
+                }
                 {categoryData.map((item, index) => (
                     <TouchableRipple style={{width: "100%"}} key={index}>
                     <Pressable onPress={() => {

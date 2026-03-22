@@ -106,6 +106,8 @@ export function IconSymbol({
             return <MaterialCommunityIcons color={color} size={size} name='pill' />
         case 'scissors':
             return <FontAwesome6 color={color} size={size-3} name='scissors' />
+        case 'savings':
+            return <FontAwesome5 color={color} size={size-3} name='wallet' />
         case 'unknown':
             return <FontAwesome5 color={color} size={size-3} name='question' />;
     }

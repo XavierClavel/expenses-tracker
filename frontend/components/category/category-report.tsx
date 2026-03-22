@@ -7,7 +7,7 @@ import {IconSymbol} from "@/components/ui/icon-symbol";
 import {useThemeColor} from "@/hooks/use-theme-color";
 import {StandardIcon} from "@/components/standard-icon";
 import {colors} from "@/constants/colors";
-import {withNoDecimals, withReadableThousands} from "@/src/utils/math";
+import {with2Decimals, withNoDecimals, withReadableThousands} from "@/src/utils/math";
 
 export function CategoryReport({ item, percent }) {
     const surfaceColor = useThemeColor({}, 'surface');
@@ -52,7 +52,7 @@ export function CategoryReport({ item, percent }) {
                         {item.label}
                     </Text>
                         <Text style={{ textAlign:'right', color: textOnSurfaceColor, fontWeight:'bold', fontSize: 16}}>
-                            {withReadableThousands(item.value)}€
+                            {withReadableThousands(with2Decimals(item.value))}€
                         </Text>
                 </View>
 

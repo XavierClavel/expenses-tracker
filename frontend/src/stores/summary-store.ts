@@ -18,7 +18,7 @@ export const useSummaryStore = create<SummaryStore>((set) => ({
     reset: () => set({selected: null }),
     subcategory: null,
     setSubcategory: (value) => set({subcategory: value}),
-    percentReferential: "expense",
+    percentReferential: "income",
     setPercentReferential: (value) => set({percentReferential: value}),
     agglomeration: "sum",
     setAgglomeration: (value) => set({agglomeration: value}),

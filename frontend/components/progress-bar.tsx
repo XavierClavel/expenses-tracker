@@ -17,7 +17,7 @@ export function ProgressBar({ progress, color }) {
             <View style={{
                 height: "100%",
                 width: `${progress}%`,
-                backgroundColor: color,
+                backgroundColor: color || '#ffffff',
             }} />
         </View>
     );
