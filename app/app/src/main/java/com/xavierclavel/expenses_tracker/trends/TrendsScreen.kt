@@ -336,6 +336,7 @@ fun GroupedBarChart(
                     }
                 }
             }
+            Spacer(Modifier.width(yAxisWidth))
         }
     }
 }

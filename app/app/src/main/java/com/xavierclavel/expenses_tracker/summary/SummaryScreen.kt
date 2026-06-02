@@ -1,6 +1,21 @@
 package com.xavierclavel.expenses_tracker.summary
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -20,7 +35,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -104,8 +118,12 @@ fun SummaryScreen(
             .sortedByDescending { it.value }
     }
 
-    // Resets to -1 (nothing selected) whenever the loaded data changes
-    var selectedSlice by remember(summary, viewModel.selectedType) { mutableIntStateOf(-1) }
+    // Period key: monotonically increasing forward in time so AnimatedContent
+    // can determine slide direction by comparing targetState vs initialState.
+    val periodKey = when (viewModel.timescale) {
+        "year"  -> viewModel.selectedYear * 12
+        else    -> viewModel.selectedYear * 12 + viewModel.selectedMonth
+    }
 
     Column(
         modifier = Modifier
@@ -179,48 +197,75 @@ fun SummaryScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // ── Totals cards ───────────────────────────────────────────────────
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TotalCard("Expenses", summary?.totalExpenses?.toDoubleOrNull() ?: 0.0, Color(0xFFE53935), "-", Modifier.weight(1f))
-            TotalCard("Income",   summary?.totalIncome?.toDoubleOrNull()   ?: 0.0, Color(0xFF4CAF50), "+", Modifier.weight(1f))
+        // ── Animated data section (totals + chart + legend) ───────────────
+        AnimatedContent(
+            targetState = periodKey,
+            transitionSpec = {
+                val forward = targetState > initialState
+                val enter = slideInHorizontally(
+                    initialOffsetX = { if (forward) it else -it },
+                    animationSpec = tween(320, easing = FastOutSlowInEasing),
+                ) + fadeIn(tween(200))
+                val exit = slideOutHorizontally(
+                    targetOffsetX = { if (forward) -it else it },
+                    animationSpec = tween(320, easing = FastOutSlowInEasing),
+                ) + fadeOut(tween(150))
+                enter togetherWith exit
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { _ ->
+            // selectedSlice lives here so it resets automatically on every period change
+            var selectedSlice by remember { mutableIntStateOf(-1) }
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (isLoading) {
+                    val brush = shimmerBrush()
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(Modifier.weight(1f).height(64.dp).clip(MaterialTheme.shapes.medium).background(brush))
+                        Box(Modifier.weight(1f).height(64.dp).clip(MaterialTheme.shapes.medium).background(brush))
+                    }
+                } else {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TotalCard("Expenses", summary?.totalExpenses?.toDoubleOrNull() ?: 0.0, Color(0xFFE53935), "-", Modifier.weight(1f))
+                        TotalCard("Income",   summary?.totalIncome?.toDoubleOrNull()   ?: 0.0, Color(0xFF4CAF50), "+", Modifier.weight(1f))
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                if (isLoading) {
+                    SummarySkeleton()
+                } else if (pieEntries.isEmpty()) {
+                    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        Text("No data for this period", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
+
+                    DonutChart(
+                        entries = pieEntries,
+                        total = pieTotal,
+                        selectedIndex = selectedSlice,
+                        onSliceClick = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
+                        modifier = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    pieEntries.forEachIndexed { index, entry ->
+                        LegendRow(
+                            entry = entry,
+                            total = pieTotal,
+                            isSelected = index == selectedSlice,
+                            onClick = { selectedSlice = if (selectedSlice == index) -1 else index },
+                        )
+                        Spacer(Modifier.height(6.dp))
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+            }
         }
-
-        Spacer(Modifier.height(16.dp))
-
-        // ── Pie chart + legend ─────────────────────────────────────────────
-        if (isLoading) {
-            Box(Modifier.fillMaxWidth().height(260.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (pieEntries.isEmpty()) {
-            Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                Text("No data for this period", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        } else {
-            val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
-
-            DonutChart(
-                entries = pieEntries,
-                total = pieTotal,
-                selectedIndex = selectedSlice,
-                onSliceClick = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
-                modifier = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            pieEntries.forEachIndexed { index, entry ->
-                LegendRow(
-                    entry = entry,
-                    total = pieTotal,
-                    isSelected = index == selectedSlice,
-                    onClick = { selectedSlice = if (selectedSlice == index) -1 else index },
-                )
-                Spacer(Modifier.height(6.dp))
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
     }
 }
 
@@ -335,7 +380,7 @@ private fun DonutChart(
                         else MaterialTheme.colorScheme.onBackground,
             )
             Text(
-                text = selectedEntry?.label ?: "€",
+                text = selectedEntry?.label ?: "Total",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -425,9 +470,73 @@ private fun LegendRow(
     }
 }
 
-private fun formatSummaryAmount(value: Double): String = when {
-    value >= 1_000_000 -> "${"%.1f".format(value / 1_000_000)}M"
-    value >= 10_000    -> "${(value / 1_000).toInt()}k"
-    value >= 1_000     -> "${"%.1f".format(value / 1_000)}k"
-    else               -> "${"%.0f".format(value)}"
+// ── Skeleton loader ────────────────────────────────────────────────────────────
+
+@Composable
+private fun shimmerBrush(): Brush {
+    val base     = MaterialTheme.colorScheme.surfaceVariant
+    val highlight = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val offset by transition.animateFloat(
+        initialValue = 0f,
+        targetValue  = 1800f,
+        animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing)),
+        label = "shimmer_x",
+    )
+    return Brush.linearGradient(
+        colors = listOf(base, highlight, base),
+        start  = Offset(offset - 600f, 0f),
+        end    = Offset(offset + 600f, 0f),
+    )
+}
+
+@Composable
+private fun SummarySkeleton() {
+    val brush = shimmerBrush()
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Donut placeholder
+        Box(
+            modifier = Modifier
+                .size(220.dp)
+                .align(Alignment.CenterHorizontally),
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val diameter    = minOf(size.width, size.height)
+                val strokeWidth = diameter / 2f * 0.28f
+                val inset       = strokeWidth / 2f
+                drawArc(
+                    brush      = brush,
+                    startAngle = 0f,
+                    sweepAngle = 360f,
+                    useCenter  = false,
+                    topLeft    = Offset(inset, inset),
+                    size       = Size(diameter - strokeWidth, diameter - strokeWidth),
+                    style      = Stroke(width = strokeWidth),
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        // Legend row placeholders
+        repeat(4) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(brush),
+            )
+            Spacer(Modifier.height(6.dp))
+        }
+        Spacer(Modifier.height(10.dp))
+    }
+}
+
+private fun formatSummaryAmount(value: Double): String {
+    val number = when {
+        value >= 1_000_000 -> "${"%.1f".format(value / 1_000_000)}M"
+        value >= 10_000    -> "${(value / 1_000).toInt()}k"
+        value >= 1_000     -> "${"%.1f".format(value / 1_000)}k"
+        else               -> "${"%.0f".format(value)}"
+    }
+    return "$number €"
 }

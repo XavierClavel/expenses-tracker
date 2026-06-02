@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,51 +34,53 @@ fun SignupScreen(
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("Sign up", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(24.dp))
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email address") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-        )
-        error?.let {
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("Sign up", style = MaterialTheme.typography.headlineMedium)
+            Spacer(Modifier.height(24.dp))
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email address") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
             Spacer(Modifier.height(8.dp))
-            Text(it, color = MaterialTheme.colorScheme.error)
-        }
-        Spacer(Modifier.height(16.dp))
-        Button(
-            onClick = {
-                error = null
-                onSignup(email, password, onNavigateToLogin) { err -> error = err }
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Sign up")
-        }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = onNavigateToLogin,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Log in")
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+            )
+            error?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    error = null
+                    onSignup(email, password, onNavigateToLogin) { err -> error = err }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Sign up")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onNavigateToLogin,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Log in")
+            }
         }
     }
 }

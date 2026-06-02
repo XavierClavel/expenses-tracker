@@ -256,6 +256,9 @@ fun BarChart(
                     }
                 }
             }
+            // Mirror the y-axis width on the right so the scrollable area is
+            // symmetric on the full screen and bars snap to true visual centre.
+            Spacer(Modifier.width(yAxisWidth))
         }
     }
 }
