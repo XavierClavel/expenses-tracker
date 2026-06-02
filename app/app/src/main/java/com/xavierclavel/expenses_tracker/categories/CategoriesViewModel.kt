@@ -49,15 +49,21 @@ class CategoriesViewModel : ViewModel() {
             isLoading = true
             try {
                 _categories.value = apiListCategories()
+            } catch (_: Exception) {
+                // leave list empty on error (e.g. 401 before login completes)
             } finally {
                 isLoading = false
             }
         }
     }
 
+    @JvmName("updateTypeFilter")
     fun setTypeFilter(type: String) { typeFilter = type }
+    @JvmName("updateSelectedColor")
     fun setSelectedColor(color: String?) { selectedColor = color }
+    @JvmName("updateSelectedIcon")
     fun setSelectedIcon(icon: String?) { selectedIcon = icon }
+    @JvmName("updatePickerCategory")
     fun setPickerCategory(category: CategoryOut) { pickerCategory = category }
 
     fun prepareNewCategory() {

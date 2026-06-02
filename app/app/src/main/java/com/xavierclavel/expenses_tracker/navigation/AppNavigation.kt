@@ -35,6 +35,10 @@ import com.xavierclavel.expenses_tracker.categories.CategoryListScreen
 import com.xavierclavel.expenses_tracker.categories.ColorPickerScreen
 import com.xavierclavel.expenses_tracker.categories.IconPickerScreen
 import com.xavierclavel.expenses_tracker.categories.SubcategoryEditScreen
+import com.xavierclavel.expenses_tracker.expenses.ExpenseEditScreen
+import com.xavierclavel.expenses_tracker.expenses.ExpenseListScreen
+import com.xavierclavel.expenses_tracker.expenses.ExpensesViewModel
+import com.xavierclavel.expenses_tracker.expenses.SubcategoryPickerScreen
 
 private val TOP_LEVEL_ROUTES = setOf("home", "categories", "profile")
 
@@ -82,6 +86,7 @@ private fun AuthNavGraph(authViewModel: AuthViewModel, authState: AuthState.Unau
 private fun MainNavGraph(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val categoriesViewModel: CategoriesViewModel = viewModel()
+    val expensesViewModel: ExpensesViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -94,13 +99,17 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = "categories",
+            startDestination = "home",
             modifier = Modifier.padding(padding),
         ) {
             composable("home") {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Home")
-                }
+                ExpenseListScreen(expensesViewModel, categoriesViewModel, navController)
+            }
+            composable("expense/edit") {
+                ExpenseEditScreen(expensesViewModel, navController)
+            }
+            composable("expense/subcategory-picker") {
+                SubcategoryPickerScreen(expensesViewModel, categoriesViewModel, navController)
             }
             composable("categories") {
                 CategoryListScreen(categoriesViewModel, navController)
