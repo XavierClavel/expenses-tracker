@@ -35,20 +35,30 @@ class ExpensesViewModel : ViewModel() {
     private val pageSize = 50
 
     init {
-        loadExpenses()
+        refresh()
     }
 
-    private fun loadExpenses(reset: Boolean = false) {
-        if (isLoading || (!hasMore && !reset)) return
+    private suspend fun fetchExpenses() {
+        currentPage = 0
+        hasMore = true
+        isLoading = true
+        try {
+            val newExpenses = apiListExpenses(0, pageSize)
+            _expenses.value = newExpenses
+            hasMore = newExpenses.size == pageSize
+            currentPage = 1
+        } finally {
+            isLoading = false
+        }
+    }
+
+    private fun loadExpenses() {
+        if (isLoading || !hasMore) return
         viewModelScope.launch {
-            if (reset) {
-                currentPage = 0
-                hasMore = true
-            }
             isLoading = true
             try {
                 val newExpenses = apiListExpenses(currentPage, pageSize)
-                _expenses.value = if (reset) newExpenses else _expenses.value + newExpenses
+                _expenses.value = _expenses.value + newExpenses
                 hasMore = newExpenses.size == pageSize
                 currentPage++
             } catch (_: Exception) {
@@ -62,7 +72,11 @@ class ExpensesViewModel : ViewModel() {
         if (!isLoading && hasMore) loadExpenses()
     }
 
-    fun refresh() = loadExpenses(reset = true)
+    fun refresh() {
+        viewModelScope.launch {
+            try { fetchExpenses() } catch (_: Exception) {}
+        }
+    }
 
     fun prepareNewExpense() {
         selectedExpense = null
@@ -107,7 +121,7 @@ class ExpensesViewModel : ViewModel() {
                 } else {
                     apiCreateExpense(expenseIn)
                 }
-                refresh()
+                fetchExpenses()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Save failed")
@@ -119,7 +133,7 @@ class ExpensesViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 apiDeleteExpense(selectedExpense!!.id)
-                refresh()
+                fetchExpenses()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Delete failed")

@@ -44,13 +44,16 @@ class CategoriesViewModel : ViewModel() {
         loadCategories()
     }
 
+    private suspend fun fetchCategories() {
+        _categories.value = apiListCategories()
+    }
+
     fun loadCategories() {
         viewModelScope.launch {
             isLoading = true
             try {
-                _categories.value = apiListCategories()
+                fetchCategories()
             } catch (_: Exception) {
-                // leave list empty on error (e.g. 401 before login completes)
             } finally {
                 isLoading = false
             }
@@ -113,7 +116,7 @@ class CategoriesViewModel : ViewModel() {
                 } else {
                     apiCreateCategory(categoryIn)
                 }
-                loadCategories()
+                fetchCategories()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Save failed")
@@ -125,7 +128,7 @@ class CategoriesViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 apiDeleteCategory(selectedCategory!!.id)
-                loadCategories()
+                fetchCategories()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Delete failed")
@@ -151,7 +154,7 @@ class CategoriesViewModel : ViewModel() {
                 } else {
                     apiCreateSubcategory(subcategoryIn)
                 }
-                loadCategories()
+                fetchCategories()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Save failed")
@@ -163,7 +166,7 @@ class CategoriesViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 apiDeleteSubcategory(selectedSubcategory!!.id)
-                loadCategories()
+                fetchCategories()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Delete failed")

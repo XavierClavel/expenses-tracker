@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -35,12 +35,17 @@ import com.xavierclavel.expenses_tracker.categories.CategoryListScreen
 import com.xavierclavel.expenses_tracker.categories.ColorPickerScreen
 import com.xavierclavel.expenses_tracker.categories.IconPickerScreen
 import com.xavierclavel.expenses_tracker.categories.SubcategoryEditScreen
+import com.xavierclavel.expenses_tracker.accounts.AccountEditScreen
+import com.xavierclavel.expenses_tracker.accounts.AccountListScreen
+import com.xavierclavel.expenses_tracker.accounts.AccountReportEditScreen
+import com.xavierclavel.expenses_tracker.accounts.AccountViewScreen
+import com.xavierclavel.expenses_tracker.accounts.AccountsViewModel
 import com.xavierclavel.expenses_tracker.expenses.ExpenseEditScreen
 import com.xavierclavel.expenses_tracker.expenses.ExpenseListScreen
 import com.xavierclavel.expenses_tracker.expenses.ExpensesViewModel
 import com.xavierclavel.expenses_tracker.expenses.SubcategoryPickerScreen
 
-private val TOP_LEVEL_ROUTES = setOf("home", "categories", "profile")
+private val TOP_LEVEL_ROUTES = setOf("home", "categories", "accounts")
 
 @Composable
 fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
@@ -87,6 +92,7 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val categoriesViewModel: CategoriesViewModel = viewModel()
     val expensesViewModel: ExpensesViewModel = viewModel()
+    val accountsViewModel: AccountsViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -126,10 +132,17 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
             composable("icon/picker") {
                 IconPickerScreen(categoriesViewModel, navController)
             }
-            composable("profile") {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Profile")
-                }
+            composable("accounts") {
+                AccountListScreen(accountsViewModel, navController)
+            }
+            composable("account/view") {
+                AccountViewScreen(accountsViewModel, navController)
+            }
+            composable("account/edit") {
+                AccountEditScreen(accountsViewModel, navController)
+            }
+            composable("account/report/edit") {
+                AccountReportEditScreen(accountsViewModel, navController)
             }
         }
     }
@@ -151,10 +164,10 @@ private fun BottomNavBar(navController: NavController, currentRoute: String?) {
             label = { Text("Categories") },
         )
         NavigationBarItem(
-            selected = currentRoute == "profile",
-            onClick = { navController.navigateTopLevel("profile") },
-            icon = { Icon(Icons.Default.Person, contentDescription = null) },
-            label = { Text("Profile") },
+            selected = currentRoute == "accounts",
+            onClick = { navController.navigateTopLevel("accounts") },
+            icon = { Icon(Icons.Default.AccountBalance, contentDescription = null) },
+            label = { Text("Accounts") },
         )
     }
 }
