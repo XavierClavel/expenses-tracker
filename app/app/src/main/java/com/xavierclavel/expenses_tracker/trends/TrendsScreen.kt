@@ -1,6 +1,17 @@
 package com.xavierclavel.expenses_tracker.trends
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,25 +20,29 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,6 +68,8 @@ import com.xavierclavel.expenses_tracker.accounts.BarChart
 import com.xavierclavel.expenses_tracker.categories.CategoriesViewModel
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
+import com.xavierclavel.expenses_tracker.model.CategoryOut
+import com.xavierclavel.expenses_tracker.model.SubcategoryOut
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -76,36 +93,23 @@ fun TrendsScreen(
     val groups by viewModel.groups.collectAsState()
     val isLoading = viewModel.isLoading
 
-    val needsCategory    = viewModel.dataType in listOf("category_in", "category_out")
-    val needsSubcategory = viewModel.dataType in listOf("subcategory_in", "subcategory_out")
-
-    val requiredCatType = when (viewModel.dataType) {
-        "category_in", "subcategory_in" -> "INCOME"
-        else -> "EXPENSE"
-    }
-    val filteredCategories  = categories.filter { it.type == requiredCatType }
-    val filteredSubcategories = filteredCategories.flatMap { it.subcategories }.filter { !it.isDefault }
+    var showCategoryPicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
 
         // ── Chart ──────────────────────────────────────────────────────────
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
             when {
                 isLoading -> CircularProgressIndicator()
-                viewModel.dataType == "income_expense" -> {
-                    if (groups.isEmpty()) EmptyChartHint()
+                viewModel.dataMode == "income_expense" ->
+                    if (groups.isEmpty()) EmptyHint()
                     else GroupedBarChart(groups = groups)
-                }
-                needsCategory && viewModel.selectedCategory == null ->
-                    Text("Select a category", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                needsSubcategory && viewModel.selectedSubcategory == null ->
-                    Text("Select a subcategory", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                bars.isEmpty() -> EmptyChartHint()
+                viewModel.dataMode == "category" && viewModel.selectedCategory == null && viewModel.selectedSubcategory == null ->
+                    Text("Select a category or subcategory", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                bars.isEmpty() -> EmptyHint()
                 else -> BarChart(bars = bars)
             }
         }
@@ -113,82 +117,235 @@ fun TrendsScreen(
         // ── Controls ───────────────────────────────────────────────────────
         Surface(tonalElevation = 4.dp) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+                // Timescale chips
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SimpleDropdown(
-                        label = "Timescale",
-                        selected = viewModel.timescale,
-                        options = listOf("month" to "Month", "year" to "Year"),
-                        onSelect = { viewModel.setTimescale(it) },
-                        modifier = Modifier.weight(1f),
-                    )
-                    SimpleDropdown(
-                        label = "Data",
-                        selected = viewModel.dataType,
-                        options = listOf(
-                            "income_expense" to "In / Out",
-                            "flow"           to "Flow",
-                            "category_in"    to "Category In",
-                            "category_out"   to "Category Out",
-                            "subcategory_in" to "Subcategory In",
-                            "subcategory_out" to "Subcategory Out",
-                        ),
-                        onSelect = { viewModel.setDataType(it) },
-                        modifier = Modifier.weight(1f),
-                    )
+                    listOf("month" to "Month", "year" to "Year").forEach { (v, l) ->
+                        FilterChip(
+                            selected = viewModel.timescale == v,
+                            onClick  = { viewModel.setTimescale(v) },
+                            label    = { Text(l) },
+                        )
+                    }
                 }
 
+                // Data mode chips
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("income_expense" to "In / Out", "flow" to "Flow", "category" to "Category").forEach { (v, l) ->
+                        FilterChip(
+                            selected = viewModel.dataMode == v,
+                            onClick  = { viewModel.setDataMode(v) },
+                            label    = { Text(l) },
+                        )
+                    }
+                }
+
+                // Aggregation chips (year mode only)
                 if (viewModel.timescale == "year") {
-                    SimpleDropdown(
-                        label = "Aggregation",
-                        selected = viewModel.aggregation,
-                        options = listOf("total" to "Total", "average" to "Mean", "median" to "Median"),
-                        onSelect = { viewModel.setAggregation(it) },
-                        modifier = Modifier.fillMaxWidth(),
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("total" to "Total", "average" to "Mean", "median" to "Median").forEach { (v, l) ->
+                            FilterChip(
+                                selected = viewModel.aggregation == v,
+                                onClick  = { viewModel.setAggregation(v) },
+                                label    = { Text(l) },
+                            )
+                        }
+                    }
+                }
+
+                // Category selector (category mode only)
+                if (viewModel.dataMode == "category") {
+                    CategorySelectorRow(
+                        selectedCategory    = viewModel.selectedCategory,
+                        selectedSubcategory = viewModel.selectedSubcategory,
+                        onClick             = { showCategoryPicker = true },
+                    )
+                }
+            }
+        }
+    }
+
+    // ── Category picker modal ──────────────────────────────────────────────────
+    if (showCategoryPicker) {
+        ModalBottomSheet(
+            onDismissRequest = { showCategoryPicker = false },
+            sheetState       = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            CategoryPickerSheet(
+                categories = categories,
+                onSelectCategory    = { cat -> viewModel.selectCategory(cat);    showCategoryPicker = false },
+                onSelectSubcategory = { sub -> viewModel.selectSubcategory(sub); showCategoryPicker = false },
+            )
+        }
+    }
+}
+
+// ── Category selector row ──────────────────────────────────────────────────────
+
+@Composable
+private fun CategorySelectorRow(
+    selectedCategory: CategoryOut?,
+    selectedSubcategory: SubcategoryOut?,
+    onClick: () -> Unit,
+) {
+    val icon     = selectedSubcategory?.icon  ?: selectedCategory?.icon
+    val name     = selectedSubcategory?.name  ?: selectedCategory?.name
+    val colorHex = selectedSubcategory?.color ?: selectedCategory?.color
+
+    Surface(
+        modifier       = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape          = MaterialTheme.shapes.medium,
+        tonalElevation = 2.dp,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (name != null) {
+                androidx.compose.material3.Icon(
+                    imageVector = iconByName(icon),
+                    contentDescription = null,
+                    tint = colorHexByName(colorHex),
+                    modifier = Modifier.size(22.dp),
+                )
+                Text(
+                    text     = name,
+                    style    = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                )
+            } else {
+                Text(
+                    text     = "Select a category or subcategory",
+                    style    = MaterialTheme.typography.bodyMedium,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            androidx.compose.material3.Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+// ── Category picker sheet ──────────────────────────────────────────────────────
+
+@Composable
+private fun CategoryPickerSheet(
+    categories: List<CategoryOut>,
+    onSelectCategory: (CategoryOut) -> Unit,
+    onSelectSubcategory: (SubcategoryOut) -> Unit,
+) {
+    var selectedType       by remember { mutableStateOf("EXPENSE") }
+    var expandedCategories by remember { mutableStateOf(setOf<Int>()) }
+
+    val filtered = categories.filter { it.type == selectedType }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Sliding type toggle
+        TypeToggle(
+            selectedType = selectedType,
+            onSelect     = { selectedType = it; expandedCategories = emptySet() },
+            modifier     = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        )
+
+        HorizontalDivider()
+
+        LazyColumn(
+            modifier       = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            filtered.forEach { cat ->
+                val isExpanded = expandedCategories.contains(cat.id)
+                val nonDefault = cat.subcategories.filter { !it.isDefault }
+
+                item(key = "cat_${cat.id}") {
+                    CategoryPickerRow(
+                        category         = cat,
+                        isExpanded       = isExpanded,
+                        hasSubcategories = nonDefault.isNotEmpty(),
+                        onSelect         = { onSelectCategory(cat) },
+                        onToggleExpand   = {
+                            expandedCategories =
+                                if (isExpanded) expandedCategories - cat.id
+                                else            expandedCategories + cat.id
+                        },
                     )
                 }
 
-                if (needsCategory) {
-                    SimpleDropdown(
-                        label = "Category",
-                        selected = viewModel.selectedCategory?.name ?: "",
-                        options = filteredCategories.map { it.name to it.name },
-                        onSelect = { name ->
-                            viewModel.setSelectedCategory(filteredCategories.find { it.name == name })
-                        },
-                        leadingIcon = viewModel.selectedCategory?.let { cat ->
-                            { androidx.compose.material3.Icon(
-                                imageVector = iconByName(cat.icon),
-                                contentDescription = null,
-                                tint = colorHexByName(cat.color),
-                                modifier = Modifier.padding(end = 4.dp),
-                            ) }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                if (isExpanded) {
+                    nonDefault.forEach { sub ->
+                        item(key = "sub_${sub.id}") {
+                            SubcategoryPickerRow(
+                                subcategory = sub,
+                                onSelect    = { onSelectSubcategory(sub) },
+                            )
+                        }
+                    }
                 }
+            }
+            item { Spacer(Modifier.height(24.dp)) }
+        }
+    }
+}
 
-                if (needsSubcategory) {
-                    SimpleDropdown(
-                        label = "Subcategory",
-                        selected = viewModel.selectedSubcategory?.name ?: "",
-                        options = filteredSubcategories.map { it.name to it.name },
-                        onSelect = { name ->
-                            viewModel.setSelectedSubcategory(filteredSubcategories.find { it.name == name })
-                        },
-                        leadingIcon = viewModel.selectedSubcategory?.let { sub ->
-                            { androidx.compose.material3.Icon(
-                                imageVector = iconByName(sub.icon),
-                                contentDescription = null,
-                                tint = colorHexByName(sub.color),
-                                modifier = Modifier.padding(end = 4.dp),
-                            ) }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
+// ── Sliding type toggle ────────────────────────────────────────────────────────
+
+@Composable
+private fun TypeToggle(
+    selectedType: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val options = listOf("EXPENSE" to "Expenses", "INCOME" to "Income")
+    val selectedIndex = options.indexOfFirst { it.first == selectedType }.coerceAtLeast(0)
+
+    BoxWithConstraints(
+        modifier = modifier
+            .height(44.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        val pillWidth = maxWidth / 2
+        val pillOffset by animateDpAsState(
+            targetValue   = pillWidth * selectedIndex,
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            label         = "toggle_pill",
+        )
+
+        // Sliding pill
+        Box(
+            modifier = Modifier
+                .width(pillWidth)
+                .fillMaxSize()
+                .offset(x = pillOffset)
+                .clip(RoundedCornerShape(22.dp))
+                .background(MaterialTheme.colorScheme.primary),
+        )
+
+        // Labels
+        Row(modifier = Modifier.fillMaxSize()) {
+            options.forEachIndexed { i, (value, label) ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable { onSelect(value) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text       = label,
+                        style      = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (selectedIndex == i) FontWeight.SemiBold else FontWeight.Normal,
+                        color      = if (selectedIndex == i) MaterialTheme.colorScheme.onPrimary
+                                     else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -196,8 +353,70 @@ fun TrendsScreen(
     }
 }
 
+// ── Category / subcategory picker rows ────────────────────────────────────────
+
 @Composable
-private fun EmptyChartHint() {
+private fun CategoryPickerRow(
+    category: CategoryOut,
+    isExpanded: Boolean,
+    hasSubcategories: Boolean,
+    onSelect: () -> Unit,
+    onToggleExpand: () -> Unit,
+) {
+    Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // Body: tapping selects the category
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(onClick = onSelect)
+                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(iconByName(category.icon), null, tint = colorHexByName(category.color), modifier = Modifier.size(22.dp))
+                Text(category.name, style = MaterialTheme.typography.bodyLarge)
+            }
+            // Expand arrow: only toggles subcategory visibility
+            if (hasSubcategories) {
+                IconButton(onClick = onToggleExpand) {
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                    )
+                }
+            } else {
+                Spacer(Modifier.width(48.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubcategoryPickerRow(
+    subcategory: SubcategoryOut,
+    onSelect: () -> Unit,
+) {
+    Surface(
+        modifier       = Modifier.fillMaxWidth().padding(start = 20.dp).clickable(onClick = onSelect),
+        shape          = MaterialTheme.shapes.medium,
+        tonalElevation = 1.dp,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(iconByName(subcategory.icon), null, tint = colorHexByName(subcategory.color), modifier = Modifier.size(18.dp))
+            Text(subcategory.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+// ── Misc ───────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun EmptyHint() {
     Text("No data", color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
@@ -211,12 +430,12 @@ fun GroupedBarChart(
 ) {
     if (groups.isEmpty()) return
 
-    val maxVal      = groups.maxOf { maxOf(it.income, it.expense) }.coerceAtLeast(0.001f)
-    val ticks       = remember(maxVal) { simpleTicks(maxVal) }
-    val labelAreaH  = 28.dp
-    val yAxisWidth  = 44.dp
+    val maxVal       = groups.maxOf { maxOf(it.income, it.expense) }.coerceAtLeast(0.001f)
+    val ticks        = remember(maxVal) { simpleTicks(maxVal) }
+    val labelAreaH   = 28.dp
+    val yAxisWidth   = 44.dp
 
-    val listState   = rememberLazyListState()
+    val listState    = rememberLazyListState()
     val snapBehavior = rememberSnapFlingBehavior(listState)
     val groupWidthPx = with(LocalDensity.current) { groupWidth.roundToPx() }
 
@@ -228,7 +447,6 @@ fun GroupedBarChart(
                 .roundToInt().coerceIn(0, groups.lastIndex)
         }
     }
-
     val highlighted = groups.getOrNull(centeredIndex)
 
     LaunchedEffect(groups.size) {
@@ -236,7 +454,7 @@ fun GroupedBarChart(
     }
 
     Column {
-        // Value display
+        // Highlighted value header
         Box(Modifier.fillMaxWidth().height(36.dp), contentAlignment = Alignment.Center) {
             if (highlighted != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -255,12 +473,12 @@ fun GroupedBarChart(
                     if (fraction !in 0f..1f) return@forEach
                     val yOff = (h * fraction - 6.dp).coerceAtLeast(0.dp)
                     Text(
-                        text = label,
+                        text     = label,
                         modifier = Modifier.offset(y = yOff).width(yAxisWidth - 4.dp),
                         fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        color    = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         textAlign = TextAlign.End,
-                        maxLines = 1,
+                        maxLines  = 1,
                     )
                 }
             }
@@ -277,17 +495,16 @@ fun GroupedBarChart(
                         if (y < 0f || y > h) return@forEach
                         drawLine(
                             color = if (value == 0f) Color.Gray.copy(0.45f) else Color.Gray.copy(0.13f),
-                            start = Offset(0f, y),
-                            end   = Offset(size.width, y),
+                            start = Offset(0f, y), end = Offset(size.width, y),
                             strokeWidth = if (value == 0f) 1.dp.toPx() else (0.5f).dp.toPx(),
                         )
                     }
                 }
 
                 LazyRow(
-                    state = listState,
-                    flingBehavior = snapBehavior,
-                    modifier = Modifier.height(chartHeight + labelAreaH),
+                    state          = listState,
+                    flingBehavior  = snapBehavior,
+                    modifier       = Modifier.height(chartHeight + labelAreaH),
                     contentPadding = PaddingValues(horizontal = hPad),
                 ) {
                     itemsIndexed(groups) { index, group ->
@@ -310,18 +527,10 @@ fun GroupedBarChart(
                                 val incomeH  = (group.income  * scale).coerceAtLeast(0f)
                                 val expenseH = (group.expense * scale).coerceAtLeast(0f)
 
-                                drawRoundRect(
-                                    color        = COLOR_INCOME.copy(alpha = alpha),
-                                    topLeft      = Offset(sideGap, h - incomeH),
-                                    size         = Size(subBarW, incomeH),
-                                    cornerRadius = r,
-                                )
-                                drawRoundRect(
-                                    color        = COLOR_EXPENSE.copy(alpha = alpha),
-                                    topLeft      = Offset(sideGap + subBarW + innerGap, h - expenseH),
-                                    size         = Size(subBarW, expenseH),
-                                    cornerRadius = r,
-                                )
+                                drawRoundRect(color = COLOR_INCOME.copy(alpha = alpha),
+                                    topLeft = Offset(sideGap, h - incomeH), size = Size(subBarW, incomeH), cornerRadius = r)
+                                drawRoundRect(color = COLOR_EXPENSE.copy(alpha = alpha),
+                                    topLeft = Offset(sideGap + subBarW + innerGap, h - expenseH), size = Size(subBarW, expenseH), cornerRadius = r)
                             }
                             Text(
                                 text       = group.label,
@@ -341,56 +550,14 @@ fun GroupedBarChart(
     }
 }
 
-// ── Dropdown helper ────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SimpleDropdown(
-    label: String,
-    selected: String,
-    options: List<Pair<String, String>>,
-    onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    leadingIcon: (@Composable () -> Unit)? = null,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = options.find { it.first == selected }?.second ?: selected
-
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
-        OutlinedTextField(
-            value = selectedLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            leadingIcon = leadingIcon,
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            singleLine = true,
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { (value, displayLabel) ->
-                DropdownMenuItem(
-                    text = { Text(displayLabel) },
-                    onClick = { onSelect(value); expanded = false },
-                )
-            }
-        }
-    }
-}
-
-// ── Tick helpers (positive-only for grouped chart) ────────────────────────────
+// ── Tick helpers ───────────────────────────────────────────────────────────────
 
 private fun simpleTicks(max: Float): List<Pair<Float, String>> {
     if (max <= 0f) return listOf(0f to "0")
-    val step  = niceStep(max / 4f)
+    val step = niceStep(max / 4f)
     val result = mutableListOf<Pair<Float, String>>()
-    var tick = 0f
-    var guard = 0
-    while (tick <= max + step * 0.01f && guard++ < 8) {
-        result += tick to fmtTick(tick)
-        tick += step
-    }
+    var tick = 0f; var guard = 0
+    while (tick <= max + step * 0.01f && guard++ < 8) { result += tick to fmtTick(tick); tick += step }
     return result
 }
 
@@ -398,12 +565,7 @@ private fun niceStep(raw: Float): Float {
     if (raw <= 0f) return 1f
     val exp = floor(log10(raw.toDouble())).toInt()
     val mag = 10.0.pow(exp).toFloat()
-    return mag * when (raw / mag) {
-        in 0f..1.5f  -> 1f
-        in 1.5f..3.5f -> 2f
-        in 3.5f..7.5f -> 5f
-        else          -> 10f
-    }
+    return mag * when (raw / mag) { in 0f..1.5f -> 1f; in 1.5f..3.5f -> 2f; in 3.5f..7.5f -> 5f; else -> 10f }
 }
 
 private fun fmtTick(v: Float): String = when {
