@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -44,8 +45,10 @@ import com.xavierclavel.expenses_tracker.expenses.ExpenseEditScreen
 import com.xavierclavel.expenses_tracker.expenses.ExpenseListScreen
 import com.xavierclavel.expenses_tracker.expenses.ExpensesViewModel
 import com.xavierclavel.expenses_tracker.expenses.SubcategoryPickerScreen
+import com.xavierclavel.expenses_tracker.summary.SummaryScreen
+import com.xavierclavel.expenses_tracker.summary.SummaryViewModel
 
-private val TOP_LEVEL_ROUTES = setOf("home", "categories", "accounts")
+private val TOP_LEVEL_ROUTES = setOf("home", "categories", "summary", "accounts")
 
 @Composable
 fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
@@ -93,6 +96,7 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
     val categoriesViewModel: CategoriesViewModel = viewModel()
     val expensesViewModel: ExpensesViewModel = viewModel()
     val accountsViewModel: AccountsViewModel = viewModel()
+    val summaryViewModel: SummaryViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -132,6 +136,9 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
             composable("icon/picker") {
                 IconPickerScreen(categoriesViewModel, navController)
             }
+            composable("summary") {
+                SummaryScreen(summaryViewModel, categoriesViewModel)
+            }
             composable("accounts") {
                 AccountListScreen(accountsViewModel, navController)
             }
@@ -162,6 +169,12 @@ private fun BottomNavBar(navController: NavController, currentRoute: String?) {
             onClick = { navController.navigateTopLevel("categories") },
             icon = { Icon(Icons.Default.Category, contentDescription = null) },
             label = { Text("Categories") },
+        )
+        NavigationBarItem(
+            selected = currentRoute == "summary",
+            onClick = { navController.navigateTopLevel("summary") },
+            icon = { Icon(Icons.Default.PieChart, contentDescription = null) },
+            label = { Text("Summary") },
         )
         NavigationBarItem(
             selected = currentRoute == "accounts",
