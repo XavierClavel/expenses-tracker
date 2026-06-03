@@ -97,72 +97,67 @@ fun TrendsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // ── Chart ──────────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
+        // ── Chart — fills all available space dynamically ───────────────────
+        BoxWithConstraints(
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 4.dp),
             contentAlignment = Alignment.Center,
         ) {
+            // BarChart / GroupedBarChart total height = 36dp (header) + chartH + 28dp (labels)
+            // Reserve those 64dp + a small buffer so the chart fills the box.
+            val chartH = (maxHeight - 72.dp).coerceAtLeast(120.dp)
+
             when {
                 isLoading -> CircularProgressIndicator()
                 viewModel.dataMode == "income_expense" ->
                     if (groups.isEmpty()) EmptyHint()
-                    else GroupedBarChart(groups = groups)
+                    else GroupedBarChart(groups = groups, chartHeight = chartH)
                 viewModel.dataMode == "category" && viewModel.selectedCategory == null && viewModel.selectedSubcategory == null ->
                     Text("Select a category or subcategory", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 bars.isEmpty() -> EmptyHint()
-                else -> BarChart(bars = bars)
+                else -> BarChart(bars = bars, chartHeight = chartH)
             }
         }
 
-        // ── Controls ───────────────────────────────────────────────────────
-        Surface(tonalElevation = 4.dp) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+        // ── Controls — no elevation background, just a divider ─────────────
+        HorizontalDivider()
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            // Timescale + data mode on one row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Timescale chips
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("month" to "Month", "year" to "Year").forEach { (v, l) ->
-                        FilterChip(
-                            selected = viewModel.timescale == v,
-                            onClick  = { viewModel.setTimescale(v) },
-                            label    = { Text(l) },
-                        )
+                        FilterChip(selected = viewModel.timescale == v, onClick = { viewModel.setTimescale(v) }, label = { Text(l) })
                     }
                 }
-
-                // Data mode chips
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("income_expense" to "In / Out", "flow" to "Flow", "category" to "Category").forEach { (v, l) ->
-                        FilterChip(
-                            selected = viewModel.dataMode == v,
-                            onClick  = { viewModel.setDataMode(v) },
-                            label    = { Text(l) },
-                        )
+                        FilterChip(selected = viewModel.dataMode == v, onClick = { viewModel.setDataMode(v) }, label = { Text(l) })
                     }
                 }
+            }
 
-                // Aggregation chips (year mode only)
-                if (viewModel.timescale == "year") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("total" to "Total", "average" to "Mean", "median" to "Median").forEach { (v, l) ->
-                            FilterChip(
-                                selected = viewModel.aggregation == v,
-                                onClick  = { viewModel.setAggregation(v) },
-                                label    = { Text(l) },
-                            )
-                        }
+            // Aggregation chips (year mode only)
+            if (viewModel.timescale == "year") {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("total" to "Total", "average" to "Mean", "median" to "Median").forEach { (v, l) ->
+                        FilterChip(selected = viewModel.aggregation == v, onClick = { viewModel.setAggregation(v) }, label = { Text(l) })
                     }
                 }
+            }
 
-                // Category selector (category mode only)
-                if (viewModel.dataMode == "category") {
-                    CategorySelectorRow(
-                        selectedCategory    = viewModel.selectedCategory,
-                        selectedSubcategory = viewModel.selectedSubcategory,
-                        onClick             = { showCategoryPicker = true },
-                    )
-                }
+            // Category selector (category mode only)
+            if (viewModel.dataMode == "category") {
+                CategorySelectorRow(
+                    selectedCategory    = viewModel.selectedCategory,
+                    selectedSubcategory = viewModel.selectedSubcategory,
+                    onClick             = { showCategoryPicker = true },
+                )
             }
         }
     }
@@ -433,7 +428,7 @@ fun GroupedBarChart(
     val maxVal       = groups.maxOf { maxOf(it.income, it.expense) }.coerceAtLeast(0.001f)
     val ticks        = remember(maxVal) { simpleTicks(maxVal) }
     val labelAreaH   = 28.dp
-    val yAxisWidth   = 44.dp
+    val yAxisWidth   = 22.dp
 
     val listState    = rememberLazyListState()
     val snapBehavior = rememberSnapFlingBehavior(listState)
@@ -458,8 +453,8 @@ fun GroupedBarChart(
         Box(Modifier.fillMaxWidth().height(36.dp), contentAlignment = Alignment.Center) {
             if (highlighted != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("+${fmtVal(highlighted.income)} €",  color = COLOR_INCOME,  fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-                    Text("-${fmtVal(highlighted.expense)} €", color = COLOR_EXPENSE, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                    Text("+${fmtVal(highlighted.income)} €",  color = if (highlighted.income  == 0f) Color.Gray else COLOR_INCOME,  fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                    Text("-${fmtVal(highlighted.expense)} €", color = if (highlighted.expense == 0f) Color.Gray else COLOR_EXPENSE, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
                 }
             }
         }

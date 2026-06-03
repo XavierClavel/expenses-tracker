@@ -66,36 +66,41 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(vertical = 8.dp),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("month" to "Month", "year" to "Year").forEach { (v, l) ->
                 FilterChip(selected = timescale == v, onClick = { viewModel.setTimescale(v, accountId) }, label = { Text(l) })
             }
         }
         Spacer(Modifier.height(4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("value" to "Balance", "diff" to "Change", "diff_percent" to "Change %").forEach { (v, l) ->
                 FilterChip(selected = display == v, onClick = { viewModel.setChartDisplay(v) }, label = { Text(l) })
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
-        if (trends.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        BoxWithConstraints(
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 4.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val chartH = (maxHeight - 72.dp).coerceAtLeast(120.dp)
+
+            if (trends.isEmpty()) {
                 Text("No data", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        } else {
-            val isPercent = display == "diff_percent"
-            val bars = trends.map { dto ->
-                val v = when (display) {
-                    "diff"         -> dto.change?.toFloatOrNull() ?: 0f
-                    "diff_percent" -> (dto.proportionalChange?.toFloatOrNull() ?: 0f) * 100f
-                    else           -> dto.balance.toFloatOrNull() ?: 0f
+            } else {
+                val isPercent = display == "diff_percent"
+                val bars = trends.map { dto ->
+                    val v = when (display) {
+                        "diff"         -> dto.change?.toFloatOrNull() ?: 0f
+                        "diff_percent" -> (dto.proportionalChange?.toFloatOrNull() ?: 0f) * 100f
+                        else           -> dto.balance.toFloatOrNull() ?: 0f
+                    }
+                    BarEntry(value = v, label = formatTrendLabel(dto, timescale))
                 }
-                BarEntry(value = v, label = formatTrendLabel(dto, timescale))
+                BarChart(bars = bars, isPercent = isPercent, chartHeight = chartH)
             }
-            BarChart(bars = bars, isPercent = isPercent)
         }
     }
 }
@@ -128,7 +133,7 @@ fun BarChart(
     val snapBehavior = rememberSnapFlingBehavior(listState)
     val suffix      = if (isPercent) " %" else " €"
     val labelAreaH  = 28.dp
-    val yAxisWidth  = 44.dp
+    val yAxisWidth  = 22.dp
 
     val barWidthPx = with(LocalDensity.current) { barWidth.roundToPx() }
 
@@ -160,7 +165,11 @@ fun BarChart(
                     text = "$sign${formatBarValue(highlighted.value)}$suffix",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (highlighted.value >= 0f) COLOR_POSITIVE else COLOR_NEGATIVE,
+                    color = when {
+                        highlighted.value == 0f -> Color.Gray
+                        highlighted.value > 0f  -> COLOR_POSITIVE
+                        else                    -> COLOR_NEGATIVE
+                    },
                 )
             }
         }
