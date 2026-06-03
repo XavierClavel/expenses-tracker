@@ -33,6 +33,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.TrendingUp
+import kotlin.math.abs
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -261,19 +263,19 @@ fun SummaryScreen(
             var selectedSlice        by remember { mutableIntStateOf(-1) }
             var expandedCategories   by remember { mutableStateOf(setOf<Int>()) }
 
+            val totalExpenses = summary?.totalExpenses?.toDoubleOrNull() ?: 0.0
+            val totalIncome   = summary?.totalIncome?.toDoubleOrNull()   ?: 0.0
+            val balance       = totalIncome - totalExpenses
+
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Total cards
+                // Balance summary card (or skeleton)
                 if (isLoading) {
-                    val brush = shimmerBrush()
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(Modifier.weight(1f).height(64.dp).clip(MaterialTheme.shapes.medium).background(brush))
-                        Box(Modifier.weight(1f).height(64.dp).clip(MaterialTheme.shapes.medium).background(brush))
-                    }
+                    Box(Modifier.fillMaxWidth().height(86.dp).clip(MaterialTheme.shapes.medium).background(shimmerBrush()))
                 } else {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TotalCard("Expenses", summary?.totalExpenses?.toDoubleOrNull() ?: 0.0, Color(0xFFE53935), "-", Modifier.weight(1f))
-                        TotalCard("Income",   summary?.totalIncome?.toDoubleOrNull()   ?: 0.0, Color(0xFF4CAF50), "+", Modifier.weight(1f))
-                    }
+                    BalanceSummaryCard(
+                        totalExpenses = totalExpenses,
+                        totalIncome   = totalIncome,
+                    )
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -290,11 +292,13 @@ fun SummaryScreen(
                         val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
 
                         DonutChart(
-                            entries      = pieEntries,
-                            total        = pieTotal,
+                            entries       = pieEntries,
+                            total         = pieTotal,
                             selectedIndex = selectedSlice,
-                            onSliceClick = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
-                            modifier     = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
+                            onSliceClick  = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
+                            balance       = balance,
+                            selectedType  = viewModel.selectedType,
+                            modifier      = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
                         )
 
                         Spacer(Modifier.height(16.dp))
@@ -315,6 +319,12 @@ fun SummaryScreen(
                                 },
                                 onSubcategoryClick = { sub -> bottomSheetEntry = sub },
                             )
+                            Spacer(Modifier.height(6.dp))
+                        }
+
+                        // Savings row: only in EXPENSE view when income > expenses
+                        if (viewModel.selectedType == "EXPENSE" && balance > 0) {
+                            SavingsLegendRow(savings = balance, incomeTotal = totalIncome)
                             Spacer(Modifier.height(6.dp))
                         }
                     }
@@ -344,16 +354,107 @@ fun SummaryScreen(
 // ── Sub-composables ────────────────────────────────────────────────────────────
 
 @Composable
-private fun TotalCard(label: String, amount: Double, color: Color, sign: String, modifier: Modifier) {
-    Surface(modifier = modifier, shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
-        Column(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("$sign${formatSummaryAmount(amount)}", style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.Center)
-            Text(label, style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
+    val balance     = totalIncome - totalExpenses
+    val isSaved     = balance >= 0
+    val balColor    = if (isSaved) Color(0xFF4CAF50) else Color(0xFFE53935)
+    val expFraction = if (totalIncome > 0) (totalExpenses / totalIncome).toFloat().coerceIn(0f, 1f) else 0f
+    val trackColor  = MaterialTheme.colorScheme.outlineVariant
+
+    Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Expenses (left)
+                Column {
+                    Text("-${formatSummaryAmount(totalExpenses)}", style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
+                    Text("Expenses", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                // Balance (centre) — prominent
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val sign = if (isSaved) "+" else "-"
+                    Text("$sign${formatSummaryAmount(abs(balance))}", style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold, color = balColor)
+                    Text(if (isSaved) "saved" else "deficit", style = MaterialTheme.typography.labelSmall,
+                        color = balColor.copy(alpha = 0.8f))
+                }
+                // Income (right)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("+${formatSummaryAmount(totalIncome)}", style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
+                    Text("Income", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            if (totalIncome > 0) {
+                Spacer(Modifier.height(10.dp))
+                // Bar: red fill = expenses portion, green track = remaining income
+                Canvas(modifier = Modifier.fillMaxWidth().height(6.dp)) {
+                    val r = CornerRadius(3.dp.toPx())
+                    drawRoundRect(color = Color(0xFF4CAF50).copy(alpha = 0.22f), cornerRadius = r)
+                    if (expFraction > 0f) {
+                        drawRoundRect(
+                            color = Color(0xFFE53935).copy(alpha = 0.85f),
+                            size  = Size(size.width * expFraction, size.height),
+                            cornerRadius = r,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text  = "${"%.0f".format(expFraction * 100)}% of income ${if (isSaved) "spent" else "overspent"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavingsLegendRow(savings: Double, incomeTotal: Double) {
+    val fraction   = (savings / incomeTotal).toFloat().coerceIn(0f, 1f)
+    val color      = Color(0xFF4CAF50)
+    val trackColor = MaterialTheme.colorScheme.outlineVariant
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape    = MaterialTheme.shapes.medium,
+        color    = color.copy(alpha = 0.08f),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(Icons.Default.TrendingUp, null, tint = color, modifier = Modifier.size(22.dp))
+                Text(
+                    text       = "Unspent income",
+                    style      = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier   = Modifier.weight(1f),
+                    color      = color,
+                )
+                Text("%.1f%%".format(fraction * 100), style = MaterialTheme.typography.bodySmall,
+                    color = color.copy(alpha = 0.7f), modifier = Modifier.width(42.dp), textAlign = TextAlign.End)
+                Text(formatSummaryAmount(savings), style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold, color = color, modifier = Modifier.width(76.dp), textAlign = TextAlign.End)
+                Spacer(Modifier.width(32.dp))
+            }
+            Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp).height(4.dp)) {
+                val r = CornerRadius(2.dp.toPx())
+                drawRoundRect(color = trackColor, cornerRadius = r)
+                if (fraction > 0f) drawRoundRect(color = color, size = Size(size.width * fraction, size.height), cornerRadius = r)
+            }
         }
     }
 }
@@ -364,6 +465,8 @@ private fun DonutChart(
     total: Float,
     selectedIndex: Int,
     onSliceClick: (Int) -> Unit,
+    balance: Double = 0.0,
+    selectedType: String = "EXPENSE",
     modifier: Modifier = Modifier,
 ) {
     val anySelected  = selectedIndex != -1
@@ -416,24 +519,37 @@ private fun DonutChart(
                 startAngle += 360f * fraction
             }
         }
+        // Centre label: selected slice → slice value/name
+        //               expense mode, no selection → balance (saved/deficit)
+        //               income mode, no selection → total income
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(90.dp)) {
-            Text(
-                text       = if (selectedEntry != null) formatSummaryAmount(selectedEntry.value.toDouble())
-                             else formatSummaryAmount(total.toDouble()),
-                style      = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                textAlign  = TextAlign.Center,
-                color      = if (selectedEntry != null) colorHexByName(selectedEntry.colorHex)
-                             else MaterialTheme.colorScheme.onBackground,
-            )
-            Text(
-                text      = selectedEntry?.label ?: "Total",
-                style     = MaterialTheme.typography.labelSmall,
-                color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                maxLines  = 2,
-                overflow  = TextOverflow.Ellipsis,
-            )
+            when {
+                selectedEntry != null -> {
+                    Text(formatSummaryAmount(selectedEntry.value.toDouble()),
+                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center, color = colorHexByName(selectedEntry.colorHex))
+                    Text(selectedEntry.label, style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                selectedType == "EXPENSE" && balance != 0.0 -> {
+                    val balColor = if (balance > 0) Color(0xFF4CAF50) else Color(0xFFE53935)
+                    val sign     = if (balance > 0) "+" else "-"
+                    Text("$sign${formatSummaryAmount(abs(balance))}",
+                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center, color = balColor)
+                    Text(if (balance > 0) "saved" else "deficit",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = balColor.copy(alpha = 0.8f), textAlign = TextAlign.Center)
+                }
+                else -> {
+                    Text(formatSummaryAmount(total.toDouble()),
+                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground)
+                    Text("Total", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                }
+            }
         }
     }
 }
