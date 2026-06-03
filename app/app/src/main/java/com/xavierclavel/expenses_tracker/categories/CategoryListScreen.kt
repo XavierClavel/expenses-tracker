@@ -23,9 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import com.xavierclavel.expenses_tracker.ui.SlidingToggle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,20 +66,14 @@ fun CategoryListScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            SingleChoiceSegmentedButtonRow(
+            SlidingToggle(
+                options  = listOf("EXPENSE" to "Expense", "INCOME" to "Income"),
+                selected = typeFilter,
+                onSelect = { viewModel.setTypeFilter(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                listOf("EXPENSE", "INCOME").forEachIndexed { index, type ->
-                    SegmentedButton(
-                        selected = typeFilter == type,
-                        onClick = { viewModel.setTypeFilter(type) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                        label = { Text(if (type == "EXPENSE") "Expense" else "Income") },
-                    )
-                }
-            }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            )
 
             if (viewModel.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

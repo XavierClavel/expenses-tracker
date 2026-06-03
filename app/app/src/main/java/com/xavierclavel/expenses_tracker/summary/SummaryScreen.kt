@@ -45,9 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import com.xavierclavel.expenses_tracker.ui.SlidingToggle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -217,29 +215,21 @@ fun SummaryScreen(
         Spacer(Modifier.height(8.dp))
 
         // ── Timescale + type toggles ───────────────────────────────────────
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            listOf("month" to "Month", "year" to "Year").forEachIndexed { i, (v, l) ->
-                SegmentedButton(
-                    selected = viewModel.timescale == v,
-                    onClick  = { viewModel.setTimescale(v) },
-                    shape    = SegmentedButtonDefaults.itemShape(i, 2),
-                    label    = { Text(l) },
-                )
-            }
-        }
+        SlidingToggle(
+            options  = listOf("month" to "Month", "year" to "Year"),
+            selected = viewModel.timescale,
+            onSelect = { viewModel.setTimescale(it) },
+            modifier = Modifier.fillMaxWidth(),
+        )
 
         Spacer(Modifier.height(8.dp))
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            listOf("EXPENSE" to "Expenses", "INCOME" to "Income").forEachIndexed { i, (v, l) ->
-                SegmentedButton(
-                    selected = viewModel.selectedType == v,
-                    onClick  = { viewModel.setSelectedType(v) },
-                    shape    = SegmentedButtonDefaults.itemShape(i, 2),
-                    label    = { Text(l) },
-                )
-            }
-        }
+        SlidingToggle(
+            options  = listOf("EXPENSE" to "Expenses", "INCOME" to "Income"),
+            selected = viewModel.selectedType,
+            onSelect = { viewModel.setSelectedType(it) },
+            modifier = Modifier.fillMaxWidth(),
+        )
 
         Spacer(Modifier.height(12.dp))
 
