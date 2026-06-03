@@ -174,8 +174,8 @@ class TrendsViewModel : ViewModel() {
     }
 
     private fun aggCat(t: com.xavierclavel.expenses_tracker.model.CategoryTrendDto) = when (aggregation) {
-        "average" -> t.average.toFloatOrNull() ?: 0f
-        "median"  -> t.median.toFloatOrNull()  ?: 0f
+        "average" -> t.average?.toFloatOrNull() ?: 0f
+        "median"  -> t.median?.toFloatOrNull()  ?: 0f
         else      -> t.total.toFloatOrNull()   ?: 0f
     }
 

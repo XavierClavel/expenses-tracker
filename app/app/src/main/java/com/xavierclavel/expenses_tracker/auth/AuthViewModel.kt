@@ -3,7 +3,6 @@ package com.xavierclavel.expenses_tracker.auth
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.expenses_tracker.api.apiFetchMe
 import com.xavierclavel.expenses_tracker.api.apiLogin
 import com.xavierclavel.expenses_tracker.api.apiSignup
 import com.xavierclavel.expenses_tracker.api.sessionToken
@@ -31,20 +30,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private fun checkAuth() {
         viewModelScope.launch {
             val token = tokenStorage.loadToken()
-            if (token == null) {
-                _authState.value = AuthState.Unauthenticated()
-                return@launch
-            }
-            try {
-                if (apiFetchMe(token)) {
-                    sessionToken = token
-                    _authState.value = AuthState.Authenticated
-                } else {
-                    tokenStorage.clearToken()
-                    _authState.value = AuthState.Unauthenticated()
-                }
-            } catch (e: Exception) {
-                tokenStorage.clearToken()
+            if (token != null) {
+                sessionToken = token
+                _authState.value = AuthState.Authenticated
+            } else {
                 _authState.value = AuthState.Unauthenticated()
             }
         }
