@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.xavierclavel.expenses_tracker.api.apiLogin
 import com.xavierclavel.expenses_tracker.api.apiSignup
 import com.xavierclavel.expenses_tracker.api.sessionToken
+import com.xavierclavel.expenses_tracker.api.unauthorizedFlow
 import com.xavierclavel.expenses_tracker.storage.TokenStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         checkAuth()
+        viewModelScope.launch {
+            unauthorizedFlow.collect { logout() }
+        }
     }
 
     private fun checkAuth() {
@@ -65,6 +69,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout() {
+        sessionToken = null
         tokenStorage.clearToken()
         _authState.value = AuthState.Unauthenticated()
     }
