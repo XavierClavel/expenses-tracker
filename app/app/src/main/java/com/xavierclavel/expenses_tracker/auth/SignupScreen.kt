@@ -20,10 +20,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.xavierclavel.expenses_tracker.ui.theme.MyApplicationTheme
+import com.xavierclavel.expenses_tracker.R
 
 @Composable
 fun SignupScreen(
@@ -36,28 +36,22 @@ fun SignupScreen(
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxSize().padding(20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Sign up", style = MaterialTheme.typography.headlineMedium)
+            Text(stringResource(R.string.action_sign_up), style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(24.dp))
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email address") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                value = email, onValueChange = { email = it },
+                label = { Text(stringResource(R.string.label_email)) },
+                modifier = Modifier.fillMaxWidth(), singleLine = true,
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                value = password, onValueChange = { password = it },
+                label = { Text(stringResource(R.string.label_password)) },
+                modifier = Modifier.fillMaxWidth(), singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
             )
             error?.let {
@@ -66,32 +60,13 @@ fun SignupScreen(
             }
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = {
-                    error = null
-                    onSignup(email, password, onNavigateToLogin) { err -> error = err }
-                },
+                onClick = { error = null; onSignup(email, password, onNavigateToLogin) { err -> error = err } },
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Sign up")
-            }
+            ) { Text(stringResource(R.string.action_sign_up)) }
             Spacer(Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = onNavigateToLogin,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Log in")
+            OutlinedButton(onClick = onNavigateToLogin, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.action_log_in))
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SignupScreenPreview() {
-    MyApplicationTheme {
-        SignupScreen(
-            onSignup = { _, _, _, _ -> },
-            onNavigateToLogin = {},
-        )
     }
 }

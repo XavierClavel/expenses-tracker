@@ -38,9 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import androidx.navigation.compose.rememberNavController
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
@@ -61,8 +63,8 @@ fun CategoryEditScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Confirm delete") },
-            text = { Text("Are you sure you want to delete this category?") },
+            title = { Text(stringResource(R.string.dialog_confirm_delete_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_category_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
@@ -71,11 +73,11 @@ fun CategoryEditScreen(
                         onError = { e -> error = e },
                     )
                 }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -94,7 +96,7 @@ fun CategoryEditScreen(
                         selected = typeValue == type,
                         onClick = { typeValue = type },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                        label = { Text(if (type == "EXPENSE") "Expense" else "Income") },
+                        label = { Text(if (type == "EXPENSE") stringResource(R.string.label_expense) else stringResource(R.string.label_income)) },
                     )
                 }
             }
@@ -103,7 +105,7 @@ fun CategoryEditScreen(
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.label_name)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
@@ -126,7 +128,7 @@ fun CategoryEditScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("New subcategory")
+                Text(stringResource(R.string.action_new_subcategory))
             }
         }
 
@@ -141,7 +143,7 @@ fun CategoryEditScreen(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Save")
+            Text(stringResource(R.string.action_save))
         }
 
         if (isEditing) {
@@ -152,7 +154,7 @@ fun CategoryEditScreen(
                     contentColor = MaterialTheme.colorScheme.error,
                 ),
             ) {
-                Text("Delete")
+                Text(stringResource(R.string.action_delete))
             }
         }
 
@@ -185,7 +187,7 @@ internal fun ColorPickerRow(colorName: String?, onClick: () -> Unit) {
                     .background(colorHexByName(colorName), CircleShape)
             )
             Text(
-                text = colorName ?: "No color selected",
+                text = colorName ?: stringResource(R.string.no_color_selected),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
@@ -215,7 +217,7 @@ internal fun IconPickerRow(iconName: String?, onClick: () -> Unit) {
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = iconName ?: "No icon selected",
+                text = iconName ?: stringResource(R.string.no_icon_selected),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

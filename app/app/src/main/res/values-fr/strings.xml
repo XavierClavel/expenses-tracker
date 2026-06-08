@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bankable</string>
+
+    <!-- ── Navigation ─────────────────────────────────────── -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_categories">Catégories</string>
+    <string name="nav_summary">Résumé</string>
+    <string name="nav_trends">Tendances</string>
+    <string name="nav_accounts">Comptes</string>
+
+    <!-- ── Common actions ─────────────────────────────────── -->
+    <string name="action_save">Enregistrer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_ok">OK</string>
+    <string name="action_back">Retour</string>
+    <string name="action_previous">Précédent</string>
+    <string name="action_next">Suivant</string>
+    <string name="action_log_in">Se connecter</string>
+    <string name="action_sign_up">S\'inscrire</string>
+    <string name="action_new_subcategory">Nouvelle sous-catégorie</string>
+
+    <!-- ── Common labels ──────────────────────────────────── -->
+    <string name="label_name">Nom</string>
+    <string name="label_title">Titre</string>
+    <string name="label_amount_eur">Montant (EUR)</string>
+    <string name="label_amount">Montant (€)</string>
+    <string name="label_date">Date</string>
+    <string name="label_email">Adresse e-mail</string>
+    <string name="label_password">Mot de passe</string>
+    <string name="label_expense">Dépense</string>
+    <string name="label_income">Revenu</string>
+    <string name="label_expenses">Dépenses</string>
+    <string name="label_month">Mois</string>
+    <string name="label_year">Année</string>
+    <string name="label_total">Total</string>
+    <string name="label_balance">Solde</string>
+    <string name="label_charts">Graphiques</string>
+    <string name="label_reports">Relevés</string>
+    <string name="label_change">Variation</string>
+    <string name="label_change_percent">Variation %</string>
+    <string name="label_mean">Moyenne</string>
+    <string name="label_median">Médiane</string>
+    <string name="label_category">Catégorie</string>
+    <string name="label_flow">Flux</string>
+    <string name="label_in_out">Entrées / Sorties</string>
+    <string name="label_saved">épargné</string>
+    <string name="label_deficit">déficit</string>
+    <string name="label_no_data">Aucune donnée</string>
+
+    <!-- ── Auth ───────────────────────────────────────────── -->
+    <string name="screen_login">Connexion</string>
+
+    <!-- ── Expenses ───────────────────────────────────────── -->
+    <string name="screen_edit_expense">Modifier la dépense</string>
+    <string name="screen_new_expense">Nouvelle dépense</string>
+    <string name="cd_add_expense">Ajouter une dépense</string>
+    <string name="no_expenses_yet">Aucune dépense</string>
+    <string name="no_category_selected">Aucune catégorie sélectionnée</string>
+    <string name="dialog_delete_expense_title">Supprimer la dépense</string>
+    <string name="dialog_delete_expense_message">Êtes-vous sûr de vouloir supprimer \"%1$s\" ?</string>
+
+    <!-- ── Categories ─────────────────────────────────────── -->
+    <string name="cd_add_category">Ajouter une catégorie</string>
+    <string name="dialog_confirm_delete_title">Confirmer la suppression</string>
+    <string name="dialog_delete_category_message">Êtes-vous sûr de vouloir supprimer cette catégorie ?</string>
+    <string name="dialog_delete_subcategory_message">Êtes-vous sûr de vouloir supprimer cette sous-catégorie ?</string>
+    <string name="no_color_selected">Aucune couleur sélectionnée</string>
+    <string name="no_icon_selected">Aucune icône sélectionnée</string>
+    <string name="label_select_parent_category">Choisir la catégorie parente</string>
+    <string name="screen_select_category">Sélectionner une catégorie</string>
+
+    <!-- ── Accounts ───────────────────────────────────────── -->
+    <string name="screen_edit_account">Modifier le compte</string>
+    <string name="screen_new_account">Nouveau compte</string>
+    <string name="cd_add_account">Ajouter un compte</string>
+    <string name="label_account_name">Nom du compte</string>
+    <string name="label_total_balance">Solde total</string>
+    <string name="no_accounts_yet">Aucun compte</string>
+    <string name="dialog_delete_account_title">Supprimer le compte</string>
+    <string name="dialog_delete_account_message">Êtes-vous sûr de vouloir supprimer \"%1$s\" ? Tous les relevés associés seront également supprimés.</string>
+    <string name="tab_balance">Solde</string>
+    <string name="cd_edit_account">Modifier le compte</string>
+
+    <!-- ── Account Reports ────────────────────────────────── -->
+    <string name="screen_edit_report">Modifier le relevé</string>
+    <string name="screen_new_report">Nouveau relevé</string>
+    <string name="cd_add_report">Ajouter un relevé</string>
+    <string name="no_reports_yet">Aucun relevé</string>
+    <string name="dialog_delete_report_title">Supprimer le relevé</string>
+    <string name="dialog_delete_report_message">Êtes-vous sûr de vouloir supprimer ce relevé ?</string>
+
+    <!-- ── Summary ────────────────────────────────────────── -->
+    <string name="summary_unspent_income">Revenu non dépensé</string>
+    <string name="summary_no_data">Aucune donnée pour cette période</string>
+    <string name="summary_no_expenses">Aucune dépense pour cette période</string>
+    <string name="summary_percent_saved">%1$.0f%% du revenu épargné</string>
+    <string name="summary_percent_overspent">%1$.0f%% du revenu dépassé</string>
+
+    <!-- ── Trends ─────────────────────────────────────────── -->
+    <string name="trends_select_category_hint">Sélectionner une catégorie ou sous-catégorie</string>
+</resources>

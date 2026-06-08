@@ -30,8 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.categories.CategoriesViewModel
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
@@ -52,10 +54,10 @@ fun SubcategoryPickerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select category") },
+                title = { Text(stringResource(R.string.screen_select_category)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
             )

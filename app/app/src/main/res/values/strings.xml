@@ -1,3 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bankable</string>
+
+    <!-- ── Navigation ─────────────────────────────────────── -->
+    <string name="nav_home">Home</string>
+    <string name="nav_categories">Categories</string>
+    <string name="nav_summary">Summary</string>
+    <string name="nav_trends">Trends</string>
+    <string name="nav_accounts">Accounts</string>
+
+    <!-- ── Common actions ─────────────────────────────────── -->
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_back">Back</string>
+    <string name="action_previous">Previous</string>
+    <string name="action_next">Next</string>
+    <string name="action_log_in">Log in</string>
+    <string name="action_sign_up">Sign up</string>
+    <string name="action_new_subcategory">New subcategory</string>
+
+    <!-- ── Common labels ──────────────────────────────────── -->
+    <string name="label_name">Name</string>
+    <string name="label_title">Title</string>
+    <string name="label_amount_eur">Amount (EUR)</string>
+    <string name="label_amount">Amount (€)</string>
+    <string name="label_date">Date</string>
+    <string name="label_email">Email address</string>
+    <string name="label_password">Password</string>
+    <string name="label_expense">Expense</string>
+    <string name="label_income">Income</string>
+    <string name="label_expenses">Expenses</string>
+    <string name="label_month">Month</string>
+    <string name="label_year">Year</string>
+    <string name="label_total">Total</string>
+    <string name="label_balance">Balance</string>
+    <string name="label_charts">Charts</string>
+    <string name="label_reports">Reports</string>
+    <string name="label_change">Change</string>
+    <string name="label_change_percent">Change %</string>
+    <string name="label_mean">Mean</string>
+    <string name="label_median">Median</string>
+    <string name="label_category">Category</string>
+    <string name="label_flow">Flow</string>
+    <string name="label_in_out">In / Out</string>
+    <string name="label_saved">saved</string>
+    <string name="label_deficit">deficit</string>
+    <string name="label_no_data">No data</string>
+
+    <!-- ── Auth ───────────────────────────────────────────── -->
+    <string name="screen_login">Login</string>
+
+    <!-- ── Expenses ───────────────────────────────────────── -->
+    <string name="screen_edit_expense">Edit expense</string>
+    <string name="screen_new_expense">New expense</string>
+    <string name="cd_add_expense">Add expense</string>
+    <string name="no_expenses_yet">No expenses yet</string>
+    <string name="no_category_selected">No category selected</string>
+    <string name="dialog_delete_expense_title">Delete expense</string>
+    <string name="dialog_delete_expense_message">Are you sure you want to delete \"%1$s\"?</string>
+
+    <!-- ── Categories ─────────────────────────────────────── -->
+    <string name="cd_add_category">Add category</string>
+    <string name="dialog_confirm_delete_title">Confirm delete</string>
+    <string name="dialog_delete_category_message">Are you sure you want to delete this category?</string>
+    <string name="dialog_delete_subcategory_message">Are you sure you want to delete this subcategory?</string>
+    <string name="no_color_selected">No color selected</string>
+    <string name="no_icon_selected">No icon selected</string>
+    <string name="label_select_parent_category">Select parent category</string>
+    <string name="screen_select_category">Select category</string>
+
+    <!-- ── Accounts ───────────────────────────────────────── -->
+    <string name="screen_edit_account">Edit account</string>
+    <string name="screen_new_account">New account</string>
+    <string name="cd_add_account">Add account</string>
+    <string name="label_account_name">Account name</string>
+    <string name="label_total_balance">Total balance</string>
+    <string name="no_accounts_yet">No accounts yet</string>
+    <string name="dialog_delete_account_title">Delete account</string>
+    <string name="dialog_delete_account_message">Are you sure you want to delete \"%1$s\"? All associated reports will also be deleted.</string>
+    <string name="tab_balance">Balance</string>
+    <string name="cd_edit_account">Edit account</string>
+
+    <!-- ── Account Reports ────────────────────────────────── -->
+    <string name="screen_edit_report">Edit report</string>
+    <string name="screen_new_report">New report</string>
+    <string name="cd_add_report">Add report</string>
+    <string name="no_reports_yet">No reports yet</string>
+    <string name="dialog_delete_report_title">Delete report</string>
+    <string name="dialog_delete_report_message">Are you sure you want to delete this report?</string>
+
+    <!-- ── Summary ────────────────────────────────────────── -->
+    <string name="summary_unspent_income">Unspent income</string>
+    <string name="summary_no_data">No data for this period</string>
+    <string name="summary_no_expenses">No expenses for this period</string>
+    <string name="summary_percent_saved">%1$.0f%% of income saved</string>
+    <string name="summary_percent_overspent">%1$.0f%% of income overspent</string>
+
+    <!-- ── Trends ─────────────────────────────────────────── -->
+    <string name="trends_select_category_hint">Select a category or subcategory</string>
 </resources>

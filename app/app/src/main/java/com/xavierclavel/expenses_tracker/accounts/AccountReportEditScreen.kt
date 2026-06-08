@@ -35,10 +35,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -64,16 +67,16 @@ fun AccountReportEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit report" else "New report") },
+                title = { Text(if (isEditing) stringResource(R.string.screen_edit_report) else stringResource(R.string.screen_new_report)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     if (isEditing) {
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete")
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
                 }
@@ -92,16 +95,17 @@ fun AccountReportEditScreen(
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
-                label = { Text("Amount (€)") },
+                label = { Text(stringResource(R.string.label_amount)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
 
+            val locale = LocalConfiguration.current.locales[0]
             OutlinedTextField(
-                value = formatDateDisplay(date),
+                value = formatDateDisplay(date, locale),
                 onValueChange = {},
-                label = { Text("Date") },
+                label = { Text(stringResource(R.string.label_date)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { showDatePicker = true },
@@ -131,7 +135,7 @@ fun AccountReportEditScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = amount.isNotBlank(),
             ) {
-                Text("Save", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -143,10 +147,10 @@ fun AccountReportEditScreen(
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { date = millisToDate(it) }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             DatePicker(state = datePickerState)
@@ -156,8 +160,8 @@ fun AccountReportEditScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete report") },
-            text = { Text("Are you sure you want to delete this report?") },
+            title = { Text(stringResource(R.string.dialog_delete_report_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_report_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -168,10 +172,10 @@ fun AccountReportEditScreen(
                         )
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text("Delete") }
+                ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -183,11 +187,10 @@ private fun todayString(): String {
     return sdf.format(Date())
 }
 
-private fun formatDateDisplay(dateStr: String): String {
+private fun formatDateDisplay(dateStr: String, locale: Locale): String {
     return try {
-        val input = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val output = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
-        output.format(input.parse(dateStr)!!)
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr) ?: return dateStr
+        SimpleDateFormat("d MMMM yyyy", locale).format(date)
     } catch (_: Exception) { dateStr }
 }
 

@@ -38,8 +38,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
 import com.xavierclavel.expenses_tracker.model.CategoryOut
@@ -68,8 +70,8 @@ fun SubcategoryEditScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Confirm delete") },
-            text = { Text("Are you sure you want to delete this subcategory?") },
+            title = { Text(stringResource(R.string.dialog_confirm_delete_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_subcategory_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
@@ -78,11 +80,11 @@ fun SubcategoryEditScreen(
                         onError = { e -> error = e },
                     )
                 }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -97,7 +99,7 @@ fun SubcategoryEditScreen(
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.label_name)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
@@ -123,7 +125,7 @@ fun SubcategoryEditScreen(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Save")
+            Text(stringResource(R.string.action_save))
         }
 
         if (isEditing) {
@@ -134,7 +136,7 @@ fun SubcategoryEditScreen(
                     contentColor = MaterialTheme.colorScheme.error,
                 ),
             ) {
-                Text("Delete")
+                Text(stringResource(R.string.action_delete))
             }
         }
 
@@ -185,7 +187,7 @@ private fun CategorySelectorRow(
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text     = category?.name ?: "Select parent category",
+                text     = category?.name ?: stringResource(R.string.label_select_parent_category),
                 style    = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f),
                 color    = if (category == null) MaterialTheme.colorScheme.onSurfaceVariant

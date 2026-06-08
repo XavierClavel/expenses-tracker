@@ -43,10 +43,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
 import java.text.SimpleDateFormat
@@ -78,16 +81,16 @@ fun ExpenseEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit expense" else "New expense") },
+                title = { Text(if (isEditing) stringResource(R.string.screen_edit_expense) else stringResource(R.string.screen_new_expense)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     if (isEditing) {
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete")
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
                 }
@@ -105,7 +108,7 @@ fun ExpenseEditScreen(
             Spacer(Modifier.height(4.dp))
 
             SlidingToggle(
-                options  = listOf("EXPENSE" to "Expense", "INCOME" to "Income"),
+                options  = listOf("EXPENSE" to stringResource(R.string.label_expense), "INCOME" to stringResource(R.string.label_income)),
                 selected = viewModel.selectedType,
                 onSelect = { viewModel.setSelectedType(it) },
                 modifier = Modifier.fillMaxWidth(),
@@ -114,7 +117,7 @@ fun ExpenseEditScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.label_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
@@ -122,16 +125,17 @@ fun ExpenseEditScreen(
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
-                label = { Text("Amount (EUR)") },
+                label = { Text(stringResource(R.string.label_amount_eur)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
 
+            val locale = LocalConfiguration.current.locales[0]
             OutlinedTextField(
-                value = formatDateDisplay(date),
+                value = formatDateDisplay(date, locale),
                 onValueChange = {},
-                label = { Text("Date") },
+                label = { Text(stringResource(R.string.label_date)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { showDatePicker = true },
@@ -148,7 +152,7 @@ fun ExpenseEditScreen(
             )
 
             SubcategorySelector(
-                subcategoryName = subcategory?.name ?: "No category selected",
+                subcategoryName = subcategory?.name ?: stringResource(R.string.no_category_selected),
                 subcategoryIcon = subcategory?.icon,
                 subcategoryColor = subcategory?.color,
                 onClick = { navController.navigate("expense/subcategory-picker") },
@@ -175,7 +179,7 @@ fun ExpenseEditScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = title.isNotBlank() && amount.isNotBlank(),
             ) {
-                Text("Save", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -189,10 +193,10 @@ fun ExpenseEditScreen(
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { date = millisToDateString(it) }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             DatePicker(state = datePickerState)
@@ -202,8 +206,8 @@ fun ExpenseEditScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete expense") },
-            text = { Text("Are you sure you want to delete \"${expense?.title}\"?") },
+            title = { Text(stringResource(R.string.dialog_delete_expense_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_expense_message, expense?.title ?: "")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -214,10 +218,10 @@ fun ExpenseEditScreen(
                         )
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text("Delete") }
+                ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -269,12 +273,10 @@ private fun todayString(): String {
     return sdf.format(Date())
 }
 
-private fun formatDateDisplay(dateStr: String): String {
+private fun formatDateDisplay(dateStr: String, locale: Locale): String {
     return try {
-        val input = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val output = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
-        val date = input.parse(dateStr) ?: return dateStr
-        output.format(date)
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr) ?: return dateStr
+        SimpleDateFormat("d MMMM yyyy", locale).format(date)
     } catch (_: Exception) {
         dateStr
     }

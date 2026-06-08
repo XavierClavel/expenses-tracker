@@ -36,9 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import androidx.navigation.compose.rememberNavController
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
@@ -62,13 +64,13 @@ fun CategoryListScreen(
                 viewModel.prepareNewCategory()
                 navController.navigate("category/edit")
             }) {
-                Icon(Icons.Default.Add, contentDescription = "Add category")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_category))
             }
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             SlidingToggle(
-                options  = listOf("EXPENSE" to "Expense", "INCOME" to "Income"),
+                options  = listOf("EXPENSE" to stringResource(R.string.label_expense), "INCOME" to stringResource(R.string.label_income)),
                 selected = typeFilter,
                 onSelect = { viewModel.setTypeFilter(it) },
                 modifier = Modifier

@@ -33,10 +33,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.model.AccountOut
 
 @Composable
@@ -57,7 +59,7 @@ fun AccountListScreen(
                     viewModel.prepareNewAccount()
                     navController.navigate("account/edit")
                 }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add account")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_account))
                 }
             }
         }
@@ -75,7 +77,7 @@ fun AccountListScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "Total balance",
+                    text = stringResource(R.string.label_total_balance),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -90,12 +92,12 @@ fun AccountListScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Balance") },
+                    text = { Text(stringResource(R.string.tab_balance)) },
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Charts") },
+                    text = { Text(stringResource(R.string.label_charts)) },
                 )
             }
 
@@ -120,7 +122,7 @@ private fun BalanceTab(
         }
     } else if (accounts.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No accounts yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.no_accounts_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
         LazyColumn(

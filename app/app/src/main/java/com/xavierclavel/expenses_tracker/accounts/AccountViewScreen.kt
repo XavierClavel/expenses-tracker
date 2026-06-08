@@ -36,9 +36,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.model.AccountReportOut
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -59,7 +62,7 @@ fun AccountViewScreen(
                 title = { Text(account.name) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
@@ -67,7 +70,7 @@ fun AccountViewScreen(
                         viewModel.prepareEditAccount(account)
                         navController.navigate("account/edit")
                     }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit account")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.cd_edit_account))
                     }
                 }
             )
@@ -78,7 +81,7 @@ fun AccountViewScreen(
                     viewModel.prepareNewReport()
                     navController.navigate("account/report/edit")
                 }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add report")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_report))
                 }
             }
         }
@@ -107,12 +110,12 @@ fun AccountViewScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Reports") },
+                    text = { Text(stringResource(R.string.label_reports)) },
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Charts") },
+                    text = { Text(stringResource(R.string.label_charts)) },
                 )
             }
 
@@ -132,7 +135,7 @@ private fun ReportsTab(
 ) {
     if (reports.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No reports yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.no_reports_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
         LazyColumn(
@@ -154,6 +157,7 @@ private fun ReportsTab(
 
 @Composable
 private fun ReportRow(report: AccountReportOut, onClick: () -> Unit) {
+    val locale = LocalConfiguration.current.locales[0]
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -169,7 +173,7 @@ private fun ReportRow(report: AccountReportOut, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = formatReportDate(report.date),
+                text = formatReportDate(report.date, locale),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
@@ -183,10 +187,9 @@ private fun ReportRow(report: AccountReportOut, onClick: () -> Unit) {
     }
 }
 
-private fun formatReportDate(dateStr: String): String {
+private fun formatReportDate(dateStr: String, locale: Locale): String {
     return try {
-        val input = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val output = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
-        output.format(input.parse(dateStr)!!)
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)!!
+        SimpleDateFormat("d MMMM yyyy", locale).format(date)
     } catch (_: Exception) { dateStr }
 }

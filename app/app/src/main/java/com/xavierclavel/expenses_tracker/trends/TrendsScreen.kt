@@ -57,13 +57,16 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.accounts.BarChart
 import com.xavierclavel.expenses_tracker.categories.CategoriesViewModel
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
@@ -87,6 +90,8 @@ fun TrendsScreen(
     categoriesViewModel: CategoriesViewModel,
 ) {
     val categories by categoriesViewModel.categories.collectAsState()
+    val locale = LocalConfiguration.current.locales[0]
+    LaunchedEffect(locale)     { viewModel.updateLocale(locale) }
     LaunchedEffect(categories) { viewModel.updateCategories(categories) }
 
     val bars   by viewModel.bars.collectAsState()
@@ -104,7 +109,7 @@ fun TrendsScreen(
         ) {
             // BarChart / GroupedBarChart total height = 36dp (header) + chartH + 28dp (labels)
             // Reserve those 64dp + a small buffer so the chart fills the box.
-            val chartH = (maxHeight - 72.dp).coerceAtLeast(120.dp)
+            val chartH = (maxHeight - 80.dp).coerceAtLeast(120.dp)
 
             when {
                 isLoading -> CircularProgressIndicator()
@@ -112,7 +117,7 @@ fun TrendsScreen(
                     if (groups.isEmpty()) EmptyHint()
                     else GroupedBarChart(groups = groups, chartHeight = chartH)
                 viewModel.dataMode == "category" && viewModel.selectedCategory == null && viewModel.selectedSubcategory == null ->
-                    Text("Select a category or subcategory", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.trends_select_category_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 bars.isEmpty() -> EmptyHint()
                 else -> BarChart(bars = bars, chartHeight = chartH)
             }
@@ -124,28 +129,23 @@ fun TrendsScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            // Timescale + data mode on one row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("month" to "Month", "year" to "Year").forEach { (v, l) ->
-                        FilterChip(selected = viewModel.timescale == v, onClick = { viewModel.setTimescale(v) }, label = { Text(l) })
-                    }
+            // Timescale chips
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf("month" to stringResource(R.string.label_month), "year" to stringResource(R.string.label_year)).forEach { (v, l) ->
+                    FilterChip(selected = viewModel.timescale == v, onClick = { viewModel.setTimescale(v) }, label = { Text(l) })
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("income_expense" to "In / Out", "flow" to "Flow", "category" to "Category").forEach { (v, l) ->
-                        FilterChip(selected = viewModel.dataMode == v, onClick = { viewModel.setDataMode(v) }, label = { Text(l) })
-                    }
+            }
+            // Data mode chips
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf("income_expense" to stringResource(R.string.label_in_out), "flow" to stringResource(R.string.label_flow), "category" to stringResource(R.string.label_category)).forEach { (v, l) ->
+                    FilterChip(selected = viewModel.dataMode == v, onClick = { viewModel.setDataMode(v) }, label = { Text(l) })
                 }
             }
 
             // Aggregation chips (year mode only)
             if (viewModel.timescale == "year") {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("total" to "Total", "average" to "Mean", "median" to "Median").forEach { (v, l) ->
+                    listOf("total" to stringResource(R.string.label_total), "average" to stringResource(R.string.label_mean), "median" to stringResource(R.string.label_median)).forEach { (v, l) ->
                         FilterChip(selected = viewModel.aggregation == v, onClick = { viewModel.setAggregation(v) }, label = { Text(l) })
                     }
                 }
@@ -214,7 +214,7 @@ private fun CategorySelectorRow(
                 )
             } else {
                 Text(
-                    text     = "Select a category or subcategory",
+                    text     = stringResource(R.string.trends_select_category_hint),
                     style    = MaterialTheme.typography.bodyMedium,
                     color    = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
@@ -299,7 +299,7 @@ private fun TypeToggle(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val options = listOf("EXPENSE" to "Expenses", "INCOME" to "Income")
+    val options = listOf("EXPENSE" to stringResource(R.string.label_expenses), "INCOME" to stringResource(R.string.label_income))
     val selectedIndex = options.indexOfFirst { it.first == selectedType }.coerceAtLeast(0)
 
     BoxWithConstraints(
@@ -412,7 +412,7 @@ private fun SubcategoryPickerRow(
 
 @Composable
 private fun EmptyHint() {
-    Text("No data", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.label_no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 // ── Grouped bar chart (income_expense mode) ────────────────────────────────────
@@ -427,7 +427,7 @@ fun GroupedBarChart(
 
     val maxVal       = groups.maxOf { maxOf(it.income, it.expense) }.coerceAtLeast(0.001f)
     val ticks        = remember(maxVal) { simpleTicks(maxVal) }
-    val labelAreaH   = 28.dp
+    val labelAreaH   = 36.dp
     val yAxisWidth   = 22.dp
 
     val listState    = rememberLazyListState()
@@ -533,7 +533,7 @@ fun GroupedBarChart(
                                 color      = if (hi) MaterialTheme.colorScheme.onBackground else Color.Gray.copy(0.6f),
                                 fontWeight = if (hi) FontWeight.Bold else FontWeight.Normal,
                                 textAlign  = TextAlign.Center,
-                                maxLines   = 1,
+                                maxLines   = 2,
                                 modifier   = Modifier.padding(top = 4.dp),
                             )
                         }

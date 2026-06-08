@@ -37,12 +37,14 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.model.AccountTrendDto
 import java.util.Calendar
 import kotlin.math.abs
@@ -62,6 +64,7 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
     val display = viewModel.chartDisplay
 
     LaunchedEffect(accountId) { viewModel.loadTrends(accountId) }
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
 
     Column(
         modifier = Modifier
@@ -69,13 +72,13 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
             .padding(vertical = 8.dp),
     ) {
         Row(modifier = Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("month" to "Month", "year" to "Year").forEach { (v, l) ->
+            listOf("month" to stringResource(R.string.label_month), "year" to stringResource(R.string.label_year)).forEach { (v, l) ->
                 FilterChip(selected = timescale == v, onClick = { viewModel.setTimescale(v, accountId) }, label = { Text(l) })
             }
         }
         Spacer(Modifier.height(4.dp))
         Row(modifier = Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("value" to "Balance", "diff" to "Change", "diff_percent" to "Change %").forEach { (v, l) ->
+            listOf("value" to stringResource(R.string.label_balance), "diff" to stringResource(R.string.label_change), "diff_percent" to stringResource(R.string.label_change_percent)).forEach { (v, l) ->
                 FilterChip(selected = display == v, onClick = { viewModel.setChartDisplay(v) }, label = { Text(l) })
             }
         }
@@ -85,10 +88,10 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
             modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 4.dp),
             contentAlignment = Alignment.Center,
         ) {
-            val chartH = (maxHeight - 72.dp).coerceAtLeast(120.dp)
+            val chartH = (maxHeight - 80.dp).coerceAtLeast(120.dp)
 
             if (trends.isEmpty()) {
-                Text("No data", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.label_no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 val isPercent = display == "diff_percent"
                 val bars = trends.map { dto ->
@@ -97,7 +100,7 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
                         "diff_percent" -> (dto.proportionalChange?.toFloatOrNull() ?: 0f) * 100f
                         else           -> dto.balance.toFloatOrNull() ?: 0f
                     }
-                    BarEntry(value = v, label = formatTrendLabel(dto, timescale))
+                    BarEntry(value = v, label = formatTrendLabel(dto, timescale, locale))
                 }
                 BarChart(bars = bars, isPercent = isPercent, chartHeight = chartH)
             }
@@ -105,10 +108,13 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
     }
 }
 
-private fun formatTrendLabel(dto: AccountTrendDto, timescale: String): String {
+private fun formatTrendLabel(dto: AccountTrendDto, timescale: String, locale: java.util.Locale): String {
     if (timescale == "year" || dto.month == null) return dto.year.toString()
-    val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-    val name = months.getOrElse(dto.month - 1) { dto.month.toString() }
+    val cal = Calendar.getInstance().apply {
+        set(Calendar.YEAR, dto.year)
+        set(Calendar.MONTH, dto.month - 1)
+    }
+    val name = java.text.SimpleDateFormat("MMM", locale).format(cal.time)
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     return if (dto.year == currentYear) name else "$name '${dto.year % 100}"
 }
@@ -132,7 +138,7 @@ fun BarChart(
     val listState   = rememberLazyListState()
     val snapBehavior = rememberSnapFlingBehavior(listState)
     val suffix      = if (isPercent) " %" else " €"
-    val labelAreaH  = 28.dp
+    val labelAreaH  = 36.dp
     val yAxisWidth  = 22.dp
 
     val barWidthPx = with(LocalDensity.current) { barWidth.roundToPx() }
@@ -258,7 +264,7 @@ fun BarChart(
                                 color      = if (hi) baseColor else Color.Gray.copy(alpha = 0.6f),
                                 fontWeight = if (hi) FontWeight.Bold else FontWeight.Normal,
                                 textAlign  = TextAlign.Center,
-                                maxLines   = 1,
+                                maxLines   = 2,
                                 modifier   = Modifier.padding(top = 4.dp),
                             )
                         }

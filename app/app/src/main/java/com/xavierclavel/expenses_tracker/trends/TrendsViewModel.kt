@@ -52,6 +52,13 @@ class TrendsViewModel : ViewModel() {
     val groups: StateFlow<List<BarGroup>> = _groups
 
     private var categories: List<CategoryOut> = emptyList()
+    private var locale: java.util.Locale = java.util.Locale.getDefault()
+
+    fun updateLocale(newLocale: java.util.Locale) {
+        if (locale == newLocale) return
+        locale = newLocale
+        load()
+    }
 
     fun updateCategories(newCategories: List<CategoryOut>) {
         if (categories == newCategories) return
@@ -180,8 +187,11 @@ class TrendsViewModel : ViewModel() {
     }
 
     private fun monthLabel(year: Int, month: Int): String {
-        val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-        val name = months.getOrElse(month - 1) { month.toString() }
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month - 1)
+        }
+        val name = java.text.SimpleDateFormat("MMM", locale).format(cal.time)
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         return if (year == currentYear) name else "$name '${year % 100}"
     }

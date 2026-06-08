@@ -33,15 +33,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.categories.CategoriesViewModel
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
 import com.xavierclavel.expenses_tracker.model.ExpenseOut
 import com.xavierclavel.expenses_tracker.model.SubcategoryOut
+import androidx.compose.ui.platform.LocalConfiguration
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -58,6 +61,7 @@ fun ExpenseListScreen(
     val subcategoryMap = remember(categories) {
         categories.flatMap { it.subcategories }.associateBy { it.id }
     }
+    val locale = LocalConfiguration.current.locales[0]
 
     val grouped = remember(expenses) {
         expenses.groupBy { it.date }
@@ -81,7 +85,7 @@ fun ExpenseListScreen(
                 viewModel.prepareNewExpense()
                 navController.navigate("expense/edit")
             }) {
-                Icon(Icons.Default.Add, contentDescription = "Add expense")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_expense))
             }
         }
     ) { padding ->
@@ -91,7 +95,7 @@ fun ExpenseListScreen(
             }
         } else if (expenses.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No expenses yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.no_expenses_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
@@ -105,7 +109,7 @@ fun ExpenseListScreen(
                     stickyHeader(key = "header_$dateStr") {
                         Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
                             Text(
-                                text = formatDate(dateStr),
+                                text = formatDate(dateStr, locale),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -198,12 +202,10 @@ private fun ExpenseItem(
     }
 }
 
-private fun formatDate(dateStr: String): String {
+private fun formatDate(dateStr: String, locale: Locale): String {
     return try {
-        val input = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val output = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
-        val date = input.parse(dateStr) ?: return dateStr
-        output.format(date)
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr) ?: return dateStr
+        SimpleDateFormat("d MMMM yyyy", locale).format(date)
     } catch (_: Exception) {
         dateStr
     }

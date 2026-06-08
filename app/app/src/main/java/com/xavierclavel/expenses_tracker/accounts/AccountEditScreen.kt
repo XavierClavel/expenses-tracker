@@ -29,9 +29,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.expenses_tracker.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,16 +49,16 @@ fun AccountEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit account" else "New account") },
+                title = { Text(if (isEditing) stringResource(R.string.screen_edit_account) else stringResource(R.string.screen_new_account)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     if (isEditing) {
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete")
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
                 }
@@ -75,7 +77,7 @@ fun AccountEditScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Account name") },
+                label = { Text(stringResource(R.string.label_account_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
@@ -99,7 +101,7 @@ fun AccountEditScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = name.isNotBlank(),
             ) {
-                Text("Save", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -107,8 +109,8 @@ fun AccountEditScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete account") },
-            text = { Text("Are you sure you want to delete \"${viewModel.selectedAccount?.name}\"? All associated reports will also be deleted.") },
+            title = { Text(stringResource(R.string.dialog_delete_account_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_account_message, viewModel.selectedAccount?.name ?: "")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -121,10 +123,10 @@ fun AccountEditScreen(
                         )
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text("Delete") }
+                ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }

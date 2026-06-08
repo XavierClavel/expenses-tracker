@@ -45,6 +45,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.ui.res.stringResource
+import com.xavierclavel.expenses_tracker.R
 import com.xavierclavel.expenses_tracker.ui.SlidingToggle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -71,6 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -88,10 +91,13 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-private val MONTH_NAMES = listOf(
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December",
-)
+private fun localizedMonthYear(year: Int, month: Int, locale: Locale): String {
+    val cal = Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month - 1)
+    }
+    return SimpleDateFormat("MMMM yyyy", locale).format(cal.time)
+}
 
 data class SubcategoryEntry(
     val subcategoryId: Int,
@@ -207,23 +213,24 @@ fun SummaryScreen(
         Spacer(Modifier.height(12.dp))
 
         // ── Date navigation ────────────────────────────────────────────────
+        val locale = LocalConfiguration.current.locales[0]
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             IconButton(onClick = { viewModel.previousPeriod() }, enabled = viewModel.canGoBack()) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_previous))
             }
             Text(
                 text = if (viewModel.timescale == "month")
-                    "${MONTH_NAMES[viewModel.selectedMonth - 1]} ${viewModel.selectedYear}"
+                    localizedMonthYear(viewModel.selectedYear, viewModel.selectedMonth, locale)
                 else viewModel.selectedYear.toString(),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             IconButton(onClick = { viewModel.nextPeriod() }, enabled = viewModel.canGoForward()) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.action_next))
             }
         }
 
@@ -231,7 +238,7 @@ fun SummaryScreen(
 
         // ── Timescale + type toggles ───────────────────────────────────────
         SlidingToggle(
-            options  = listOf("month" to "Month", "year" to "Year"),
+            options  = listOf("month" to stringResource(R.string.label_month), "year" to stringResource(R.string.label_year)),
             selected = viewModel.timescale,
             onSelect = { viewModel.setTimescale(it) },
             modifier = Modifier.fillMaxWidth(),
@@ -240,7 +247,7 @@ fun SummaryScreen(
         Spacer(Modifier.height(8.dp))
 
         SlidingToggle(
-            options  = listOf("EXPENSE" to "Expenses", "INCOME" to "Income"),
+            options  = listOf("EXPENSE" to stringResource(R.string.label_expenses), "INCOME" to stringResource(R.string.label_income)),
             selected = viewModel.selectedType,
             onSelect = { viewModel.setSelectedType(it) },
             modifier = Modifier.fillMaxWidth(),
@@ -291,7 +298,7 @@ fun SummaryScreen(
                         Modifier.fillMaxWidth().height(200.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("No data for this period", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.summary_no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     else -> {
                         val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
@@ -383,7 +390,7 @@ private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
                 Column {
                     Text("-${formatSummaryAmount(totalExpenses)}", style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
-                    Text("Expenses", style = MaterialTheme.typography.labelSmall,
+                    Text(stringResource(R.string.label_expenses), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 // Balance (centre) — prominent
@@ -391,14 +398,14 @@ private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
                     val sign = if (isSaved) "+" else "-"
                     Text("$sign${formatSummaryAmount(abs(balance))}", style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold, color = balColor)
-                    Text(if (isSaved) "saved" else "deficit", style = MaterialTheme.typography.labelSmall,
+                    Text(if (isSaved) stringResource(R.string.label_saved) else stringResource(R.string.label_deficit), style = MaterialTheme.typography.labelSmall,
                         color = balColor.copy(alpha = 0.8f))
                 }
                 // Income (right)
                 Column(horizontalAlignment = Alignment.End) {
                     Text("+${formatSummaryAmount(totalIncome)}", style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
-                    Text("Income", style = MaterialTheme.typography.labelSmall,
+                    Text(stringResource(R.string.label_income), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -419,7 +426,8 @@ private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text  = "${"%.0f".format(expFraction * 100)}% of income ${if (isSaved) "spent" else "overspent"}",
+                    text  = if (isSaved) stringResource(R.string.summary_percent_saved, (1f - expFraction) * 100)
+                            else stringResource(R.string.summary_percent_overspent, expFraction * 100),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
@@ -449,7 +457,7 @@ private fun SavingsLegendRow(savings: Double, incomeTotal: Double) {
             ) {
                 Icon(Icons.Default.TrendingUp, null, tint = color, modifier = Modifier.size(22.dp))
                 Text(
-                    text       = "Unspent income",
+                    text       = stringResource(R.string.summary_unspent_income),
                     style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier   = Modifier.weight(1f),
@@ -549,7 +557,7 @@ private fun DonutChart(
                     Text("$sign${formatSummaryAmount(abs(balance))}",
                         style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center, color = balColor)
-                    Text(if (balance > 0) "saved" else "deficit",
+                    Text(if (balance > 0) stringResource(R.string.label_saved) else stringResource(R.string.label_deficit),
                         style = MaterialTheme.typography.labelSmall,
                         color = balColor.copy(alpha = 0.8f), textAlign = TextAlign.Center)
                 }
@@ -557,7 +565,7 @@ private fun DonutChart(
                     Text(formatSummaryAmount(total.toDouble()),
                         style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground)
-                    Text("Total", style = MaterialTheme.typography.labelSmall,
+                    Text(stringResource(R.string.label_total), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                 }
             }
@@ -731,7 +739,7 @@ private fun ExpenseListSheetContent(
                 CircularProgressIndicator()
             }
             expenses.isEmpty() -> Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
-                Text("No expenses for this period", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.summary_no_expenses), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             else -> expenses.forEach { expense ->
                 ExpenseSheetRow(expense, onClick = { onExpenseClick(expense) })
@@ -742,6 +750,7 @@ private fun ExpenseListSheetContent(
 
 @Composable
 private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
+    val locale      = LocalConfiguration.current.locales[0]
     val amountColor = if (expense.type == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
     val sign        = if (expense.type == "INCOME") "+" else "-"
     Row(
@@ -750,7 +759,7 @@ private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text     = formatDateShort(expense.date),
+            text     = formatDateShort(expense.date, locale),
             style    = MaterialTheme.typography.bodySmall,
             color    = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.width(48.dp),
@@ -843,9 +852,9 @@ private fun formatSummaryAmount(value: Double): String {
     return "$number €"
 }
 
-private fun formatDateShort(dateStr: String): String {
+private fun formatDateShort(dateStr: String, locale: Locale): String {
     return try {
-        val out = SimpleDateFormat("d MMM", Locale.getDefault())
+        val out = SimpleDateFormat("d MMM", locale)
         out.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)!!)
     } catch (_: Exception) { dateStr }
 }

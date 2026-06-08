@@ -21,7 +21,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xavierclavel.expenses_tracker.R
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -170,31 +172,31 @@ private fun BottomNavBar(navController: NavController, currentRoute: String?) {
             selected = currentRoute == "home",
             onClick = { navController.navigateTopLevel("home") },
             icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Home") },
+            label = { Text(stringResource(R.string.nav_home)) },
         )
         NavigationBarItem(
             selected = currentRoute == "categories",
             onClick = { navController.navigateTopLevel("categories") },
             icon = { Icon(Icons.Default.Category, contentDescription = null) },
-            label = { Text("Categories") },
+            label = { Text(stringResource(R.string.nav_categories)) },
         )
         NavigationBarItem(
             selected = currentRoute == "summary",
             onClick = { navController.navigateTopLevel("summary") },
             icon = { Icon(Icons.Default.PieChart, contentDescription = null) },
-            label = { Text("Summary") },
+            label = { Text(stringResource(R.string.nav_summary)) },
         )
         NavigationBarItem(
             selected = currentRoute == "trends",
             onClick = { navController.navigateTopLevel("trends") },
             icon = { Icon(Icons.Default.ShowChart, contentDescription = null) },
-            label = { Text("Trends") },
+            label = { Text(stringResource(R.string.nav_trends)) },
         )
         NavigationBarItem(
             selected = currentRoute == "accounts",
             onClick = { navController.navigateTopLevel("accounts") },
             icon = { Icon(Icons.Default.AccountBalance, contentDescription = null) },
-            label = { Text("Accounts") },
+            label = { Text(stringResource(R.string.nav_accounts)) },
         )
     }
 }
