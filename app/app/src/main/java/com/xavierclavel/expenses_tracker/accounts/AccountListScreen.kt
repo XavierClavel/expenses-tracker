@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -125,6 +126,7 @@ private fun BalanceTab(
         LazyColumn(
             modifier = Modifier.padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 80.dp),
         ) {
             item { Spacer(Modifier.height(8.dp)) }
             items(accounts, key = { it.id }) { account ->

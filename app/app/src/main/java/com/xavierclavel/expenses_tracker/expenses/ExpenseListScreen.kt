@@ -99,7 +99,7 @@ fun ExpenseListScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
             ) {
                 grouped.forEach { (dateStr, dayExpenses) ->
                     stickyHeader(key = "header_$dateStr") {

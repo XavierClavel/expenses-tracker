@@ -136,7 +136,7 @@ private fun ReportsTab(
         }
     } else {
         LazyColumn(
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             items(reports, key = { it.id }) { report ->
