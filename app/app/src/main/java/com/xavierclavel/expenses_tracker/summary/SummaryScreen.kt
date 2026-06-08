@@ -71,10 +71,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
 import com.xavierclavel.expenses_tracker.api.apiListExpenses
 import com.xavierclavel.expenses_tracker.categories.CategoriesViewModel
 import com.xavierclavel.expenses_tracker.constants.colorHexByName
 import com.xavierclavel.expenses_tracker.constants.iconByName
+import com.xavierclavel.expenses_tracker.expenses.ExpensesViewModel
 import com.xavierclavel.expenses_tracker.model.ExpenseOut
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -110,7 +115,17 @@ data class PieEntry(
 fun SummaryScreen(
     viewModel: SummaryViewModel,
     categoriesViewModel: CategoriesViewModel,
+    expensesViewModel: ExpensesViewModel,
+    navController: NavController,
 ) {
+    // Refresh summary every time this screen is resumed (e.g. returning from expense edit)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
+
     val categories by categoriesViewModel.categories.collectAsState()
     val summary    = viewModel.summary
     val isLoading  = viewModel.isLoading
@@ -336,6 +351,12 @@ fun SummaryScreen(
                 entry    = bottomSheetEntry!!,
                 dateFrom = dateFrom,
                 dateTo   = dateTo,
+                onExpenseClick = { expense ->
+                    val sub = subcategoryMap[expense.categoryId]
+                    expensesViewModel.prepareEditExpense(expense, sub)
+                    bottomSheetEntry = null
+                    navController.navigate("expense/edit")
+                },
             )
         }
     }
@@ -672,6 +693,7 @@ private fun ExpenseListSheetContent(
     entry: SubcategoryEntry,
     dateFrom: String,
     dateTo: String,
+    onExpenseClick: (ExpenseOut) -> Unit,
 ) {
     var expenses  by remember { mutableStateOf<List<ExpenseOut>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -712,18 +734,18 @@ private fun ExpenseListSheetContent(
                 Text("No expenses for this period", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             else -> expenses.forEach { expense ->
-                ExpenseSheetRow(expense)
+                ExpenseSheetRow(expense, onClick = { onExpenseClick(expense) })
             }
         }
     }
 }
 
 @Composable
-private fun ExpenseSheetRow(expense: ExpenseOut) {
+private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
     val amountColor = if (expense.type == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
     val sign        = if (expense.type == "INCOME") "+" else "-"
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 9.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {

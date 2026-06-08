@@ -47,6 +47,8 @@ class SummaryViewModel : ViewModel() {
         }
     }
 
+    fun refresh() = loadSummary()
+
     private fun loadSummary() {
         viewModelScope.launch {
             isLoading = true

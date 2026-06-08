@@ -142,7 +142,7 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
                 IconPickerScreen(categoriesViewModel, navController)
             }
             composable("summary") {
-                SummaryScreen(summaryViewModel, categoriesViewModel)
+                SummaryScreen(summaryViewModel, categoriesViewModel, expensesViewModel, navController)
             }
             composable("trends") {
                 TrendsScreen(trendsViewModel, categoriesViewModel)

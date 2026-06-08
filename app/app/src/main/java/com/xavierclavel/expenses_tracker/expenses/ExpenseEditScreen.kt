@@ -27,11 +27,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import com.xavierclavel.expenses_tracker.ui.SlidingToggle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -105,16 +104,12 @@ fun ExpenseEditScreen(
         ) {
             Spacer(Modifier.height(4.dp))
 
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                listOf("EXPENSE", "INCOME").forEachIndexed { index, type ->
-                    SegmentedButton(
-                        selected = viewModel.selectedType == type,
-                        onClick = { viewModel.setSelectedType(type) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                        label = { Text(if (type == "EXPENSE") "Expense" else "Income") },
-                    )
-                }
-            }
+            SlidingToggle(
+                options  = listOf("EXPENSE" to "Expense", "INCOME" to "Income"),
+                selected = viewModel.selectedType,
+                onSelect = { viewModel.setSelectedType(it) },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             OutlinedTextField(
                 value = title,
@@ -144,6 +139,12 @@ fun ExpenseEditScreen(
                 trailingIcon = {
                     Icon(Icons.Default.CalendarMonth, contentDescription = null)
                 },
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor          = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor        = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor         = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor  = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
 
             SubcategorySelector(

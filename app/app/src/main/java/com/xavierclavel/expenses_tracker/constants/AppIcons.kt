@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.SportsBar
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Checkroom
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.TrendingUp
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.Water
 import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.ui.graphics.vector.ImageVector
 
 val iconMap: Map<String, ImageVector> = mapOf(
@@ -82,6 +84,8 @@ val iconMap: Map<String, ImageVector> = mapOf(
     "cocktail" to Icons.Default.LocalBar,
     "scissors" to Icons.Default.ContentCut,
     "pill" to Icons.Default.Medication,
+    "dns" to Icons.Default.Dns,
+    "server" to Icons.Rounded.ContentCut,
     "unknown" to Icons.Default.HelpOutline,
 )
 
