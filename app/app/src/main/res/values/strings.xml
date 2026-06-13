@@ -32,6 +32,8 @@
     <string name="label_date">Date</string>
     <string name="label_email">Email address</string>
     <string name="label_password">Password</string>
+    <string name="label_confirm_password">Confirm password</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
     <string name="label_expense">Expense</string>
     <string name="label_income">Income</string>
     <string name="label_expenses">Expenses</string>

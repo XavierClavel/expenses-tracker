@@ -33,7 +33,9 @@ fun SignupScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val passwordMismatch = stringResource(R.string.error_password_mismatch)
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -55,13 +57,28 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(), singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
             )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = confirmPassword, onValueChange = { confirmPassword = it },
+                label = { Text(stringResource(R.string.label_confirm_password)) },
+                modifier = Modifier.fillMaxWidth(), singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                isError = confirmPassword.isNotEmpty() && confirmPassword != password,
+            )
             error?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = { error = null; onSignup(email, password, onNavigateToLogin) { err -> error = err } },
+                onClick = {
+                    error = null
+                    if (password != confirmPassword) {
+                        error = passwordMismatch
+                    } else {
+                        onSignup(email, password, onNavigateToLogin) { err -> error = err }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(stringResource(R.string.action_sign_up)) }
             Spacer(Modifier.height(8.dp))
