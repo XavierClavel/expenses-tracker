@@ -332,6 +332,7 @@ private fun TypeToggle(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+
                         .clickable { onSelect(value) },
                     contentAlignment = Alignment.Center,
                 ) {

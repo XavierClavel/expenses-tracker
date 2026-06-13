@@ -8,6 +8,8 @@
     <string name="nav_summary">Summary</string>
     <string name="nav_trends">Trends</string>
     <string name="nav_accounts">Accounts</string>
+    <string name="logout">Log out</string>
+    <string name="cd_logout">Log out</string>
 
     <!-- ── Common actions ─────────────────────────────────── -->
     <string name="action_save">Save</string>

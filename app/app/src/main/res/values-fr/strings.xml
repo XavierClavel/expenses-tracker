@@ -8,6 +8,8 @@
     <string name="nav_summary">Résumé</string>
     <string name="nav_trends">Tendances</string>
     <string name="nav_accounts">Comptes</string>
+    <string name="logout">Déconnexion</string>
+    <string name="cd_logout">Déconnexion</string>
 
     <!-- ── Common actions ─────────────────────────────────── -->
     <string name="action_save">Enregistrer</string>

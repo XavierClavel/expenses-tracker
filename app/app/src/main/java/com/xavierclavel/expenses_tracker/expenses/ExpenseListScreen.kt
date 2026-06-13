@@ -1,6 +1,7 @@
 package com.xavierclavel.expenses_tracker.expenses
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,9 +18,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -53,6 +56,7 @@ fun ExpenseListScreen(
     viewModel: ExpensesViewModel,
     categoriesViewModel: CategoriesViewModel,
     navController: NavController,
+    onLogout: () -> Unit,
 ) {
     val expenses by viewModel.expenses.collectAsState()
     val isLoading = viewModel.isLoading
@@ -67,7 +71,8 @@ fun ExpenseListScreen(
         expenses.groupBy { it.date }
     }
 
-    val listState = rememberLazyListState()
+    // Start scrolled just past the logout button (item 0) so it's hidden on open.
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = 1)
     val nearEnd by remember {
         derivedStateOf {
             val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -105,6 +110,19 @@ fun ExpenseListScreen(
                     .padding(padding),
                 contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
             ) {
+                item(key = "logout") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        IconButton(onClick = onLogout) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = stringResource(R.string.cd_logout),
+                            )
+                        }
+                    }
+                }
                 grouped.forEach { (dateStr, dayExpenses) ->
                     stickyHeader(key = "header_$dateStr") {
                         Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {

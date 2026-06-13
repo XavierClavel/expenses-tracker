@@ -120,7 +120,12 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable("home") {
-                ExpenseListScreen(expensesViewModel, categoriesViewModel, navController)
+                ExpenseListScreen(
+                    expensesViewModel,
+                    categoriesViewModel,
+                    navController,
+                    onLogout = { authViewModel.logout() },
+                )
             }
             composable("expense/edit") {
                 ExpenseEditScreen(expensesViewModel, navController)
