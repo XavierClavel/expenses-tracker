@@ -16,12 +16,18 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xavierclavel.bankable.R
 import androidx.navigation.NavController
@@ -98,8 +104,27 @@ private fun AuthNavGraph(authViewModel: AuthViewModel, authState: AuthState.Unau
     }
 }
 
+// Holds the session-scoped ViewModels. Cleared when the authenticated graph
+// leaves composition (logout), so a new login rebuilds them with fresh data
+// instead of reusing the previous account's cached state.
+private class SessionViewModelStoreOwner : ViewModelStoreOwner {
+    override val viewModelStore = ViewModelStore()
+    fun clear() = viewModelStore.clear()
+}
+
 @Composable
 private fun MainNavGraph(authViewModel: AuthViewModel) {
+    val sessionOwner = remember { SessionViewModelStoreOwner() }
+    DisposableEffect(sessionOwner) {
+        onDispose { sessionOwner.clear() }
+    }
+    CompositionLocalProvider(LocalViewModelStoreOwner provides sessionOwner) {
+        MainNavGraphContent(authViewModel)
+    }
+}
+
+@Composable
+private fun MainNavGraphContent(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val categoriesViewModel: CategoriesViewModel = viewModel()
     val expensesViewModel: ExpensesViewModel = viewModel()

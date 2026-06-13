@@ -50,5 +50,10 @@ class PersistentCookiesStorage(context: Context) : CookiesStorage {
         prefs.edit().putString(host, Json.encodeToString(toSave)).apply()
     }
 
+    suspend fun clear(): Unit = mutex.withLock {
+        cache.clear()
+        prefs.edit().clear().apply()
+    }
+
     override fun close() {}
 }

@@ -33,10 +33,19 @@ class ApiException(val status: Int, message: String) : Exception(message)
 
 lateinit var httpClient: HttpClient
 
+private var cookiesStorage: PersistentCookiesStorage? = null
+
+/** Clears persisted session cookies. Call on logout so they don't leak across accounts. */
+suspend fun clearSessionCookies() {
+    cookiesStorage?.clear()
+}
+
 fun initHttpClient(context: Context) {
+    val storage = PersistentCookiesStorage(context)
+    cookiesStorage = storage
     httpClient = HttpClient(Android) {
         install(HttpCookies) {
-            storage = PersistentCookiesStorage(context)
+            this.storage = storage
         }
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })

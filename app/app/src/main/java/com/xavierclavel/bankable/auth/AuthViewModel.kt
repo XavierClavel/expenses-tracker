@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.xavierclavel.bankable.api.apiLogin
 import com.xavierclavel.bankable.api.apiLoginGoogle
 import com.xavierclavel.bankable.api.apiSignup
+import com.xavierclavel.bankable.api.clearSessionCookies
 import com.xavierclavel.bankable.api.sessionToken
 import com.xavierclavel.bankable.api.unauthorizedFlow
 import com.xavierclavel.bankable.storage.TokenStorage
@@ -87,6 +88,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         sessionToken = null
         tokenStorage.clearToken()
+        viewModelScope.launch { clearSessionCookies() }
         _authState.value = AuthState.Unauthenticated()
     }
 }
