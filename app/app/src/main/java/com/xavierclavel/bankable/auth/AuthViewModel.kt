@@ -58,8 +58,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun loginWithGoogle(idToken: String) {
-        _authState.value = AuthState.Loading
+    // Reports errors via callback rather than the global auth state so the
+    // initiating screen (login or signup) stays mounted and can show them.
+    fun loginWithGoogle(idToken: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 val token = apiLoginGoogle(idToken)
@@ -67,7 +68,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 sessionToken = token
                 _authState.value = AuthState.Authenticated
             } catch (e: Exception) {
-                _authState.value = AuthState.Unauthenticated(e.message ?: "Google sign-in failed")
+                onError(e.message ?: "Google sign-in failed")
             }
         }
     }

@@ -28,7 +28,7 @@ import com.xavierclavel.bankable.R
 @Composable
 fun SignupScreen(
     onSignup: (String, String, () -> Unit, (String) -> Unit) -> Unit,
-    onGoogleSignIn: (String) -> Unit,
+    onGoogleSignIn: (String, (String) -> Unit) -> Unit,
     onNavigateToLogin: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
@@ -71,7 +71,7 @@ fun SignupScreen(
             Spacer(Modifier.height(8.dp))
             GoogleSignInButton(
                 enabled = true,
-                onIdToken = onGoogleSignIn,
+                onIdToken = { token -> error = null; onGoogleSignIn(token) { err -> error = err } },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

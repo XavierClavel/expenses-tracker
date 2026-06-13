@@ -103,4 +103,28 @@
 
     <!-- ── Trends ─────────────────────────────────────────── -->
     <string name="trends_select_category_hint">Sélectionner une catégorie ou sous-catégorie</string>
+
+    <!-- ── Colors ─────────────────────────────────────────── -->
+    <string name="color_blue">Bleu</string>
+    <string name="color_lightblue">Bleu clair</string>
+    <string name="color_purple">Mauve</string>
+    <string name="color_red">Rouge</string>
+    <string name="color_yellow">Jaune</string>
+    <string name="color_green">Vert</string>
+    <string name="color_magenta">Magenta</string>
+    <string name="color_lightgreen">Vert clair</string>
+    <string name="color_brown">Marron</string>
+    <string name="color_pink">Rose</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_beige">Beige</string>
+    <string name="color_teal">Bleu canard</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_indigo">Indigo</string>
+    <string name="color_violet">Violet</string>
+    <string name="color_lime">Vert citron</string>
+    <string name="color_amber">Ambre</string>
+    <string name="color_crimson">Cramoisi</string>
+    <string name="color_coral">Corail</string>
+    <string name="color_gray">Gris</string>
+    <string name="color_navy">Bleu marine</string>
 </resources>

@@ -20,16 +20,12 @@ import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,11 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
 import androidx.navigation.compose.rememberNavController
+import com.xavierclavel.bankable.constants.colorByName
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.iconByName
+import com.xavierclavel.bankable.ui.SlidingToggle
 import com.xavierclavel.bankable.ui.theme.MyApplicationTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryEditScreen(
     viewModel: CategoriesViewModel,
@@ -92,16 +89,15 @@ fun CategoryEditScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (!isEditing) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                listOf("EXPENSE", "INCOME").forEachIndexed { index, type ->
-                    SegmentedButton(
-                        selected = typeValue == type,
-                        onClick = { typeValue = type },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                        label = { Text(if (type == "EXPENSE") stringResource(R.string.label_expense) else stringResource(R.string.label_income)) },
-                    )
-                }
-            }
+            SlidingToggle(
+                options = listOf(
+                    "EXPENSE" to stringResource(R.string.label_expense),
+                    "INCOME" to stringResource(R.string.label_income),
+                ),
+                selected = typeValue,
+                onSelect = { typeValue = it },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         OutlinedTextField(
@@ -189,8 +185,11 @@ internal fun ColorPickerRow(colorName: String?, onClick: () -> Unit) {
                     .size(24.dp)
                     .background(colorHexByName(colorName), CircleShape)
             )
+            val colorLabel = colorByName(colorName)?.nameRes?.let { stringResource(it) }
+                ?: colorName
+                ?: stringResource(R.string.no_color_selected)
             Text(
-                text = colorName ?: stringResource(R.string.no_color_selected),
+                text = colorLabel,
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

@@ -1,9 +1,14 @@
 package com.xavierclavel.bankable.constants
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.rounded.DirectionsBike
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.BakeryDining
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChildFriendly
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.DirectionsBus
@@ -33,16 +38,26 @@ import androidx.compose.material.icons.filled.SportsBar
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Checkroom
+import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Luggage
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.SportsTennis
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Umbrella
 import androidx.compose.material.icons.filled.Water
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.rounded.ContentCut
+import androidx.compose.material.icons.rounded.DirectionsBike
+import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.ui.graphics.vector.ImageVector
 
 val iconMap: Map<String, ImageVector> = mapOf(
@@ -54,9 +69,9 @@ val iconMap: Map<String, ImageVector> = mapOf(
     "car" to Icons.Default.DirectionsCar,
     "baby" to Icons.Default.ChildFriendly,
     "plane" to Icons.Default.Flight,
-    "trip" to Icons.Default.TravelExplore,
+    "trip" to Icons.Default.Luggage,
     "bus" to Icons.Default.DirectionsBus,
-    "road" to Icons.Default.Signpost,
+    "road" to Icons.Default.Route,
     "oil" to Icons.Default.LocalGasStation,
     "train" to Icons.Default.Train,
     "clothes" to Icons.Default.Checkroom,
@@ -64,7 +79,7 @@ val iconMap: Map<String, ImageVector> = mapOf(
     "beer" to Icons.Default.SportsBar,
     "electricity" to Icons.Default.ElectricBolt,
     "fire" to Icons.Default.LocalFireDepartment,
-    "water" to Icons.Default.Water,
+    "water" to Icons.Default.WaterDrop,
     "umbrella" to Icons.Default.Umbrella,
     "wifi" to Icons.Default.Wifi,
     "sim" to Icons.Default.SimCard,
@@ -75,18 +90,24 @@ val iconMap: Map<String, ImageVector> = mapOf(
     "bread" to Icons.Default.BakeryDining,
     "sofa" to Icons.Default.Weekend,
     "phone" to Icons.Default.Phone,
+    "computer" to Icons.Default.Computer,
     "music" to Icons.Default.MusicNote,
-    "book" to Icons.Default.MenuBook,
-    "trend_up" to Icons.Default.TrendingUp,
+    "book" to Icons.AutoMirrored.Filled.MenuBook,
+    "trend_up" to Icons.AutoMirrored.Filled.TrendingUp,
     "friends" to Icons.Default.Group,
     "mobile" to Icons.Default.PhoneAndroid,
     "bank" to Icons.Default.AccountBalance,
     "cocktail" to Icons.Default.LocalBar,
     "scissors" to Icons.Default.ContentCut,
     "pill" to Icons.Default.Medication,
-    "dns" to Icons.Default.Dns,
-    "server" to Icons.Rounded.ContentCut,
-    "unknown" to Icons.Default.HelpOutline,
+    "code" to Icons.Rounded.Terminal,
+    "bike" to Icons.AutoMirrored.Rounded.DirectionsBike,
+    "sport" to Icons.Default.SportsTennis,
+    "art" to Icons.Default.ColorLens,
+    "transfer" to Icons.Default.SwapHoriz,
+    "movie" to Icons.Default.Movie,
+    "camera" to Icons.Default.CameraAlt,
+    "unknown" to Icons.AutoMirrored.Filled.HelpOutline,
 )
 
 fun iconByName(name: String?): ImageVector = iconMap[name] ?: Icons.Default.HelpOutline

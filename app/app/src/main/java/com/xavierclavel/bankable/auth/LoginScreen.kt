@@ -30,11 +30,12 @@ import com.xavierclavel.bankable.R
 fun LoginScreen(
     authState: AuthState,
     onLogin: (String, String) -> Unit,
-    onGoogleSignIn: (String) -> Unit,
+    onGoogleSignIn: (String, (String) -> Unit) -> Unit,
     onNavigateToSignup: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var googleError by remember { mutableStateOf<String?>(null) }
     val isLoading = authState is AuthState.Loading
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -57,9 +58,10 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !isLoading,
                 visualTransformation = PasswordVisualTransformation(),
             )
-            if (authState is AuthState.Unauthenticated && authState.error != null) {
+            val errorMessage = (authState as? AuthState.Unauthenticated)?.error ?: googleError
+            if (errorMessage != null) {
                 Spacer(Modifier.height(8.dp))
-                Text(authState.error, color = MaterialTheme.colorScheme.error)
+                Text(errorMessage, color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(16.dp))
             Button(
@@ -79,7 +81,7 @@ fun LoginScreen(
             Spacer(Modifier.height(8.dp))
             GoogleSignInButton(
                 enabled = !isLoading,
-                onIdToken = onGoogleSignIn,
+                onIdToken = { token -> googleError = null; onGoogleSignIn(token) { googleError = it } },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
