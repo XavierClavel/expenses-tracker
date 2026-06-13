@@ -4,6 +4,7 @@ import com.xavierclavel.config.Configuration
 import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.dtos.UserIn
 import com.xavierclavel.dtos.UserOut
+import com.xavierclavel.enums.UserRole
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
 import com.xavierclavel.exceptions.NotFoundCause
@@ -42,10 +43,11 @@ class UserService: KoinComponent {
             .findList()
             .map { it.toOutput() }
 
-    fun create(user: SignupDto): UserOut =
+    fun create(user: SignupDto, role: UserRole = UserRole.USER): UserOut =
         User(
             emailAddress = user.emailAddress,
             hashedPassword = encryptionService.encryptPassword(user.password),
+            role = role,
         ).apply { save() }
         .toOutput()
 
@@ -90,7 +92,7 @@ class UserService: KoinComponent {
             emailAddress = "admin@mail.com"
         )
         try {
-            create(dto)
+            create(dto, UserRole.ADMIN)
             logger.info {"Default admin setup"}
         } catch (e: Exception) {}
     }

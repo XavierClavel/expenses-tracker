@@ -57,11 +57,11 @@ class AuthControllerTest: ApplicationTest() {
     fun `get current user`() = runTest {
         runAsUser1 {
             val result = client.getMe()
-            assertEquals("user1", result.username)
+            assertEquals("user1@mail.com", result.mail)
         }
         runAsUser2 {
             val result = client.getMe()
-            assertEquals("user2", result.username)
+            assertEquals("user2@mail.com", result.mail)
         }
     }
 

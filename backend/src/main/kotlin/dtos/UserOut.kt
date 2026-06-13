@@ -6,11 +6,11 @@ import kotlinx.serialization.Serializable
 /**
  * Represents a user in the system.
  *
- * @property username Display name of the user.
+ * @property mail e of the user.
  */
 @Serializable
 data class UserOut(
     val id: Long,
-    val username: String,
+    val mail: String,
     val role: UserRole,
 )

@@ -19,44 +19,48 @@ class UserControllerTest: ApplicationTest() {
     @Test
     fun `get user`() = runTest {
         var userId: Long = 0
-        var username: String = ""
+        var mail: String = ""
         runAsUser1 {
             val result = client.getMe()
             userId = result.id
-            username = result.username
+            mail = result.mail
         }
-        runAsUser2 {
+        runAsAdmin {
             val result = client.getUser(userId)
-            assertEquals(username, result.username)
+            assertEquals(mail, result.mail)
         }
     }
 
     @Test
     fun `list users`() = runTest {
-        val result = client.listUsers()
         val newUser = SignupDto(
             emailAddress = "user3@mail.com",
             password = "Passw0rd",
         )
-        assertTrue {
-            result.any { it.username == "user1" }
-        }
-        assertTrue {
-            result.any { it.username == "user2" }
-        }
-        assertFalse {
-            result.any { it.username == "user3" }
+        runAsAdmin {
+            val result = client.listUsers()
+            assertTrue {
+                result.any { it.mail == "user1@mail.com" }
+            }
+            assertTrue {
+                result.any { it.mail == "user2@mail.com" }
+            }
+            assertFalse {
+                result.any { it.mail == "user3@mail.com" }
+            }
         }
         client.signup(newUser)
-        val result2 = client.listUsers()
-        assertTrue {
-            result2.any { it.username == "user1" }
-        }
-        assertTrue {
-            result2.any { it.username == "user2" }
-        }
-        assertTrue {
-            result2.any { it.username == "user3" }
+        runAsAdmin {
+            val result2 = client.listUsers()
+            assertTrue {
+                result2.any { it.mail == "user1@mail.com" }
+            }
+            assertTrue {
+                result2.any { it.mail == "user2@mail.com" }
+            }
+            assertTrue {
+                result2.any { it.mail == "user3@mail.com" }
+            }
         }
     }
 
@@ -69,7 +73,7 @@ class UserControllerTest: ApplicationTest() {
             client.assertUserExists(userId)
             client.deleteUser()
         }
-        runAsUser2 {
+        runAsAdmin {
             client.assertUserDoesNotExist(userId)
         }
     }

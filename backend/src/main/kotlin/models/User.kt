@@ -44,7 +44,7 @@ class User(
 
     fun toOutput() = UserOut(
         id = this.id,
-        username = this.username,
+        mail = this.emailAddress,
         role = this.role,
     )
 }

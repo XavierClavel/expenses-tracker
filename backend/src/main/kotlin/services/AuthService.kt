@@ -65,7 +65,7 @@ class AuthService: KoinComponent {
             googleId =oauthDto.sub,
         ).apply { save() }
         .toOutput()
-        logger.info { "Account created through Google Oauth by ${userCreated.username}" }
+        logger.info { "Account created through Google Oauth by ${userCreated.mail}" }
         return userCreated
     }
 
