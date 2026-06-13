@@ -1,6 +1,7 @@
 package com.xavierclavel.routes
 
 import com.xavierclavel.config.Configuration
+import com.xavierclavel.dtos.auth.GoogleLoginDto
 import com.xavierclavel.dtos.auth.SessionDto
 import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.exceptions.BadRequestCause
@@ -51,6 +52,16 @@ fun Route.setupAuthController() = route(AUTH_URL) {
             call.respond(SessionDto(sessionId))
         }
 
+    }
+
+    // Native Android (and other native clients): exchange a verified Google
+    // ID token for a session, creating the account on first sign-in.
+    post("/login-google") {
+        val request = call.receive<GoogleLoginDto>()
+        val user = authService.loginOrSignupGoogleIdToken(request.idToken)
+        val sessionId = createSession(user, redisService)
+        call.sessions.set(UserSession(sessionId))
+        call.respond(SessionDto(sessionId))
     }
 
     post("/logout") {

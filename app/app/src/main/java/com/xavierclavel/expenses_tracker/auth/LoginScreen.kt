@@ -30,6 +30,7 @@ import com.xavierclavel.expenses_tracker.R
 fun LoginScreen(
     authState: AuthState,
     onLogin: (String, String) -> Unit,
+    onGoogleSignIn: (String) -> Unit,
     onNavigateToSignup: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
@@ -75,6 +76,12 @@ fun LoginScreen(
             ) {
                 Text(stringResource(R.string.action_sign_up))
             }
+            Spacer(Modifier.height(8.dp))
+            GoogleSignInButton(
+                enabled = !isLoading,
+                onIdToken = onGoogleSignIn,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }

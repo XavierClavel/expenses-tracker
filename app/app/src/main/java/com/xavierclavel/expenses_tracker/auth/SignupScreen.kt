@@ -28,6 +28,7 @@ import com.xavierclavel.expenses_tracker.R
 @Composable
 fun SignupScreen(
     onSignup: (String, String, () -> Unit, (String) -> Unit) -> Unit,
+    onGoogleSignIn: (String) -> Unit,
     onNavigateToLogin: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
@@ -67,6 +68,12 @@ fun SignupScreen(
             OutlinedButton(onClick = onNavigateToLogin, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.action_log_in))
             }
+            Spacer(Modifier.height(8.dp))
+            GoogleSignInButton(
+                enabled = true,
+                onIdToken = onGoogleSignIn,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }

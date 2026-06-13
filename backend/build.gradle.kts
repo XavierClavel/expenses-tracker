@@ -76,6 +76,9 @@ dependencies {
     //Encryption -> bcrypt
     implementation("at.favre.lib:bcrypt:0.10.2")
 
+    //Google ID token verification (native SSO)
+    implementation("com.google.api-client:google-api-client:2.7.0")
+
     //Configuration
     implementation("com.sksamuel.hoplite:hoplite-core:${hopliteVersion}")
     implementation("com.sksamuel.hoplite:hoplite-yaml:${hopliteVersion}")

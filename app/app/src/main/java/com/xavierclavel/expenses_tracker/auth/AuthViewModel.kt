@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.xavierclavel.expenses_tracker.api.apiLogin
+import com.xavierclavel.expenses_tracker.api.apiLoginGoogle
 import com.xavierclavel.expenses_tracker.api.apiSignup
 import com.xavierclavel.expenses_tracker.api.sessionToken
 import com.xavierclavel.expenses_tracker.api.unauthorizedFlow
@@ -53,6 +54,20 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 _authState.value = AuthState.Authenticated
             } catch (e: Exception) {
                 _authState.value = AuthState.Unauthenticated(e.message ?: "Login failed")
+            }
+        }
+    }
+
+    fun loginWithGoogle(idToken: String) {
+        _authState.value = AuthState.Loading
+        viewModelScope.launch {
+            try {
+                val token = apiLoginGoogle(idToken)
+                tokenStorage.saveToken(token)
+                sessionToken = token
+                _authState.value = AuthState.Authenticated
+            } catch (e: Exception) {
+                _authState.value = AuthState.Unauthenticated(e.message ?: "Google sign-in failed")
             }
         }
     }

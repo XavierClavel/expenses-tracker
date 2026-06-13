@@ -80,6 +80,7 @@ private fun AuthNavGraph(authViewModel: AuthViewModel, authState: AuthState.Unau
             LoginScreen(
                 authState = authState,
                 onLogin = { email, password -> authViewModel.login(email, password) },
+                onGoogleSignIn = { idToken -> authViewModel.loginWithGoogle(idToken) },
                 onNavigateToSignup = { navController.navigate("signup") },
             )
         }
@@ -88,6 +89,7 @@ private fun AuthNavGraph(authViewModel: AuthViewModel, authState: AuthState.Unau
                 onSignup = { email, password, onSuccess, onError ->
                     authViewModel.signup(email, password, onSuccess, onError)
                 },
+                onGoogleSignIn = { idToken -> authViewModel.loginWithGoogle(idToken) },
                 onNavigateToLogin = {
                     navController.navigate("login") { popUpTo("login") { inclusive = true } }
                 },

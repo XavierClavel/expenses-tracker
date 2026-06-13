@@ -18,6 +18,9 @@ import kotlinx.serialization.json.Json
 
 const val BASE_URL = "http://178.16.131.84:30081"
 
+// Google "Web application" OAuth client ID
+const val GOOGLE_WEB_CLIENT_ID = "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
+
 var sessionToken: String? = null
 
 val unauthorizedFlow = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)

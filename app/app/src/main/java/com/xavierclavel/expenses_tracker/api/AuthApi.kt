@@ -16,10 +16,21 @@ private data class LoginResponse(val token: String)
 @Serializable
 private data class SignupRequest(val username: String, val emailAddress: String, val password: String)
 
+@Serializable
+private data class GoogleLoginRequest(val idToken: String)
+
 suspend fun apiLogin(email: String, password: String): String {
     val credentials = Base64.encodeToString("$email:$password".toByteArray(), Base64.NO_WRAP)
     val response = httpClient.post("$BASE_URL/auth/login") {
         header("Authorization", "Basic $credentials")
+    }
+    return response.body<LoginResponse>().token
+}
+
+suspend fun apiLoginGoogle(idToken: String): String {
+    val response = httpClient.post("$BASE_URL/auth/login-google") {
+        contentType(ContentType.Application.Json)
+        setBody(GoogleLoginRequest(idToken))
     }
     return response.body<LoginResponse>().token
 }
