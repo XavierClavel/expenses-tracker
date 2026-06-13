@@ -88,6 +88,7 @@ class SubcategoryService: KoinComponent {
     fun delete(userId: Long, subcategoryId: Long) {
         val isCategoryUsed = QExpense()
             .category.id.eq(subcategoryId)
+            .user.id.eq(userId)
             .exists()
 
         if(isCategoryUsed) {

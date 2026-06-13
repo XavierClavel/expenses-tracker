@@ -3,6 +3,7 @@ package com.xavierclavel.models
 import com.xavierclavel.dtos.UserOut
 import com.xavierclavel.enums.UserRole
 import io.ebean.Model
+import io.ebean.annotation.Index
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -23,6 +24,7 @@ class User(
 
     var hashedPassword: String? = null,
 
+    @Index(name = "idx_user_google_id")
     var googleId: String? = null,
 
     @Enumerated(EnumType.STRING)

@@ -25,7 +25,6 @@ class AuthControllerTest: ApplicationTest() {
     @Test
     fun `logging in to existing account with wrong password fails`() = runTest {
         val user3 = SignupDto(
-            username = "test",
             password = "Passw0rd",
             emailAddress = "mail"
         )
@@ -41,7 +40,6 @@ class AuthControllerTest: ApplicationTest() {
     @Test
     fun `account can be logged in after signup`() = runTest {
         val user3 = SignupDto(
-            username = "test",
             password = "Passw0rd",
             emailAddress = "mail"
         )

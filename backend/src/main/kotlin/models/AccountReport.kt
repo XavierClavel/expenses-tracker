@@ -1,8 +1,8 @@
 package com.xavierclavel.models
 
 import com.xavierclavel.dtos.investment.AccountReportOut
-import com.xavierclavel.utils.LocalDateSerializer
 import io.ebean.Model
+import io.ebean.annotation.Index
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -13,6 +13,7 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "account_reports")
+@Index(name = "idx_account_report_account_date", columnNames = ["account_id", "date"])
 class AccountReport(
     @Column(precision = 15, scale = 2)
     var amount: BigDecimal,

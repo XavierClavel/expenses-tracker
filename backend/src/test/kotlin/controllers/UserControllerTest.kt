@@ -35,7 +35,6 @@ class UserControllerTest: ApplicationTest() {
     fun `list users`() = runTest {
         val result = client.listUsers()
         val newUser = SignupDto(
-            username = "user3",
             emailAddress = "user3@mail.com",
             password = "Passw0rd",
         )

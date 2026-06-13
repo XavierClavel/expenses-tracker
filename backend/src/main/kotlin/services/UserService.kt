@@ -44,7 +44,6 @@ class UserService: KoinComponent {
 
     fun create(user: SignupDto): UserOut =
         User(
-            username = user.username,
             emailAddress = user.emailAddress,
             hashedPassword = encryptionService.encryptPassword(user.password),
         ).apply { save() }
@@ -87,7 +86,6 @@ class UserService: KoinComponent {
 
     fun setupDefaultAdmin() {
         val dto = SignupDto(
-            username = "admin",
             password = configuration.admin.password,
             emailAddress = "admin@mail.com"
         )

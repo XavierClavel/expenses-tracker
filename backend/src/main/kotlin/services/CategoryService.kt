@@ -86,6 +86,7 @@ class CategoryService: KoinComponent {
 
         val isCategoryUsed = QExpense()
             .category.parentCategory.id.eq(categoryId)
+            .user.id.eq(userId)
             .exists()
 
         if(isCategoryUsed) {

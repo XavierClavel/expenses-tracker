@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <alterColumn columnName="type" tableName="investments" defaultValue="DROP DEFAULT"/>
+        <createIndex indexName="idx_account_report_account_date" tableName="account_reports" columns="account_id,date"/>
+        <createIndex indexName="idx_expense_user_date" tableName="expenses" columns="user_id,date"/>
+        <createIndex indexName="idx_user_google_id" tableName="users" columns="google_id"/>
+    </changeSet>
+</migration>

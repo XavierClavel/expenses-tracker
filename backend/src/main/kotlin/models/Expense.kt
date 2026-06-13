@@ -4,6 +4,7 @@ import com.xavierclavel.dtos.ExpenseOut
 import com.xavierclavel.enums.ExpenseType
 import io.ebean.Model
 import io.ebean.annotation.DbDefault
+import io.ebean.annotation.Index
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -18,6 +19,7 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "expenses")
+@Index(name = "idx_expense_user_date", columnNames = ["user_id", "date"])
 class Expense(
 
     @ManyToOne

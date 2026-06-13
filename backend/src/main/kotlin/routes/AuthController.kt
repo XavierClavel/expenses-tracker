@@ -87,7 +87,6 @@ fun Route.setupAuthController() = route(AUTH_URL) {
 
     post("/signup") {
         val userDTO = call.receive<SignupDto>()
-        if (userService.existsByUsername(userDTO.username)) throw BadRequestException(BadRequestCause.USERNAME_ALREADY_USED)
         if (userService.existsByEmail(userDTO.emailAddress)) throw BadRequestException(BadRequestCause.MAIL_ALREADY_USED)
         val userCreated = userService.create(userDTO)
         logger.info { "Account created through basic auth by ${userCreated.username}" }

@@ -7,6 +7,7 @@ import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.Expense
+import com.xavierclavel.models.Subcategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.dtos.ExpenseOut
@@ -31,6 +32,20 @@ class ExpenseService: KoinComponent {
             throw ForbiddenException(ForbiddenCause.MUST_OWN_EXPENSE)
         }
         return this
+    }
+
+    /**
+     * Resolve the subcategory referenced by an expense and ensure the user owns it.
+     * A null categoryId is allowed (uncategorized expense).
+     */
+    private fun resolveOwnedSubcategory(categoryId: Long?, userId: Long): Subcategory? {
+        if (categoryId == null) return null
+        val subcategory = QSubcategory().id.eq(categoryId).findOne()
+            ?: throw NotFoundException(NotFoundCause.SUBCATEGORY_NOT_FOUND)
+        if (subcategory.user.id != userId) {
+            throw ForbiddenException(ForbiddenCause.MUST_OWN_CATEGORY)
+        }
+        return subcategory
     }
 
     fun export(userId: Long, expenseId: Long): ExpenseOut =
@@ -87,7 +102,7 @@ class ExpenseService: KoinComponent {
 
     fun create(expenseDto: ExpenseIn, userId: Long): ExpenseOut {
         val user = QUser().id.eq(userId).findOne() ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND)
-        val category = QSubcategory().id.eq(expenseDto.categoryId).findOne()
+        val category = resolveOwnedSubcategory(expenseDto.categoryId, userId)
 
         val expense = Expense(
             user = user,
@@ -103,7 +118,7 @@ class ExpenseService: KoinComponent {
     }
 
     fun update(userId: Long, expenseId: Long, expenseDto: ExpenseIn): ExpenseOut {
-        val category = QSubcategory().id.eq(expenseDto.categoryId).findOne()
+        val category = resolveOwnedSubcategory(expenseDto.categoryId, userId)
 
         return getById(expenseId)
             .checkRights(userId)

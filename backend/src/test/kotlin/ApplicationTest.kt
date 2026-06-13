@@ -43,8 +43,8 @@ abstract class ApplicationTest: KoinTest {
     val configuration by inject<Configuration>()
 
     val adminPassword by lazy { configuration.admin.password }
-    val user1 = SignupDto("user1", "user1@mail.com", "Passw0rd")
-    val user2 = SignupDto("user2", "user2@mail.com", "Passw0rd")
+    val user1 = SignupDto( "user1@mail.com", "Passw0rd")
+    val user2 = SignupDto("user2@mail.com", "Passw0rd")
 
     companion object {
 

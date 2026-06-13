@@ -22,7 +22,8 @@ enum class ForbiddenCause(val key: String) {
     MUST_OWN_CATEGORY("must_own_category"),
     MUST_OWN_EXPENSE("must_own_expense"),
     CANNOT_DELETE_USED_CATEGORY("cannot_delete use_category"),
-    MUST_BE_OWNER("must_be_owner")
+    MUST_BE_OWNER("must_be_owner"),
+    ADMIN_REQUIRED("admin_required")
 }
 
 enum class NotFoundCause(val key: String) {

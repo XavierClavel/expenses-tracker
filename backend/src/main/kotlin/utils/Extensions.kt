@@ -3,6 +3,8 @@ package com.xavierclavel.utils
 import com.xavierclavel.dtos.UserOut
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
+import com.xavierclavel.exceptions.ForbiddenCause
+import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
 import com.xavierclavel.plugins.RedisService
@@ -46,6 +48,13 @@ suspend fun RoutingContext.getSessionUserId(redisService: RedisService): Long {
         throw UnauthorizedException(UnauthorizedCause.SESSION_NOT_FOUND)
     }
     return userId
+}
+
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
+suspend fun RoutingContext.requireAdmin(redisService: RedisService) {
+    if (!redisService.isUserAdmin(getSessionId())) {
+        throw ForbiddenException(ForbiddenCause.ADMIN_REQUIRED)
+    }
 }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
