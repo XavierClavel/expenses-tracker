@@ -83,6 +83,14 @@ class UserService: KoinComponent {
     fun existsByEmail(mail: String): Boolean =
         QUser().emailAddress.eq(mail).exists()
 
+    /** Attaches a Google identity to the existing account with this email. */
+    fun linkGoogleId(email: String, googleId: String): UserOut =
+        (QUser().emailAddress.eq(email).findOne()
+            ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND))
+            .apply { this.googleId = googleId }
+            .apply { save() }
+            .toOutput()
+
     fun existsByUsername(username: String): Boolean =
         QUser().username.eq(username).exists()
 

@@ -55,7 +55,7 @@ class AuthService: KoinComponent {
             logger.info { "Failed to parse the following data: $data" }
             throw UnauthorizedException(UnauthorizedCause.OAUTH_FAILED)
         }
-        return findOrCreateGoogleUser(response.sub, response.email, response.name)
+        return findOrCreateGoogleUser(response.sub, response.email, response.name, response.email_verified == true)
     }
 
     /** Native flow: verifies a Google ID token (JWT) issued to the Android app. */
@@ -68,13 +68,17 @@ class AuthService: KoinComponent {
         } ?: throw UnauthorizedException(UnauthorizedCause.OAUTH_FAILED)
         val payload = idToken.payload
         val email = payload.email ?: throw UnauthorizedException(UnauthorizedCause.OAUTH_FAILED)
-        return findOrCreateGoogleUser(payload.subject, email, payload["name"] as String?)
+        return findOrCreateGoogleUser(payload.subject, email, payload["name"] as String?, payload.emailVerified == true)
     }
 
-    private fun findOrCreateGoogleUser(sub: String, email: String, name: String?): UserOut {
+    private fun findOrCreateGoogleUser(sub: String, email: String, name: String?, emailVerified: Boolean): UserOut {
         userService.exportByGoogleId(sub)?.let { return it }
         if (userService.existsByEmail(email)) {
-            throw UnauthorizedException(UnauthorizedCause.OAUTH_NOT_SETUP)
+            // An account with this email already exists (e.g. created via email/password).
+            // Link Google to it — but only when Google has verified the email, otherwise
+            // this would be an account-takeover vector.
+            if (!emailVerified) throw UnauthorizedException(UnauthorizedCause.OAUTH_NOT_SETUP)
+            return userService.linkGoogleId(email, sub)
         }
         return createGoogleOauthUser(sub, name)
     }
