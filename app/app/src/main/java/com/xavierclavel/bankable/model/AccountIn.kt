@@ -1,0 +1,6 @@
+package com.xavierclavel.bankable.model
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class AccountIn(val name: String)
