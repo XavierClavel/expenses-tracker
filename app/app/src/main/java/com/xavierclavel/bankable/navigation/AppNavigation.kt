@@ -152,6 +152,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                     categoriesViewModel,
                     navController,
                     onLogout = { authViewModel.logout() },
+                    onDeleteAccount = { onError -> authViewModel.deleteAccount(onError) },
                 )
             }
             composable("expense/edit") {

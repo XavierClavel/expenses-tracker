@@ -3,6 +3,7 @@ package com.xavierclavel.bankable.auth
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.xavierclavel.bankable.api.apiDeleteAccount
 import com.xavierclavel.bankable.api.apiLogin
 import com.xavierclavel.bankable.api.apiLoginGoogle
 import com.xavierclavel.bankable.api.apiSignup
@@ -90,5 +91,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         tokenStorage.clearToken()
         viewModelScope.launch { clearSessionCookies() }
         _authState.value = AuthState.Unauthenticated()
+    }
+
+    // Permanently deletes the account on the server, then clears the local
+    // session exactly like logout. On failure the session is left intact so the
+    // user can retry.
+    fun deleteAccount(onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                apiDeleteAccount()
+                sessionToken = null
+                tokenStorage.clearToken()
+                clearSessionCookies()
+                _authState.value = AuthState.Unauthenticated()
+            } catch (e: Exception) {
+                onError(e.message ?: "Account deletion failed")
+            }
+        }
     }
 }

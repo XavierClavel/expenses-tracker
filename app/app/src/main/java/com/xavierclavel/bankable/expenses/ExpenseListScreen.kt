@@ -18,7 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -27,12 +29,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,10 +62,46 @@ fun ExpenseListScreen(
     categoriesViewModel: CategoriesViewModel,
     navController: NavController,
     onLogout: () -> Unit,
+    onDeleteAccount: (onError: (String) -> Unit) -> Unit,
 ) {
     val expenses by viewModel.expenses.collectAsState()
     val isLoading = viewModel.isLoading
     val categories by categoriesViewModel.categories.collectAsState()
+
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    var deleteAccountError by remember { mutableStateOf<String?>(null) }
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = { Text(stringResource(R.string.dialog_delete_account_self_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.dialog_delete_account_self_message))
+                    deleteAccountError?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    deleteAccountError = null
+                    onDeleteAccount { error -> deleteAccountError = error }
+                }) {
+                    Text(
+                        stringResource(R.string.action_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
 
     val subcategoryMap = remember(categories) {
         categories.flatMap { it.subcategories }.associateBy { it.id }
@@ -115,6 +156,16 @@ fun ExpenseListScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                     ) {
+                        IconButton(onClick = {
+                            deleteAccountError = null
+                            showDeleteAccountDialog = true
+                        }) {
+                            Icon(
+                                Icons.Default.DeleteForever,
+                                contentDescription = stringResource(R.string.cd_delete_account),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
                         IconButton(onClick = onLogout) {
                             Icon(
                                 Icons.AutoMirrored.Filled.Logout,

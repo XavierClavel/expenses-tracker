@@ -10,6 +10,9 @@
     <string name="nav_accounts">Accounts</string>
     <string name="logout">Log out</string>
     <string name="cd_logout">Log out</string>
+    <string name="cd_delete_account">Delete account</string>
+    <string name="dialog_delete_account_self_title">Delete your account</string>
+    <string name="dialog_delete_account_self_message">This will permanently delete your account and all your data (expenses, categories, accounts and reports). This action cannot be undone.</string>
 
     <!-- ── Common actions ─────────────────────────────────── -->
     <string name="action_save">Save</string>

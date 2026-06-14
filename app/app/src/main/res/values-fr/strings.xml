@@ -10,6 +10,9 @@
     <string name="nav_accounts">Comptes</string>
     <string name="logout">Déconnexion</string>
     <string name="cd_logout">Déconnexion</string>
+    <string name="cd_delete_account">Supprimer le compte</string>
+    <string name="dialog_delete_account_self_title">Supprimer votre compte</string>
+    <string name="dialog_delete_account_self_message">Cette action supprimera définitivement votre compte et toutes vos données (dépenses, catégories, comptes et relevés). Cette action est irréversible.</string>
 
     <!-- ── Common actions ─────────────────────────────────── -->
     <string name="action_save">Enregistrer</string>

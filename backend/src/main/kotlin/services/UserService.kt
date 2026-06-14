@@ -12,10 +12,16 @@ import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
 import com.xavierclavel.models.User
+import com.xavierclavel.models.query.QAccountReport
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
+import com.xavierclavel.models.query.QInvestment
+import com.xavierclavel.models.query.QInvestmentAccount
+import com.xavierclavel.models.query.QMonthCommentary
+import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.utils.logger
+import io.ebean.DB
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -59,13 +65,30 @@ class UserService: KoinComponent {
             .apply { save() }
             .toOutput()
 
+    /**
+     * Permanently deletes the user and every piece of data they own. Run in a
+     * single transaction so a failure midway leaves no partially-deleted account.
+     * Dependents are removed in foreign-key-safe order: account reports before
+     * their investment accounts, subcategories before their parent categories.
+     */
     fun deleteById(id: Long) {
-        QExpense().user.id.eq(id).delete()
-        QCategory().user.id.eq(id).delete()
-        val user = getById(id)
-        val result = user.delete()
-        if (!result) {
-            throw Exception("User with id $id could not be deleted")
+        DB.beginTransaction().use { tx ->
+            val accountIds: List<Long> = QInvestmentAccount().owner.id.eq(id).findIds()
+            if (accountIds.isNotEmpty()) {
+                QAccountReport().account.id.`in`(accountIds).delete()
+            }
+            QInvestment().user.id.eq(id).delete()
+            QInvestmentAccount().owner.id.eq(id).delete()
+            QMonthCommentary().user.id.eq(id).delete()
+            QExpense().user.id.eq(id).delete()
+            QSubcategory().user.id.eq(id).delete()
+            QCategory().user.id.eq(id).delete()
+            val user = getById(id)
+            val result = user.delete()
+            if (!result) {
+                throw Exception("User with id $id could not be deleted")
+            }
+            tx.commit()
         }
     }
 

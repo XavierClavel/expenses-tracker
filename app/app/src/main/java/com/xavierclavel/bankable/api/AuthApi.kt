@@ -2,6 +2,7 @@ package com.xavierclavel.bankable.api
 
 import android.util.Base64
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -14,7 +15,7 @@ import kotlinx.serialization.Serializable
 private data class LoginResponse(val token: String)
 
 @Serializable
-private data class SignupRequest(val username: String, val emailAddress: String, val password: String)
+private data class SignupRequest(val emailAddress: String, val password: String)
 
 @Serializable
 private data class GoogleLoginRequest(val idToken: String)
@@ -38,7 +39,7 @@ suspend fun apiLoginGoogle(idToken: String): String {
 suspend fun apiSignup(email: String, password: String) {
     httpClient.post("$BASE_URL/auth/signup") {
         contentType(ContentType.Application.Json)
-        setBody(SignupRequest("user", email, password))
+        setBody(SignupRequest(email, password))
     }
 }
 
@@ -47,4 +48,9 @@ suspend fun apiFetchMe(token: String): Boolean {
         header("Authorization", "Bearer $token")
     }
     return response.status.value in 200..299
+}
+
+// Permanently deletes the authenticated user's account and all associated data.
+suspend fun apiDeleteAccount() {
+    httpClient.delete("$BASE_URL/users") { authHeader() }
 }
