@@ -16,7 +16,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.Json
 
-const val BASE_URL = "http://178.16.131.84:30081"
+const val BASE_URL = "https://moneymind.fyi"
 
 // Google "Web application" OAuth client ID
 const val GOOGLE_WEB_CLIENT_ID = "467368383996-pje2ab1ks5nehrom7fk59ps81s89dvn8.apps.googleusercontent.com"
