@@ -140,8 +140,21 @@ fun ExpenseListScreen(
                 CircularProgressIndicator()
             }
         } else if (expenses.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.no_expenses_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            ) {
+                AccountActionsRow(
+                    onDeleteAccount = {
+                        deleteAccountError = null
+                        showDeleteAccountDialog = true
+                    },
+                    onLogout = onLogout,
+                )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.no_expenses_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         } else {
             LazyColumn(
@@ -152,27 +165,13 @@ fun ExpenseListScreen(
                 contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
             ) {
                 item(key = "logout") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        IconButton(onClick = {
+                    AccountActionsRow(
+                        onDeleteAccount = {
                             deleteAccountError = null
                             showDeleteAccountDialog = true
-                        }) {
-                            Icon(
-                                Icons.Default.DeleteForever,
-                                contentDescription = stringResource(R.string.cd_delete_account),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                        IconButton(onClick = onLogout) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Logout,
-                                contentDescription = stringResource(R.string.cd_logout),
-                            )
-                        }
-                    }
+                        },
+                        onLogout = onLogout,
+                    )
                 }
                 grouped.forEach { (dateStr, dayExpenses) ->
                     stickyHeader(key = "header_$dateStr") {
@@ -210,6 +209,31 @@ fun ExpenseListScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AccountActionsRow(
+    onDeleteAccount: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        IconButton(onClick = onDeleteAccount) {
+            Icon(
+                Icons.Default.DeleteForever,
+                contentDescription = stringResource(R.string.cd_delete_account),
+                tint = MaterialTheme.colorScheme.error,
+            )
+        }
+        IconButton(onClick = onLogout) {
+            Icon(
+                Icons.AutoMirrored.Filled.Logout,
+                contentDescription = stringResource(R.string.cd_logout),
+            )
         }
     }
 }
