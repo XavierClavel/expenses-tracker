@@ -81,6 +81,8 @@ import androidx.navigation.NavController
 import com.xavierclavel.bankable.api.apiListExpenses
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
+import com.xavierclavel.bankable.constants.currencySymbol
+import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
 import com.xavierclavel.bankable.model.ExpenseOut
@@ -96,7 +98,10 @@ private fun localizedMonthYear(year: Int, month: Int, locale: Locale): String {
         set(Calendar.YEAR, year)
         set(Calendar.MONTH, month - 1)
     }
+    // Capitalize the first letter for title styling — French renders months
+    // lowercase (e.g. "juin 2026"), which looks off as a standalone heading.
     return SimpleDateFormat("MMMM yyyy", locale).format(cal.time)
+        .replaceFirstChar { it.titlecase(locale) }
 }
 
 data class SubcategoryEntry(
@@ -772,7 +777,7 @@ private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            text       = "$sign${expense.amount} ${expense.currency}",
+            text       = "$sign${expense.amount} ${currencySymbol(expense.currency)}",
             style      = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color      = amountColor,
@@ -843,13 +848,7 @@ private fun computeDateRange(year: Int, month: Int, timescale: String): Pair<Str
 }
 
 private fun formatSummaryAmount(value: Double): String {
-    val number = when {
-        value >= 1_000_000 -> "${"%.1f".format(value / 1_000_000)}M"
-        value >= 10_000    -> "${(value / 1_000).toInt()}k"
-        value >= 1_000     -> "${"%.1f".format(value / 1_000)}k"
-        else               -> "${"%.0f".format(value)}"
-    }
-    return "$number €"
+    return "${formatRoundedAmount(value)} €"
 }
 
 private fun formatDateShort(dateStr: String, locale: Locale): String {

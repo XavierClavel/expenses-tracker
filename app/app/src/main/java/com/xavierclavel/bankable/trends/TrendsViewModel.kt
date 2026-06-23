@@ -192,6 +192,7 @@ class TrendsViewModel : ViewModel() {
             set(Calendar.MONTH, month - 1)
         }
         val name = java.text.SimpleDateFormat("MMM", locale).format(cal.time)
+            .replaceFirstChar { it.titlecase(locale) }
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         return if (year == currentYear) name else "$name '${year % 100}"
     }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +50,7 @@ import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
+import com.xavierclavel.bankable.constants.currencySymbol
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
@@ -151,6 +153,7 @@ fun ExpenseListScreen(
                         showDeleteAccountDialog = true
                     },
                     onLogout = onLogout,
+                    onSettings = { navController.navigate("settings") },
                 )
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(stringResource(R.string.no_expenses_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -171,6 +174,7 @@ fun ExpenseListScreen(
                             showDeleteAccountDialog = true
                         },
                         onLogout = onLogout,
+                        onSettings = { navController.navigate("settings") },
                     )
                 }
                 grouped.forEach { (dateStr, dayExpenses) ->
@@ -217,6 +221,7 @@ fun ExpenseListScreen(
 private fun AccountActionsRow(
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
+    onSettings: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -227,6 +232,12 @@ private fun AccountActionsRow(
                 Icons.Default.DeleteForever,
                 contentDescription = stringResource(R.string.cd_delete_account),
                 tint = MaterialTheme.colorScheme.error,
+            )
+        }
+        IconButton(onClick = onSettings) {
+            Icon(
+                Icons.Default.Settings,
+                contentDescription = stringResource(R.string.cd_settings),
             )
         }
         IconButton(onClick = onLogout) {
@@ -286,7 +297,7 @@ private fun ExpenseItem(
                 }
             }
             Text(
-                text = "$sign${expense.amount} ${expense.currency}",
+                text = "$sign${expense.amount} ${currencySymbol(expense.currency)}",
                 color = amountColor,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,

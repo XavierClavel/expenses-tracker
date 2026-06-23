@@ -55,6 +55,7 @@ import com.xavierclavel.bankable.expenses.ExpenseEditScreen
 import com.xavierclavel.bankable.expenses.ExpenseListScreen
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
 import com.xavierclavel.bankable.expenses.SubcategoryPickerScreen
+import com.xavierclavel.bankable.settings.SettingsScreen
 import com.xavierclavel.bankable.summary.SummaryScreen
 import com.xavierclavel.bankable.summary.SummaryViewModel
 import com.xavierclavel.bankable.trends.TrendsScreen
@@ -154,6 +155,9 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                     onLogout = { authViewModel.logout() },
                     onDeleteAccount = { onError -> authViewModel.deleteAccount(onError) },
                 )
+            }
+            composable("settings") {
+                SettingsScreen(navController)
             }
             composable("expense/edit") {
                 ExpenseEditScreen(expensesViewModel, navController)

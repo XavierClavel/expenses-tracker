@@ -43,6 +43,7 @@ suspend fun getGoogleIdToken(context: Context): String? {
             null
         }
     } catch (e: GetCredentialException) {
+        android.util.Log.e("GoogleSignIn", "Credential request failed", e)
         null
     }
 }

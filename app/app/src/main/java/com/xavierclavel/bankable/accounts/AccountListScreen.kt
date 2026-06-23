@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
+import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.model.AccountOut
 
 @Composable
@@ -178,10 +179,4 @@ private fun AccountRow(account: AccountOut, onClick: () -> Unit) {
     }
 }
 
-internal fun formatAmount(value: Double): String {
-    val formatted = "%.2f".format(value)
-    val parts = formatted.split(".")
-    val intPart = parts[0].trimStart('-').reversed().chunked(3).joinToString(" ").reversed()
-    val sign = if (value < 0) "-" else ""
-    return "$sign$intPart.${parts[1]} €"
-}
+internal fun formatAmount(value: Double): String = "${formatRoundedAmount(value)} €"

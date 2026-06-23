@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xavierclavel.bankable.R
+import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.model.AccountTrendDto
 import java.util.Calendar
 import kotlin.math.abs
@@ -115,6 +116,7 @@ private fun formatTrendLabel(dto: AccountTrendDto, timescale: String, locale: ja
         set(Calendar.MONTH, dto.month - 1)
     }
     val name = java.text.SimpleDateFormat("MMM", locale).format(cal.time)
+        .replaceFirstChar { it.titlecase(locale) }
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     return if (dto.year == currentYear) name else "$name '${dto.year % 100}"
 }
@@ -168,7 +170,7 @@ fun BarChart(
             if (highlighted != null) {
                 val sign = if (highlighted.value > 0f) "+" else ""
                 Text(
-                    text = "$sign${formatBarValue(highlighted.value)}$suffix",
+                    text = "$sign${formatBarValue(highlighted.value, isPercent)}$suffix",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = when {
@@ -318,7 +320,8 @@ private fun formatTickLabel(v: Float): String = when {
     else                -> "%.1f".format(v)
 }
 
-private fun formatBarValue(v: Float): String = when {
+private fun formatBarValue(v: Float, isPercent: Boolean = false): String = when {
+    !isPercent          -> formatRoundedAmount(v.toDouble())
     abs(v) >= 1_000_000 -> "${"%.2f".format(v / 1_000_000)}M"
     abs(v) >= 1_000     -> "${"%.1f".format(v / 1_000)}k"
     else                -> "%.2f".format(v)

@@ -70,6 +70,7 @@ import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.accounts.BarChart
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
+import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.model.CategoryOut
 import com.xavierclavel.bankable.model.SubcategoryOut
@@ -572,8 +573,4 @@ private fun fmtTick(v: Float): String = when {
     else                -> "%.1f".format(v)
 }
 
-private fun fmtVal(v: Float): String = when {
-    abs(v) >= 1_000_000 -> "${"%.2f".format(v / 1_000_000)}M"
-    abs(v) >= 1_000     -> "${"%.1f".format(v / 1_000)}k"
-    else                -> "%.2f".format(v)
-}
+private fun fmtVal(v: Float): String = formatRoundedAmount(v.toDouble())

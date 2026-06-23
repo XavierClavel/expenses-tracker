@@ -10,6 +10,7 @@
     <string name="nav_accounts">Comptes</string>
     <string name="logout">Déconnexion</string>
     <string name="cd_logout">Déconnexion</string>
+    <string name="cd_settings">Paramètres</string>
     <string name="cd_delete_account">Supprimer le compte</string>
     <string name="dialog_delete_account_self_title">Supprimer votre compte</string>
     <string name="dialog_delete_account_self_message">Cette action supprimera définitivement votre compte et toutes vos données (dépenses, catégories, comptes et relevés). Cette action est irréversible.</string>
@@ -108,6 +109,13 @@
 
     <!-- ── Trends ─────────────────────────────────────────── -->
     <string name="trends_select_category_hint">Sélectionner une catégorie ou sous-catégorie</string>
+
+    <!-- ── Settings ───────────────────────────────────────── -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_system">Par défaut (système)</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_french">Français</string>
 
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Bleu</string>
