@@ -129,6 +129,7 @@ fun BarChart(
     barWidth: Dp = 44.dp,
     chartHeight: Dp = 180.dp,
     isPercent: Boolean = false,
+    accentColor: Color? = null,
 ) {
     if (bars.isEmpty()) return
 
@@ -168,13 +169,15 @@ fun BarChart(
         // ── Highlighted value ──────────────────────────────────────────────
         Box(Modifier.fillMaxWidth().height(36.dp), contentAlignment = Alignment.Center) {
             if (highlighted != null) {
-                val sign = if (highlighted.value > 0f) "+" else ""
+                val displayValue = if (accentColor != null) abs(highlighted.value) else highlighted.value
+                val sign = if (accentColor == null && highlighted.value > 0f) "+" else ""
                 Text(
-                    text = "$sign${formatBarValue(highlighted.value, isPercent)}$suffix",
+                    text = "$sign${formatBarValue(displayValue, isPercent)}$suffix",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = when {
                         highlighted.value == 0f -> Color.Gray
+                        accentColor != null     -> accentColor
                         highlighted.value > 0f  -> COLOR_POSITIVE
                         else                    -> COLOR_NEGATIVE
                     },
@@ -238,7 +241,7 @@ fun BarChart(
                 ) {
                     itemsIndexed(bars) { index, bar ->
                         val hi        = index == centeredIndex
-                        val baseColor = if (bar.value >= 0f) COLOR_POSITIVE else COLOR_NEGATIVE
+                        val baseColor = accentColor ?: if (bar.value >= 0f) COLOR_POSITIVE else COLOR_NEGATIVE
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,

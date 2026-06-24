@@ -151,21 +151,20 @@ class TrendsViewModel : ViewModel() {
     private suspend fun loadCategoryMode() {
         val sub = selectedSubcategory
         val cat = selectedCategory
-        // Expenses are negated so they show as red bars (negative values)
-        val sign = if ((sub?.type ?: cat?.type) == "EXPENSE") -1f else 1f
-
+        // Category mode always shows positive (unsigned) values, colored by the
+        // category accent — no income/expense sign.
         when {
             sub != null -> {
                 _bars.value = if (timescale == "month")
-                    apiGetMonthSubcategoryTrends(sub.id).map { t -> BarEntry((t.total.toFloatOrNull() ?: 0f) * sign, monthLabel(t.year, t.month ?: 1)) }
+                    apiGetMonthSubcategoryTrends(sub.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
                 else
-                    apiGetYearSubcategoryTrends(sub.id).map { t -> BarEntry(aggCat(t) * sign, t.year.toString()) }
+                    apiGetYearSubcategoryTrends(sub.id).map { t -> BarEntry(aggCat(t), t.year.toString()) }
             }
             cat != null -> {
                 _bars.value = if (timescale == "month")
-                    apiGetMonthCategoryTrends(cat.id).map { t -> BarEntry((t.total.toFloatOrNull() ?: 0f) * sign, monthLabel(t.year, t.month ?: 1)) }
+                    apiGetMonthCategoryTrends(cat.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
                 else
-                    apiGetYearCategoryTrends(cat.id).map { t -> BarEntry(aggCat(t) * sign, t.year.toString()) }
+                    apiGetYearCategoryTrends(cat.id).map { t -> BarEntry(aggCat(t), t.year.toString()) }
             }
             else -> _bars.value = emptyList()
         }

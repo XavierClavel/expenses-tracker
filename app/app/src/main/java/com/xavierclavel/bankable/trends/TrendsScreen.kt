@@ -120,7 +120,12 @@ fun TrendsScreen(
                 viewModel.dataMode == "category" && viewModel.selectedCategory == null && viewModel.selectedSubcategory == null ->
                     Text(stringResource(R.string.trends_select_category_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 bars.isEmpty() -> EmptyHint()
-                else -> BarChart(bars = bars, chartHeight = chartH)
+                else -> {
+                    val accentColor = if (viewModel.dataMode == "category")
+                        colorHexByName(viewModel.selectedSubcategory?.color ?: viewModel.selectedCategory?.color)
+                    else null
+                    BarChart(bars = bars, chartHeight = chartH, accentColor = accentColor)
+                }
             }
         }
 
