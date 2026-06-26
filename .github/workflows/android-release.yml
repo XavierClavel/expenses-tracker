@@ -1,0 +1,120 @@
+name: Android Release (Play Store)
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'app/**'
+  workflow_dispatch:
+    inputs:
+      track:
+        description: "Play track to deploy to"
+        required: true
+        default: "alpha"
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-play-release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.meta.outputs.should_deploy }}
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version & decide whether to deploy
+        id: meta
+        run: |
+          VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/app/build.gradle.kts)
+          CODE=$(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/app/build.gradle.kts)
+          TAG="android-v${VERSION}-${CODE}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — deploying $TAG regardless of existing tag."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::notice::$TAG already exists — version unchanged, skipping deploy."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version $TAG — will deploy."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: check
+    if: needs.check.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Ruby + Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: app
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('app/**/*.gradle*', 'app/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Decode upload keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+
+      - name: Write Play service-account JSON
+        run: echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > fastlane/play-service-account.json
+
+      - name: Deploy to Play (${{ github.event.inputs.track || 'alpha' }})
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/upload-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: bundle exec fastlane deploy track:${{ github.event.inputs.track || 'alpha' }}
+
+      - name: Tag version & create GitHub release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ needs.check.outputs.tag }}" \
+            --title "Android ${{ needs.check.outputs.version }}" \
+            --notes "Deployed to the Play 'alpha' (closed testing) track automatically by GitHub Actions." \
+            --target "${{ github.sha }}"

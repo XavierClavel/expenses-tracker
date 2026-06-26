@@ -34,3 +34,15 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Android signing / Play publishing ###
+**/keystore.properties
+*.jks
+*.keystore
+app/fastlane/play-service-account.json
+
+### Fastlane ###
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/test_output/
+**/fastlane/README.md

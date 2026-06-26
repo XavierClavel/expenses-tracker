@@ -1,0 +1,28 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build a signed release AAB and upload it to a Play testing track"
+  desc "Usage: bundle exec fastlane deploy track:internal (or alpha / beta / production)"
+  lane :deploy do |options|
+    track = options[:track] || "internal"
+
+    # Builds app/build/outputs/bundle/release/app-release.aab using the
+    # signingConfig defined in app/build.gradle.kts (driven by env vars in CI).
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+    )
+
+    upload_to_play_store(
+      track: track,
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      # "completed" pushes the release straight to that track's testers.
+      # Switch to "draft" if you'd rather review/promote it in the Play Console first.
+      release_status: "completed",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+end

@@ -1,0 +1,5 @@
+# Path to the Google Play service-account JSON key.
+# In CI the workflow writes it to fastlane/play-service-account.json from a secret.
+# Locally, export PLAY_JSON_KEY_PATH to point at your own key.
+json_key_file(ENV["PLAY_JSON_KEY_PATH"] || "fastlane/play-service-account.json")
+package_name("com.xavierclavel.bankable")
