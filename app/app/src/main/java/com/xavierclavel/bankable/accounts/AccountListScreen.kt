@@ -172,7 +172,7 @@ private fun AccountTypeHeader(type: AccountType) {
         Icon(
             imageVector = type.icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = type.accentColor,
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(6.dp))
@@ -180,7 +180,7 @@ private fun AccountTypeHeader(type: AccountType) {
             text = stringResource(type.labelRes),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = type.accentColor,
         )
     }
 }

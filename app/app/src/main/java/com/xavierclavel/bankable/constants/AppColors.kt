@@ -2,6 +2,7 @@ package com.xavierclavel.bankable.constants
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import com.xavierclavel.bankable.R
 
 // `label` is the stable identifier persisted with each category — never change
@@ -58,3 +59,19 @@ fun colorByName(name: String?): AppColor? = appColors.find { it.label == name }
 
 fun colorHexByName(name: String?): Color =
     colorByName(name)?.color ?: Color.LightGray
+
+// Produces [count] shades of [base] — same hue, walking from light to dark — so a
+// set of items (e.g. a category's subcategories) reads as one color family.
+// Saturation nudges up slightly for darker shades so they don't go muddy.
+fun shadePalette(base: Color, count: Int): List<Color> {
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(base.toArgb(), hsv)
+    val hue = hsv[0]
+    val baseSat = hsv[1]
+    return (0 until count).map { i ->
+        val t = if (count <= 1) 0.4f else i / (count - 1f)
+        val value = 0.92f - 0.42f * t
+        val sat = (baseSat + 0.18f * t).coerceIn(0f, 1f)
+        Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, sat, value)))
+    }
+}

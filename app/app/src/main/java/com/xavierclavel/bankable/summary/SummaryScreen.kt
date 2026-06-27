@@ -81,6 +81,7 @@ import androidx.navigation.NavController
 import com.xavierclavel.bankable.api.apiListExpenses
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
+import com.xavierclavel.bankable.constants.shadePalette
 import com.xavierclavel.bankable.constants.currencySymbol
 import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.constants.iconByName
@@ -108,7 +109,7 @@ data class SubcategoryEntry(
     val subcategoryId: Int,
     val value: Float,
     val label: String,
-    val colorHex: String?,
+    val color: Color,
     val icon: String?,
 )
 
@@ -161,16 +162,22 @@ fun SummaryScreen(
                 val total   = catSubs.sumOf { it.total.toDoubleOrNull() ?: 0.0 }
                 if (total <= 0.0) null
                 else {
-                    val subEntries = catSubs.mapNotNull { sub ->
+                    val rawSubs = catSubs.mapNotNull { sub ->
                         val subOut = subcategoryMap[sub.categoryId] ?: return@mapNotNull null
+                        Triple(sub.categoryId, sub.total.toFloatOrNull() ?: 0f, subOut)
+                    }.filter { it.second > 0f }.sortedByDescending { it.second }
+                    // Color-code subcategories as shades of the parent category's color,
+                    // spread light→dark by their rank within the category.
+                    val shades = shadePalette(colorHexByName(cat.color), rawSubs.size)
+                    val subEntries = rawSubs.mapIndexed { i, (id, value, subOut) ->
                         SubcategoryEntry(
-                            subcategoryId = sub.categoryId,
-                            value         = sub.total.toFloatOrNull() ?: 0f,
+                            subcategoryId = id,
+                            value         = value,
                             label         = subOut.name,
-                            colorHex      = subOut.color,
+                            color         = shades[i],
                             icon          = subOut.icon,
                         )
-                    }.filter { it.value > 0f }.sortedByDescending { it.value }
+                    }
                     PieEntry(
                         categoryId         = cat.id,
                         value              = total.toFloat(),
@@ -644,9 +651,9 @@ private fun CategoryLegendRow(
             entry.subcategoryEntries.forEach { sub ->
                 Spacer(Modifier.height(3.dp))
                 SubcategoryLegendRow(
-                    subEntry      = sub,
-                    categoryTotal = entry.value,
-                    onClick       = { onSubcategoryClick(sub) },
+                    subEntry = sub,
+                    total    = total,
+                    onClick  = { onSubcategoryClick(sub) },
                 )
             }
         }
@@ -656,12 +663,12 @@ private fun CategoryLegendRow(
 @Composable
 private fun SubcategoryLegendRow(
     subEntry: SubcategoryEntry,
-    categoryTotal: Float,
+    total: Float,
     onClick: () -> Unit,
 ) {
-    val pct        = if (categoryTotal > 0f) subEntry.value / categoryTotal * 100f else 0f
-    val fraction   = (subEntry.value / categoryTotal).coerceIn(0f, 1f)
-    val color      = colorHexByName(subEntry.colorHex)
+    val pct        = if (total > 0f) subEntry.value / total * 100f else 0f
+    val fraction   = (subEntry.value / total).coerceIn(0f, 1f)
+    val color      = subEntry.color
     val trackColor = MaterialTheme.colorScheme.outlineVariant
 
     Surface(
@@ -710,7 +717,7 @@ private fun ExpenseListSheetContent(
 ) {
     var expenses  by remember { mutableStateOf<List<ExpenseOut>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    val color = colorHexByName(entry.colorHex)
+    val color = entry.color
 
     LaunchedEffect(entry.subcategoryId) {
         isLoading = true
