@@ -2,6 +2,7 @@ package com.xavierclavel.bankable.expenses
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,9 +16,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -43,16 +47,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.constants.colorHexByName
+import com.xavierclavel.bankable.constants.currencySymbol
 import com.xavierclavel.bankable.constants.iconByName
+import com.xavierclavel.bankable.util.ExpressionEvaluator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -69,8 +78,12 @@ fun ExpenseEditScreen(
     val subcategory = viewModel.selectedSubcategory
 
     var title by rememberSaveable { mutableStateOf(expense?.title ?: "") }
-    var amount by rememberSaveable { mutableStateOf(expense?.amount ?: "") }
+    var amount by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(expense?.amount ?: ""))
+    }
     var date by rememberSaveable { mutableStateOf(expense?.date ?: todayString()) }
+    var showOperators by remember { mutableStateOf(false) }
+    var amountFocused by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -124,13 +137,70 @@ fun ExpenseEditScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
 
+            val computedAmount = remember(amount.text) { ExpressionEvaluator.evaluate(amount.text) }
+            val isAmountValid = computedAmount != null && computedAmount > 0
+            val currencySym = currencySymbol("EUR")
+
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
-                label = { Text(stringResource(R.string.label_amount_eur)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.label_amount)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { amountFocused = it.isFocused },
                 singleLine = true,
+                isError = amount.text.isNotBlank() && !isAmountValid,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                supportingText = {
+                    when {
+                        amount.text.isBlank() -> {}
+                        computedAmount == null ->
+                            Text(stringResource(R.string.amount_calc_invalid))
+                        computedAmount <= 0 ->
+                            Text(
+                                stringResource(
+                                    R.string.amount_calc_negative,
+                                    ExpressionEvaluator.formatAmount(computedAmount),
+                                    currencySym,
+                                )
+                            )
+                        ExpressionEvaluator.isExpression(amount.text) ->
+                            Text(
+                                stringResource(
+                                    R.string.amount_calc_preview,
+                                    ExpressionEvaluator.formatAmount(computedAmount),
+                                    currencySym,
+                                ),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                    }
+                },
+                trailingIcon = if (amountFocused || showOperators) {
+                    {
+                        Box {
+                            IconButton(onClick = { showOperators = true }) {
+                                Icon(
+                                    Icons.Default.Calculate,
+                                    contentDescription = stringResource(R.string.cd_operators),
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showOperators,
+                                onDismissRequest = { showOperators = false },
+                            ) {
+                                listOf("+" to "+", "−" to "-", "×" to "*", "÷" to "/").forEach { (label, op) ->
+                                    DropdownMenuItem(
+                                        text = { Text(label, fontWeight = FontWeight.SemiBold) },
+                                        onClick = {
+                                            amount = amount.insertAtCursor(op)
+                                            showOperators = false
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else null,
             )
 
             val locale = LocalConfiguration.current.locales[0]
@@ -172,14 +242,14 @@ fun ExpenseEditScreen(
                 onClick = {
                     viewModel.saveExpense(
                         title = title,
-                        amount = amount,
+                        amount = ExpressionEvaluator.formatAmount(computedAmount!!),
                         date = date,
                         onSuccess = { navController.popBackStack() },
                         onError = { errorMessage = it },
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = title.isNotBlank() && amount.isNotBlank(),
+                enabled = title.isNotBlank() && isAmountValid,
             ) {
                 Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold)
             }
@@ -267,6 +337,15 @@ private fun SubcategorySelector(
             )
         }
     }
+}
+
+/** Replaces the current selection (or inserts at the caret) with [insert] and places the caret after it. */
+private fun TextFieldValue.insertAtCursor(insert: String): TextFieldValue {
+    val start = selection.min
+    val end = selection.max
+    val newText = text.substring(0, start) + insert + text.substring(end)
+    val caret = start + insert.length
+    return TextFieldValue(text = newText, selection = TextRange(caret))
 }
 
 private fun todayString(): String {

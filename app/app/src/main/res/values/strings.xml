@@ -31,8 +31,10 @@
     <!-- ── Common labels ──────────────────────────────────── -->
     <string name="label_name">Name</string>
     <string name="label_title">Title</string>
-    <string name="label_amount_eur">Amount (EUR)</string>
     <string name="label_amount">Amount (€)</string>
+    <string name="amount_calc_preview">= %1$s %2$s</string>
+    <string name="amount_calc_invalid">Invalid calculation</string>
+    <string name="amount_calc_negative">Amount must be positive (= %1$s %2$s)</string>
     <string name="label_date">Date</string>
     <string name="label_email">Email address</string>
     <string name="label_password">Password</string>
@@ -67,6 +69,7 @@
     <string name="screen_edit_expense">Edit expense</string>
     <string name="screen_new_expense">New expense</string>
     <string name="cd_add_expense">Add expense</string>
+    <string name="cd_operators">Insert operator</string>
     <string name="no_expenses_yet">No expenses yet</string>
     <string name="no_category_selected">No category selected</string>
     <string name="dialog_delete_expense_title">Delete expense</string>
