@@ -715,7 +715,7 @@ private fun ExpenseListSheetContent(
     LaunchedEffect(entry.subcategoryId) {
         isLoading = true
         try {
-            expenses = apiListExpenses(0, 100, entry.subcategoryId, dateFrom, dateTo)
+            expenses = apiListExpenses(0, 100, subcategoryId = entry.subcategoryId, from = dateFrom, to = dateTo)
         } catch (_: Exception) {
             expenses = emptyList()
         }

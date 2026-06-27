@@ -119,18 +119,6 @@ fun CategoryEditScreen(
             onClick = { navController.navigate("icon/picker") },
         )
 
-        if (isEditing) {
-            OutlinedButton(
-                onClick = {
-                    viewModel.prepareNewSubcategory(viewModel.selectedCategory!!)
-                    navController.navigate("subcategory/edit")
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.action_new_subcategory))
-            }
-        }
-
         Button(
             onClick = {
                 viewModel.saveCategory(

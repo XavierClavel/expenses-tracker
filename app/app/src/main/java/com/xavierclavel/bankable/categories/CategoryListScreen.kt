@@ -102,8 +102,8 @@ fun CategoryListScreen(
                                     expandedIds + category.id
                             },
                             onClick = {
-                                viewModel.prepareEditCategory(category)
-                                navController.navigate("category/edit")
+                                viewModel.prepareViewCategory(category)
+                                navController.navigate("category/view")
                             },
                         )
 
@@ -112,8 +112,8 @@ fun CategoryListScreen(
                                 SubcategoryRow(
                                     subcategory = child,
                                     onClick = {
-                                        viewModel.prepareEditSubcategory(child)
-                                        navController.navigate("subcategory/edit")
+                                        viewModel.prepareViewSubcategory(child)
+                                        navController.navigate("subcategory/view")
                                     },
                                 )
                             }
@@ -175,14 +175,15 @@ private fun CategoryRow(
 }
 
 @Composable
-private fun SubcategoryRow(
+internal fun SubcategoryRow(
     subcategory: SubcategoryOut,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(start = 40.dp, end = 12.dp, top = 2.dp, bottom = 2.dp),
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 40.dp, end = 12.dp, top = 2.dp, bottom = 2.dp)
+        modifier = modifier
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 1.dp,

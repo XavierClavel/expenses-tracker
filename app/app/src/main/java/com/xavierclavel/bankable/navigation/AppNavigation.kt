@@ -43,9 +43,11 @@ import com.xavierclavel.bankable.auth.SignupScreen
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.categories.CategoryEditScreen
 import com.xavierclavel.bankable.categories.CategoryListScreen
+import com.xavierclavel.bankable.categories.CategoryViewScreen
 import com.xavierclavel.bankable.categories.ColorPickerScreen
 import com.xavierclavel.bankable.categories.IconPickerScreen
 import com.xavierclavel.bankable.categories.SubcategoryEditScreen
+import com.xavierclavel.bankable.categories.SubcategoryViewScreen
 import com.xavierclavel.bankable.accounts.AccountEditScreen
 import com.xavierclavel.bankable.accounts.AccountListScreen
 import com.xavierclavel.bankable.accounts.AccountReportEditScreen
@@ -170,11 +172,17 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             composable("categories") {
                 CategoryListScreen(categoriesViewModel, navController)
             }
+            composable("category/view") {
+                CategoryViewScreen(categoriesViewModel, expensesViewModel, navController)
+            }
             composable("category/edit") {
                 CategoryEditScreen(categoriesViewModel, navController)
             }
             composable("subcategory/edit") {
                 SubcategoryEditScreen(categoriesViewModel, navController)
+            }
+            composable("subcategory/view") {
+                SubcategoryViewScreen(categoriesViewModel, expensesViewModel, navController)
             }
             composable("color/picker") {
                 ColorPickerScreen(categoriesViewModel, navController)

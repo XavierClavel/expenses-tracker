@@ -19,6 +19,7 @@ private data class OldestExpenseResponse(val date: String? = null)
 suspend fun apiListExpenses(
     page: Int,
     size: Int,
+    categoryId: Int? = null,
     subcategoryId: Int? = null,
     from: String? = null,
     to: String? = null,
@@ -27,6 +28,7 @@ suspend fun apiListExpenses(
         authHeader()
         parameter("page", page)
         parameter("size", size)
+        categoryId?.let { parameter("categoryId", it) }
         subcategoryId?.let { parameter("subcategoryId", it) }
         from?.let { parameter("from", it) }
         to?.let { parameter("to", it) }

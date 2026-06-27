@@ -26,7 +26,6 @@
     <string name="action_log_in">Log in</string>
     <string name="action_sign_up">Sign up</string>
     <string name="action_continue_google">Continue with Google</string>
-    <string name="action_new_subcategory">New subcategory</string>
 
     <!-- ── Common labels ──────────────────────────────────── -->
     <string name="label_name">Name</string>
@@ -77,6 +76,13 @@
 
     <!-- ── Categories ─────────────────────────────────────── -->
     <string name="cd_add_category">Add category</string>
+    <string name="cd_edit_category">Edit category</string>
+    <string name="cd_edit_subcategory">Edit subcategory</string>
+    <string name="cd_add_subcategory">Add subcategory</string>
+    <string name="label_subcategories">Subcategories</string>
+    <string name="no_expenses_in_category">No expenses in this category</string>
+    <string name="no_expenses_in_subcategory">No expenses in this subcategory</string>
+    <string name="no_subcategories_yet">No subcategories yet</string>
     <string name="dialog_confirm_delete_title">Confirm delete</string>
     <string name="dialog_delete_category_message">Are you sure you want to delete this category?</string>
     <string name="dialog_delete_subcategory_message">Are you sure you want to delete this subcategory?</string>

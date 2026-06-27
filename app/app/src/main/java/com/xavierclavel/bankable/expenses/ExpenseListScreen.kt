@@ -193,7 +193,7 @@ private fun AccountActionsRow(
 }
 
 @Composable
-private fun ExpenseItem(
+internal fun ExpenseItem(
     expense: ExpenseOut,
     subcategory: SubcategoryOut?,
     onClick: () -> Unit,
@@ -249,7 +249,7 @@ private fun ExpenseItem(
     }
 }
 
-private fun formatDate(dateStr: String, locale: Locale): String {
+internal fun formatDate(dateStr: String, locale: Locale): String {
     return try {
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr) ?: return dateStr
         SimpleDateFormat("d MMMM yyyy", locale).format(date)

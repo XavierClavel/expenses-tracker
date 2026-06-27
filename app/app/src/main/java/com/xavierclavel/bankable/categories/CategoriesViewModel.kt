@@ -10,10 +10,12 @@ import com.xavierclavel.bankable.api.apiCreateSubcategory
 import com.xavierclavel.bankable.api.apiDeleteCategory
 import com.xavierclavel.bankable.api.apiDeleteSubcategory
 import com.xavierclavel.bankable.api.apiListCategories
+import com.xavierclavel.bankable.api.apiListExpenses
 import com.xavierclavel.bankable.api.apiUpdateCategory
 import com.xavierclavel.bankable.api.apiUpdateSubcategory
 import com.xavierclavel.bankable.model.CategoryIn
 import com.xavierclavel.bankable.model.CategoryOut
+import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryIn
 import com.xavierclavel.bankable.model.SubcategoryOut
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,14 @@ class CategoriesViewModel : ViewModel() {
 
     private val _categories = MutableStateFlow<List<CategoryOut>>(emptyList())
     val categories: StateFlow<List<CategoryOut>> = _categories
+
+    // Expenses belonging to the category currently being viewed (paginated).
+    private val _categoryExpenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
+    val categoryExpenses: StateFlow<List<ExpenseOut>> = _categoryExpenses
+
+    // Expenses belonging to the subcategory currently being viewed (paginated).
+    private val _subcategoryExpenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
+    val subcategoryExpenses: StateFlow<List<ExpenseOut>> = _subcategoryExpenses
 
     var selectedCategory by mutableStateOf<CategoryOut?>(null)
         private set
@@ -39,6 +49,16 @@ class CategoriesViewModel : ViewModel() {
         private set
     var isLoading by mutableStateOf(false)
         private set
+    var isLoadingExpenses by mutableStateOf(false)
+        private set
+    var isLoadingSubcategoryExpenses by mutableStateOf(false)
+        private set
+
+    private var expensePage = 0
+    private var expenseHasMore = true
+    private var subExpensePage = 0
+    private var subExpenseHasMore = true
+    private val expensePageSize = 50
 
     init {
         loadCategories()
@@ -81,6 +101,68 @@ class CategoriesViewModel : ViewModel() {
         selectedSubcategory = null
         selectedColor = category.color
         selectedIcon = category.icon
+    }
+
+    /** Opens the category detail view and (re)loads its expense history from the first page. */
+    fun prepareViewCategory(category: CategoryOut) {
+        selectedCategory = category
+        _categoryExpenses.value = emptyList()
+        expensePage = 0
+        expenseHasMore = true
+        loadCategoryExpenses()
+    }
+
+    private fun loadCategoryExpenses() {
+        val categoryId = selectedCategory?.id ?: return
+        if (isLoadingExpenses || !expenseHasMore) return
+        viewModelScope.launch {
+            isLoadingExpenses = true
+            try {
+                val newExpenses = apiListExpenses(expensePage, expensePageSize, categoryId = categoryId)
+                _categoryExpenses.value =
+                    if (expensePage == 0) newExpenses else _categoryExpenses.value + newExpenses
+                expenseHasMore = newExpenses.size == expensePageSize
+                expensePage++
+            } catch (_: Exception) {
+            } finally {
+                isLoadingExpenses = false
+            }
+        }
+    }
+
+    fun loadMoreCategoryExpenses() {
+        if (!isLoadingExpenses && expenseHasMore) loadCategoryExpenses()
+    }
+
+    /** Opens the subcategory detail view and (re)loads its expense history from the first page. */
+    fun prepareViewSubcategory(subcategory: SubcategoryOut) {
+        selectedSubcategory = subcategory
+        _subcategoryExpenses.value = emptyList()
+        subExpensePage = 0
+        subExpenseHasMore = true
+        loadSubcategoryExpenses()
+    }
+
+    private fun loadSubcategoryExpenses() {
+        val subcategoryId = selectedSubcategory?.id ?: return
+        if (isLoadingSubcategoryExpenses || !subExpenseHasMore) return
+        viewModelScope.launch {
+            isLoadingSubcategoryExpenses = true
+            try {
+                val newExpenses = apiListExpenses(subExpensePage, expensePageSize, subcategoryId = subcategoryId)
+                _subcategoryExpenses.value =
+                    if (subExpensePage == 0) newExpenses else _subcategoryExpenses.value + newExpenses
+                subExpenseHasMore = newExpenses.size == expensePageSize
+                subExpensePage++
+            } catch (_: Exception) {
+            } finally {
+                isLoadingSubcategoryExpenses = false
+            }
+        }
+    }
+
+    fun loadMoreSubcategoryExpenses() {
+        if (!isLoadingSubcategoryExpenses && subExpenseHasMore) loadSubcategoryExpenses()
     }
 
     fun prepareNewSubcategory(parentCategory: CategoryOut) {

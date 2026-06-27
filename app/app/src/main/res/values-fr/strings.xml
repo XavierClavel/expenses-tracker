@@ -26,7 +26,6 @@
     <string name="action_log_in">Se connecter</string>
     <string name="action_sign_up">S\'inscrire</string>
     <string name="action_continue_google">Continuer avec Google</string>
-    <string name="action_new_subcategory">Nouvelle sous-catégorie</string>
 
     <!-- ── Common labels ──────────────────────────────────── -->
     <string name="label_name">Nom</string>
@@ -77,6 +76,13 @@
 
     <!-- ── Categories ─────────────────────────────────────── -->
     <string name="cd_add_category">Ajouter une catégorie</string>
+    <string name="cd_edit_category">Modifier la catégorie</string>
+    <string name="cd_edit_subcategory">Modifier la sous-catégorie</string>
+    <string name="cd_add_subcategory">Ajouter une sous-catégorie</string>
+    <string name="label_subcategories">Sous-catégories</string>
+    <string name="no_expenses_in_category">Aucune dépense dans cette catégorie</string>
+    <string name="no_expenses_in_subcategory">Aucune dépense dans cette sous-catégorie</string>
+    <string name="no_subcategories_yet">Aucune sous-catégorie</string>
     <string name="dialog_confirm_delete_title">Confirmer la suppression</string>
     <string name="dialog_delete_category_message">Êtes-vous sûr de vouloir supprimer cette catégorie ?</string>
     <string name="dialog_delete_subcategory_message">Êtes-vous sûr de vouloir supprimer cette sous-catégorie ?</string>
