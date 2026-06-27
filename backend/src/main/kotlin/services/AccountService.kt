@@ -50,6 +50,7 @@ class AccountService: KoinComponent {
         val user = QUser().id.eq(userId).findOne() ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND)
         val account = InvestmentAccount(
             name = accountDto.name,
+            type = accountDto.type,
             owner = user,
         )
         account.insert()
@@ -62,6 +63,7 @@ class AccountService: KoinComponent {
             .checkRights(userId)
             .apply {
                 name = accountDto.name
+                type = accountDto.type
             }
             .apply { this.update() }
             .toOutput()

@@ -7,18 +7,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
+import com.xavierclavel.bankable.constants.AccountType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +52,9 @@ fun AccountEditScreen(
 ) {
     val isEditing = viewModel.selectedAccount != null
     var name by rememberSaveable { mutableStateOf(viewModel.selectedAccount?.name ?: "") }
+    var type by rememberSaveable {
+        mutableStateOf(viewModel.selectedAccount?.type ?: AccountType.CHECKING.key)
+    }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -85,6 +95,11 @@ fun AccountEditScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
 
+            AccountTypeSelector(
+                selected = AccountType.fromKey(type),
+                onSelect = { type = it.key },
+            )
+
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
@@ -97,6 +112,7 @@ fun AccountEditScreen(
                 onClick = {
                     viewModel.saveAccount(
                         name = name,
+                        type = type,
                         onSuccess = { navController.popBackStack() },
                         onError = { errorMessage = it },
                     )
@@ -132,5 +148,51 @@ fun AccountEditScreen(
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountTypeSelector(
+    selected: AccountType,
+    onSelect: (AccountType) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        OutlinedTextField(
+            value = stringResource(selected.labelRes),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.label_account_type)) },
+            leadingIcon = { Icon(selected.icon, contentDescription = null) },
+            trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true },
+            enabled = false,
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledTextColor          = MaterialTheme.colorScheme.onSurface,
+                disabledBorderColor        = MaterialTheme.colorScheme.outline,
+                disabledLabelColor         = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledLeadingIconColor   = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledTrailingIconColor  = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            AccountType.entries.forEach { type ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(type.labelRes)) },
+                    leadingIcon = { Icon(type.icon, contentDescription = null) },
+                    onClick = {
+                        onSelect(type)
+                        expanded = false
+                    },
+                )
+            }
+        }
     }
 }

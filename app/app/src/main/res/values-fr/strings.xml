@@ -102,6 +102,12 @@
     <string name="dialog_delete_account_message">Êtes-vous sûr de vouloir supprimer \"%1$s\" ? Tous les relevés associés seront également supprimés.</string>
     <string name="tab_balance">Solde</string>
     <string name="cd_edit_account">Modifier le compte</string>
+    <string name="label_account_type">Type de compte</string>
+    <string name="account_type_checking">Compte courant</string>
+    <string name="account_type_savings">Épargne</string>
+    <string name="account_type_investment">Investissement</string>
+    <string name="account_type_retirement">Retraite</string>
+    <string name="account_type_other">Autre</string>
 
     <!-- ── Account Reports ────────────────────────────────── -->
     <string name="screen_edit_report">Modifier le relevé</string>

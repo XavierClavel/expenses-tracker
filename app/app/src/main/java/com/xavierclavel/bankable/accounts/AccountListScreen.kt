@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
+import com.xavierclavel.bankable.constants.AccountType
 import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.model.AccountOut
 
@@ -132,23 +134,54 @@ private fun BalanceTab(
             Text(stringResource(R.string.no_accounts_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
+        val grouped = AccountType.entries.mapNotNull { type ->
+            val group = accounts.filter { AccountType.fromKey(it.type) == type }
+            if (group.isEmpty()) null else type to group
+        }
         LazyColumn(
             modifier = Modifier.padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 80.dp),
         ) {
             item { Spacer(Modifier.height(8.dp)) }
-            items(accounts, key = { it.id }) { account ->
-                AccountRow(
-                    account = account,
-                    onClick = {
-                        viewModel.selectAccount(account)
-                        navController.navigate("account/view")
-                    },
-                )
+            grouped.forEach { (type, group) ->
+                item(key = "header_${type.key}") { AccountTypeHeader(type) }
+                items(group, key = { it.id }) { account ->
+                    AccountRow(
+                        account = account,
+                        onClick = {
+                            viewModel.selectAccount(account)
+                            navController.navigate("account/view")
+                        },
+                    )
+                }
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
+    }
+}
+
+@Composable
+private fun AccountTypeHeader(type: AccountType) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, start = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = type.icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = stringResource(type.labelRes),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

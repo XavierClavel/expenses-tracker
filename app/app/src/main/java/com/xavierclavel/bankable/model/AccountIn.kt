@@ -3,4 +3,4 @@ package com.xavierclavel.bankable.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AccountIn(val name: String)
+data class AccountIn(val name: String, val type: String)

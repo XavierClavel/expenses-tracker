@@ -102,6 +102,12 @@
     <string name="dialog_delete_account_message">Are you sure you want to delete \"%1$s\"? All associated reports will also be deleted.</string>
     <string name="tab_balance">Balance</string>
     <string name="cd_edit_account">Edit account</string>
+    <string name="label_account_type">Account type</string>
+    <string name="account_type_checking">Checking account</string>
+    <string name="account_type_savings">Savings</string>
+    <string name="account_type_investment">Investment</string>
+    <string name="account_type_retirement">Retirement</string>
+    <string name="account_type_other">Other</string>
 
     <!-- ── Account Reports ────────────────────────────────── -->
     <string name="screen_edit_report">Edit report</string>

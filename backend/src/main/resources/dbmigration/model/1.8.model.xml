@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <addColumn tableName="investment_accounts">
+            <column name="type" type="varchar(10)" defaultValue="'OTHER'" notnull="true" checkConstraint="check ( type in ('CHECKING','SAVINGS','INVESTMENT','RETIREMENT','OTHER'))" checkConstraintName="ck_investment_accounts_type"/>
+        </addColumn>
+    </changeSet>
+</migration>

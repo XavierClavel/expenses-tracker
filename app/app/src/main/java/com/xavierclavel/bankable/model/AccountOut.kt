@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class AccountOut(
     val id: Int,
     val name: String,
+    val type: String = "OTHER",
     val amount: String,
 )
