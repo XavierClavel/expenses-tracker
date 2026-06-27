@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -113,6 +114,12 @@ fun AccountReportEditScreen(
                 trailingIcon = {
                     Icon(Icons.Default.CalendarMonth, contentDescription = null)
                 },
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor          = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor        = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor         = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor  = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
 
             if (errorMessage != null) {
