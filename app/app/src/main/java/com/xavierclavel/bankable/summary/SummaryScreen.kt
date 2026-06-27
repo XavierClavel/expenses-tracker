@@ -67,6 +67,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageShader
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -105,6 +110,10 @@ private fun localizedMonthYear(year: Int, month: Int, locale: Locale): String {
         .replaceFirstChar { it.titlecase(locale) }
 }
 
+// Neutral color for the "unspent income" remainder, so it doesn't read as a
+// (possibly green) spending category.
+private val ResidualColor = Color(0xFF9E9E9E)
+
 data class SubcategoryEntry(
     val subcategoryId: Int,
     val value: Float,
@@ -117,9 +126,11 @@ data class PieEntry(
     val categoryId: Int,
     val value: Float,
     val label: String,
-    val colorHex: String?,
+    val color: Color,
     val icon: String?,
     val subcategoryEntries: List<SubcategoryEntry> = emptyList(),
+    // The "unspent income" remainder — drawn distinctly so it doesn't read as a category.
+    val isResidual: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,7 +193,7 @@ fun SummaryScreen(
                         categoryId         = cat.id,
                         value              = total.toFloat(),
                         label              = cat.name,
-                        colorHex           = cat.color,
+                        color              = colorHexByName(cat.color),
                         icon               = cat.icon,
                         subcategoryEntries = subEntries,
                     )
@@ -294,7 +305,7 @@ fun SummaryScreen(
             Column(modifier = Modifier.fillMaxWidth()) {
                 // Balance summary card (or skeleton)
                 if (isLoading) {
-                    Box(Modifier.fillMaxWidth().height(86.dp).clip(MaterialTheme.shapes.medium).background(shimmerBrush()))
+                    Box(Modifier.fillMaxWidth().height(64.dp).clip(MaterialTheme.shapes.medium).background(shimmerBrush()))
                 } else {
                     BalanceSummaryCard(
                         totalExpenses = totalExpenses,
@@ -315,9 +326,29 @@ fun SummaryScreen(
                     else -> {
                         val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
 
+                        // In EXPENSE view with a surplus, the donut represents *income*:
+                        // expense categories plus an "unspent income" slice fill the ring,
+                        // so every percentage is read against income. Otherwise (income
+                        // view, or a deficit) percentages are read against the pie total.
+                        val showSavings = viewModel.selectedType == "EXPENSE" && balance > 0
+                        val savingsValue = if (showSavings) balance.toFloat() else 0f
+                        val denominator  = pieTotal + savingsValue
+                        val savingsIndex = pieEntries.size
+
+                        val donutEntries = if (showSavings) {
+                            pieEntries + PieEntry(
+                                categoryId = -1,
+                                value      = savingsValue,
+                                label      = stringResource(R.string.summary_unspent_income),
+                                color      = ResidualColor,
+                                icon       = null,
+                                isResidual = true,
+                            )
+                        } else pieEntries
+
                         DonutChart(
-                            entries       = pieEntries,
-                            total         = pieTotal,
+                            entries       = donutEntries,
+                            total         = denominator,
                             selectedIndex = selectedSlice,
                             onSliceClick  = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
                             balance       = balance,
@@ -325,12 +356,40 @@ fun SummaryScreen(
                             modifier      = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
                         )
 
+                        // Caption stating which basis the percentages use, so the
+                        // income-vs-spending denominator is never ambiguous.
+                        if (viewModel.selectedType == "EXPENSE") {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(
+                                    if (showSavings) R.string.summary_pct_of_income
+                                    else R.string.summary_pct_of_spending
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+
                         Spacer(Modifier.height(16.dp))
+
+                        // Savings row at the top: only in EXPENSE view when income >
+                        // expenses. Selectable in sync with its donut slice.
+                        if (showSavings) {
+                            SavingsLegendRow(
+                                savings    = balance,
+                                total      = denominator,
+                                isSelected = selectedSlice == savingsIndex,
+                                onSelect   = { selectedSlice = if (selectedSlice == savingsIndex) -1 else savingsIndex },
+                            )
+                            Spacer(Modifier.height(6.dp))
+                        }
 
                         pieEntries.forEachIndexed { index, entry ->
                             CategoryLegendRow(
                                 entry       = entry,
-                                total       = pieTotal,
+                                total       = denominator,
                                 isSelected  = index == selectedSlice,
                                 isExpanded  = expandedCategories.contains(entry.categoryId),
                                 onSelect    = { selectedSlice = if (selectedSlice == index) -1 else index },
@@ -343,12 +402,6 @@ fun SummaryScreen(
                                 },
                                 onSubcategoryClick = { sub -> bottomSheetEntry = sub },
                             )
-                            Spacer(Modifier.height(6.dp))
-                        }
-
-                        // Savings row: only in EXPENSE view when income > expenses
-                        if (viewModel.selectedType == "EXPENSE" && balance > 0) {
-                            SavingsLegendRow(savings = balance, incomeTotal = totalIncome)
                             Spacer(Modifier.height(6.dp))
                         }
                     }
@@ -388,8 +441,6 @@ private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
     val balance     = totalIncome - totalExpenses
     val isSaved     = balance >= 0
     val balColor    = if (isSaved) Color(0xFF4CAF50) else Color(0xFFE53935)
-    val expFraction = if (totalIncome > 0) (totalExpenses / totalIncome).toFloat().coerceIn(0f, 1f) else 0f
-    val trackColor  = MaterialTheme.colorScheme.outlineVariant
 
     Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
@@ -421,45 +472,25 @@ private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-
-            if (totalIncome > 0) {
-                Spacer(Modifier.height(10.dp))
-                // Bar: red fill = expenses portion, green track = remaining income
-                Canvas(modifier = Modifier.fillMaxWidth().height(6.dp)) {
-                    val r = CornerRadius(3.dp.toPx())
-                    drawRoundRect(color = Color(0xFF4CAF50).copy(alpha = 0.22f), cornerRadius = r)
-                    if (expFraction > 0f) {
-                        drawRoundRect(
-                            color = Color(0xFFE53935).copy(alpha = 0.85f),
-                            size  = Size(size.width * expFraction, size.height),
-                            cornerRadius = r,
-                        )
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text  = if (isSaved) stringResource(R.string.summary_percent_saved, (1f - expFraction) * 100)
-                            else stringResource(R.string.summary_percent_overspent, expFraction * 100),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.End,
-                )
-            }
         }
     }
 }
 
 @Composable
-private fun SavingsLegendRow(savings: Double, incomeTotal: Double) {
-    val fraction   = (savings / incomeTotal).toFloat().coerceIn(0f, 1f)
-    val color      = Color(0xFF4CAF50)
+private fun SavingsLegendRow(
+    savings: Double,
+    total: Float,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
+) {
+    val fraction   = if (total > 0f) (savings / total).toFloat().coerceIn(0f, 1f) else 0f
+    val color      = ResidualColor
     val trackColor = MaterialTheme.colorScheme.outlineVariant
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect),
         shape    = MaterialTheme.shapes.medium,
-        color    = color.copy(alpha = 0.08f),
+        color    = color.copy(alpha = if (isSelected) 0.18f else 0.08f),
     ) {
         Column {
             Row(
@@ -490,6 +521,31 @@ private fun SavingsLegendRow(savings: Double, incomeTotal: Double) {
     }
 }
 
+// A repeating 45° diagonal-stripe brush in [color]. Lines are drawn longer than the
+// tile (endpoints off-bitmap) so no stroke caps fall inside it — that's what keeps the
+// stripes continuous across tile boundaries instead of showing regular notches.
+@Composable
+private fun rememberDiagonalStripeBrush(color: Color): ShaderBrush = remember(color) {
+    val tile = 14
+    val w = tile.toFloat()
+    val bitmap = android.graphics.Bitmap.createBitmap(tile, tile, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    val paint = android.graphics.Paint().apply {
+        isAntiAlias = true
+        this.color = color.toArgb()
+        strokeWidth = 5f
+        style = android.graphics.Paint.Style.STROKE
+    }
+    // One stripe per tile period (spacing == tile), each drawn across the whole tile
+    // and beyond so it gets clipped at the edges rather than capped inside.
+    var b = -2f * w
+    while (b <= 2f * w) {
+        canvas.drawLine(-w, -w + b, 2f * w, 2f * w + b, paint)
+        b += w
+    }
+    ShaderBrush(ImageShader(bitmap.asImageBitmap(), TileMode.Repeated, TileMode.Repeated))
+}
+
 @Composable
 private fun DonutChart(
     entries: List<PieEntry>,
@@ -502,6 +558,7 @@ private fun DonutChart(
 ) {
     val anySelected  = selectedIndex != -1
     val selectedEntry = entries.getOrNull(selectedIndex)
+    val stripeBrush  = rememberDiagonalStripeBrush(ResidualColor)
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(
@@ -536,17 +593,36 @@ private fun DonutChart(
                 val sweepAngle = 360f * fraction - gapDeg
                 val isSelected = i == selectedIndex
                 val alpha  = when { !anySelected -> 1f; isSelected -> 1f; else -> 0.25f }
-                val stroke = if (isSelected) strokeBase * 1.15f else strokeBase
-                val inset  = stroke / 2f
-                drawArc(
-                    color      = colorHexByName(entry.colorHex).copy(alpha = alpha),
-                    startAngle = startAngle + gapDeg / 2f,
-                    sweepAngle = sweepAngle.coerceAtLeast(0.1f),
-                    useCenter  = false,
-                    topLeft    = Offset((size.width - diameter) / 2f + inset, (size.height - diameter) / 2f + inset),
-                    size       = Size(diameter - stroke, diameter - stroke),
-                    style      = Stroke(width = stroke),
-                )
+                // Residual (unspent income) is full width like the others but filled
+                // with a diagonal-line hatch, so it reads as "leftover", not a category.
+                val stroke  = if (isSelected) strokeBase * 1.15f else strokeBase
+                val inset   = stroke / 2f
+                val topLeft = Offset((size.width - diameter) / 2f + inset, (size.height - diameter) / 2f + inset)
+                val arcSize = Size(diameter - stroke, diameter - stroke)
+                val start   = startAngle + gapDeg / 2f
+                val sweep   = sweepAngle.coerceAtLeast(0.1f)
+                if (entry.isResidual) {
+                    drawArc(
+                        brush      = stripeBrush,
+                        startAngle = start,
+                        sweepAngle = sweep,
+                        useCenter  = false,
+                        topLeft    = topLeft,
+                        size       = arcSize,
+                        alpha      = alpha,
+                        style      = Stroke(width = stroke),
+                    )
+                } else {
+                    drawArc(
+                        color      = entry.color.copy(alpha = alpha),
+                        startAngle = start,
+                        sweepAngle = sweep,
+                        useCenter  = false,
+                        topLeft    = topLeft,
+                        size       = arcSize,
+                        style      = Stroke(width = stroke),
+                    )
+                }
                 startAngle += 360f * fraction
             }
         }
@@ -558,7 +634,7 @@ private fun DonutChart(
                 selectedEntry != null -> {
                     Text(formatSummaryAmount(selectedEntry.value.toDouble()),
                         style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center, color = colorHexByName(selectedEntry.colorHex))
+                        textAlign = TextAlign.Center, color = selectedEntry.color)
                     Text(selectedEntry.label, style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -597,7 +673,7 @@ private fun CategoryLegendRow(
 ) {
     val pct        = if (total > 0f) entry.value / total * 100f else 0f
     val fraction   = (entry.value / total).coerceIn(0f, 1f)
-    val entryColor = colorHexByName(entry.colorHex)
+    val entryColor = entry.color
     val trackColor = MaterialTheme.colorScheme.outlineVariant
     val hasSubs    = entry.subcategoryEntries.isNotEmpty()
 

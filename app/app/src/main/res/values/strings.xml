@@ -119,10 +119,10 @@
 
     <!-- ── Summary ────────────────────────────────────────── -->
     <string name="summary_unspent_income">Unspent income</string>
+    <string name="summary_pct_of_income">% of income</string>
+    <string name="summary_pct_of_spending">% of spending</string>
     <string name="summary_no_data">No data for this period</string>
     <string name="summary_no_expenses">No expenses for this period</string>
-    <string name="summary_percent_saved">%1$.0f%% of income saved</string>
-    <string name="summary_percent_overspent">%1$.0f%% of income overspent</string>
 
     <!-- ── Trends ─────────────────────────────────────────── -->
     <string name="trends_select_category_hint">Select a category or subcategory</string>
