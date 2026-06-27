@@ -46,6 +46,8 @@
     <string name="label_total">Total</string>
     <string name="label_balance">Solde</string>
     <string name="label_charts">Graphiques</string>
+    <string name="label_distribution">Répartition</string>
+    <string name="account_distribution_no_data">Aucun solde positif à afficher</string>
     <string name="label_reports">Relevés</string>
     <string name="label_change">Variation</string>
     <string name="label_change_percent">Variation %</string>

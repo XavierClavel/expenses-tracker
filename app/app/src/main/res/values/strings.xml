@@ -46,6 +46,8 @@
     <string name="label_total">Total</string>
     <string name="label_balance">Balance</string>
     <string name="label_charts">Charts</string>
+    <string name="label_distribution">Distribution</string>
+    <string name="account_distribution_no_data">No positive balances to show</string>
     <string name="label_reports">Reports</string>
     <string name="label_change">Change</string>
     <string name="label_change_percent">Change %</string>

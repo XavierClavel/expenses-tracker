@@ -98,13 +98,19 @@ fun AccountListScreen(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
+                    text = { Text(stringResource(R.string.label_distribution)) },
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
                     text = { Text(stringResource(R.string.label_charts)) },
                 )
             }
 
             when (selectedTab) {
                 0 -> BalanceTab(accounts, isLoading, viewModel, navController)
-                1 -> AccountChartsScreen(viewModel, accountId = null)
+                1 -> AccountDistributionScreen(viewModel)
+                2 -> AccountChartsScreen(viewModel, accountId = null)
             }
         }
     }
