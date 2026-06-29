@@ -82,6 +82,7 @@ fun LoginScreen(
             GoogleSignInButton(
                 enabled = !isLoading,
                 onIdToken = { token -> googleError = null; onGoogleSignIn(token) { googleError = it } },
+                onError = { googleError = it },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

@@ -39,6 +39,8 @@
     <string name="label_password">Password</string>
     <string name="label_confirm_password">Confirm password</string>
     <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_google_signin">Google sign-in failed. Please try again.</string>
+    <string name="error_google_reauth">Couldn\'t sign in with Google. Re-add your Google account in Settings → Passwords &amp; accounts, then try again.</string>
     <string name="label_expense">Expense</string>
     <string name="label_income">Income</string>
     <string name="label_expenses">Expenses</string>

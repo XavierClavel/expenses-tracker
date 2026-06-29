@@ -88,6 +88,7 @@ import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.shadePalette
 import com.xavierclavel.bankable.constants.currencySymbol
+import com.xavierclavel.bankable.constants.formatAmountDisplay
 import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
@@ -483,9 +484,10 @@ private fun SavingsLegendRow(
     isSelected: Boolean,
     onSelect: () -> Unit,
 ) {
-    val fraction   = if (total > 0f) (savings / total).toFloat().coerceIn(0f, 1f) else 0f
-    val color      = ResidualColor
-    val trackColor = MaterialTheme.colorScheme.outlineVariant
+    val fraction    = if (total > 0f) (savings / total).toFloat().coerceIn(0f, 1f) else 0f
+    val color       = ResidualColor
+    val trackColor  = MaterialTheme.colorScheme.outlineVariant
+    val stripeBrush = rememberDiagonalStripeBrush(color)
 
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect),
@@ -515,7 +517,7 @@ private fun SavingsLegendRow(
             Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp).height(4.dp)) {
                 val r = CornerRadius(2.dp.toPx())
                 drawRoundRect(color = trackColor, cornerRadius = r)
-                if (fraction > 0f) drawRoundRect(color = color, size = Size(size.width * fraction, size.height), cornerRadius = r)
+                if (fraction > 0f) drawRoundRect(brush = stripeBrush, size = Size(size.width * fraction, size.height), cornerRadius = r)
             }
         }
     }
@@ -860,7 +862,7 @@ private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            text       = "$sign${expense.amount} ${currencySymbol(expense.currency)}",
+            text       = "$sign${formatAmountDisplay(expense.amount, locale)} ${currencySymbol(expense.currency)}",
             style      = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color      = amountColor,

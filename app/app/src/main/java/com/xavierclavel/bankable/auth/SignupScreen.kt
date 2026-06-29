@@ -89,6 +89,7 @@ fun SignupScreen(
             GoogleSignInButton(
                 enabled = true,
                 onIdToken = { token -> error = null; onGoogleSignIn(token) { err -> error = err } },
+                onError = { err -> error = err },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

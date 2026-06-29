@@ -39,6 +39,8 @@
     <string name="label_password">Mot de passe</string>
     <string name="label_confirm_password">Confirmer le mot de passe</string>
     <string name="error_password_mismatch">Les mots de passe ne correspondent pas</string>
+    <string name="error_google_signin">Échec de la connexion Google. Veuillez réessayer.</string>
+    <string name="error_google_reauth">Connexion Google impossible. Ajoutez de nouveau votre compte Google dans Paramètres → Mots de passe et comptes, puis réessayez.</string>
     <string name="label_expense">Dépense</string>
     <string name="label_income">Revenus</string>
     <string name="label_expenses">Dépenses</string>

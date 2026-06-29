@@ -46,6 +46,7 @@ import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.currencySymbol
+import com.xavierclavel.bankable.constants.formatAmountDisplay
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
@@ -199,6 +200,7 @@ internal fun ExpenseItem(
     onClick: () -> Unit,
 ) {
     val iconColor = colorHexByName(subcategory?.color)
+    val locale = LocalConfiguration.current.locales[0]
 
     val amountColor = if (expense.type == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
     val sign = if (expense.type == "INCOME") "+" else "-"
@@ -240,7 +242,7 @@ internal fun ExpenseItem(
                 }
             }
             Text(
-                text = "$sign${expense.amount} ${currencySymbol(expense.currency)}",
+                text = "$sign${formatAmountDisplay(expense.amount, locale)} ${currencySymbol(expense.currency)}",
                 color = amountColor,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,

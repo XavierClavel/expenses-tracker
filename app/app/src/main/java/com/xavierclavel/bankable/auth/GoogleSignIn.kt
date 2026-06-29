@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -27,9 +28,11 @@ import kotlinx.coroutines.launch
 
 /**
  * Launches the Credential Manager "Sign in with Google" flow and returns the
- * Google ID token, or null if the user cancelled or no Google credential came back.
+ * Google ID token, or null if the user dismissed the chooser or sign-in failed.
+ * On failure (other than a deliberate user dismissal) [onError] is invoked with a
+ * user-facing message so the screen can surface it.
  */
-suspend fun getGoogleIdToken(context: Context): String? {
+suspend fun getGoogleIdToken(context: Context, onError: (String) -> Unit): String? {
     val option = GetSignInWithGoogleOption.Builder(GOOGLE_WEB_CLIENT_ID).build()
     val request = GetCredentialRequest.Builder().addCredentialOption(option).build()
     return try {
@@ -40,10 +43,20 @@ suspend fun getGoogleIdToken(context: Context): String? {
         ) {
             GoogleIdTokenCredential.createFrom(credential.data).idToken
         } else {
+            onError(context.getString(R.string.error_google_signin))
             null
         }
+    } catch (e: GetCredentialCancellationException) {
+        // Play Services reports "[16] Account reauth failed" as a cancellation even though the
+        // user didn't dismiss the chooser — surface that, but stay silent on a real user dismissal.
+        android.util.Log.e("GoogleSignIn", "Credential request cancelled", e)
+        if (e.message?.contains("reauth", ignoreCase = true) == true) {
+            onError(context.getString(R.string.error_google_reauth))
+        }
+        null
     } catch (e: GetCredentialException) {
         android.util.Log.e("GoogleSignIn", "Credential request failed", e)
+        onError(context.getString(R.string.error_google_signin))
         null
     }
 }
@@ -53,6 +66,7 @@ suspend fun getGoogleIdToken(context: Context): String? {
 fun GoogleSignInButton(
     enabled: Boolean,
     onIdToken: (String) -> Unit,
+    onError: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -60,7 +74,7 @@ fun GoogleSignInButton(
     OutlinedButton(
         onClick = {
             scope.launch {
-                getGoogleIdToken(context)?.let(onIdToken)
+                getGoogleIdToken(context, onError)?.let(onIdToken)
             }
         },
         enabled = enabled,
