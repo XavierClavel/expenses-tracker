@@ -35,6 +35,9 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val expenseType = call.parameters["type"]?.let { ExpenseType.valueOf(it.uppercase()) }
             val from = call.request.queryParameters["from"]?.let { LocalDate.parse(it) }
             val to = call.request.queryParameters["to"]?.let { LocalDate.parse(it) }
+            val query = call.request.queryParameters["query"]
+            val minAmount = call.request.queryParameters["minAmount"]?.toBigDecimalOrNull()
+            val maxAmount = call.request.queryParameters["maxAmount"]?.toBigDecimalOrNull()
             val users = expenseService.list(
                 userId = sessionUserId,
                 paging = paging,
@@ -43,6 +46,9 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
                 categoryId = categoryId,
                 from = from,
                 to = to,
+                query = query,
+                minAmount = minAmount,
+                maxAmount = maxAmount,
             )
             call.respond(users)
         }

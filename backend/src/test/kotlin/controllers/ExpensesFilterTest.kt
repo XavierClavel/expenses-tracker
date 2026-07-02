@@ -12,11 +12,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.ExperimentalTime
 
 class ExpensesFilterTest: ApplicationTest() {
 
-    @OptIn(ExperimentalTime::class)
     val expense = ExpenseIn(
         title = "Carrefour",
         amount = BigDecimal("25.00"),
@@ -99,5 +97,64 @@ class ExpensesFilterTest: ApplicationTest() {
 
         assertEquals(setOf(expense1.id, expense3.id), result1.map { it.id }.toSet())
         assertEquals(setOf(expense2.id), result2.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `filter by name is case-insensitive and fuzzy`() = runTestAsUser {
+        val carrefour = client.createExpense(expense.copy(title = "Carrefour"))
+        val superMarket = client.createExpense(expense.copy(title = "Super Carrefour City"))
+        client.createExpense(expense.copy(title = "MacDo"))
+
+        val result = client.listExpenses(mapOf("query" to "carrefour"))
+
+        assertEquals(setOf(carrefour.id, superMarket.id), result.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `filter by amount range`() = runTestAsUser {
+        val cheap = client.createExpense(expense.copy(amount = BigDecimal("5.00")))
+        val medium = client.createExpense(expense.copy(amount = BigDecimal("25.00")))
+        val pricey = client.createExpense(expense.copy(amount = BigDecimal("100.00")))
+
+        val min = client.listExpenses(mapOf("minAmount" to "10"))
+        assertEquals(setOf(medium.id, pricey.id), min.map { it.id }.toSet())
+
+        val max = client.listExpenses(mapOf("maxAmount" to "50"))
+        assertEquals(setOf(cheap.id, medium.id), max.map { it.id }.toSet())
+
+        val range = client.listExpenses(mapOf("minAmount" to "10", "maxAmount" to "50"))
+        assertEquals(setOf(medium.id), range.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `filter by date range`() = runTestAsUser {
+        val jan = client.createExpense(expense.copy(date = LocalDate.parse("2020-01-15")))
+        val jun = client.createExpense(expense.copy(date = LocalDate.parse("2020-06-06")))
+        val dec = client.createExpense(expense.copy(date = LocalDate.parse("2020-12-31")))
+
+        val result = client.listExpenses(
+            mapOf("from" to "2020-03-01", "to" to "2020-09-01")
+        )
+
+        assertEquals(setOf(jun.id), result.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `filters combine`() = runTestAsUser {
+        val match = client.createExpense(
+            expense.copy(title = "Carrefour", amount = BigDecimal("30.00"), date = LocalDate.parse("2020-06-06"))
+        )
+        client.createExpense(
+            expense.copy(title = "Carrefour", amount = BigDecimal("5.00"), date = LocalDate.parse("2020-06-06"))
+        )
+        client.createExpense(
+            expense.copy(title = "MacDo", amount = BigDecimal("30.00"), date = LocalDate.parse("2020-06-06"))
+        )
+
+        val result = client.listExpenses(
+            mapOf("query" to "carrefour", "minAmount" to "10", "from" to "2020-01-01")
+        )
+
+        assertEquals(setOf(match.id), result.map { it.id }.toSet())
     }
 }

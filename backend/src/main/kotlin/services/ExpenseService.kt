@@ -16,6 +16,7 @@ import com.xavierclavel.models.query.QSubcategory
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class ExpenseService: KoinComponent {
@@ -61,6 +62,9 @@ class ExpenseService: KoinComponent {
         expenseType: ExpenseType?,
         from: LocalDate?,
         to: LocalDate?,
+        query: String?,
+        minAmount: BigDecimal?,
+        maxAmount: BigDecimal?,
     ): List<ExpenseOut> {
         return QExpense()
             .user.id.eq(userId)
@@ -79,6 +83,15 @@ class ExpenseService: KoinComponent {
                 }
                 if (to != null) {
                     this.date.le(to)
+                }
+                if (!query.isNullOrBlank()) {
+                    this.title.icontains(query.trim())
+                }
+                if (minAmount != null) {
+                    this.amount.ge(minAmount)
+                }
+                if (maxAmount != null) {
+                    this.amount.le(maxAmount)
                 }
             }
             .setPaging(paging)
