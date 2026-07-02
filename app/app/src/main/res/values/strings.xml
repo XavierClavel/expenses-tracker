@@ -76,6 +76,27 @@
     <string name="dialog_delete_expense_title">Delete expense</string>
     <string name="dialog_delete_expense_message">Are you sure you want to delete \"%1$s\"?</string>
 
+    <!-- ── Expense search &amp; filters ────────────────────────── -->
+    <string name="search_expenses_hint">Search expenses</string>
+    <string name="cd_clear_search">Clear search</string>
+    <string name="cd_filter">Filter</string>
+    <string name="no_matching_expenses">No matching expenses</string>
+    <string name="screen_filter_expenses">Filter expenses</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_type_all">All</string>
+    <string name="filter_category">Category</string>
+    <string name="filter_all_categories">All categories</string>
+    <string name="filter_amount">Amount</string>
+    <string name="filter_amount_min">Min</string>
+    <string name="filter_amount_max">Max</string>
+    <string name="filter_amount_invalid">Invalid amount</string>
+    <string name="filter_date_range">Date range</string>
+    <string name="filter_date_from">From</string>
+    <string name="filter_date_to">To</string>
+    <string name="cd_clear_date">Clear date</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_reset">Reset</string>
+
     <!-- ── Categories ─────────────────────────────────────── -->
     <string name="cd_add_category">Add category</string>
     <string name="cd_edit_category">Edit category</string>

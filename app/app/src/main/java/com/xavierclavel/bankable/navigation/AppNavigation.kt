@@ -54,6 +54,7 @@ import com.xavierclavel.bankable.accounts.AccountReportEditScreen
 import com.xavierclavel.bankable.accounts.AccountViewScreen
 import com.xavierclavel.bankable.accounts.AccountsViewModel
 import com.xavierclavel.bankable.expenses.ExpenseEditScreen
+import com.xavierclavel.bankable.expenses.ExpenseFilterScreen
 import com.xavierclavel.bankable.expenses.ExpenseListScreen
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
 import com.xavierclavel.bankable.expenses.SubcategoryPickerScreen
@@ -168,6 +169,9 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             }
             composable("expense/subcategory-picker") {
                 SubcategoryPickerScreen(expensesViewModel, categoriesViewModel, navController)
+            }
+            composable("expense/filter") {
+                ExpenseFilterScreen(expensesViewModel, categoriesViewModel, navController)
             }
             composable("categories") {
                 CategoryListScreen(categoriesViewModel, navController)

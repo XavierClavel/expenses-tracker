@@ -21,8 +21,12 @@ suspend fun apiListExpenses(
     size: Int,
     categoryId: Int? = null,
     subcategoryId: Int? = null,
+    type: String? = null,
     from: String? = null,
     to: String? = null,
+    query: String? = null,
+    minAmount: String? = null,
+    maxAmount: String? = null,
 ): List<ExpenseOut> {
     return httpClient.get("$BASE_URL/expenses") {
         authHeader()
@@ -30,8 +34,12 @@ suspend fun apiListExpenses(
         parameter("size", size)
         categoryId?.let { parameter("categoryId", it) }
         subcategoryId?.let { parameter("subcategoryId", it) }
+        type?.let { parameter("type", it) }
         from?.let { parameter("from", it) }
         to?.let { parameter("to", it) }
+        query?.takeIf { it.isNotBlank() }?.let { parameter("query", it) }
+        minAmount?.let { parameter("minAmount", it) }
+        maxAmount?.let { parameter("maxAmount", it) }
     }.body()
 }
 

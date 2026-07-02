@@ -18,13 +18,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -74,7 +80,8 @@ fun ExpenseListScreen(
         expenses.groupBy { it.date }
     }
 
-    // Start scrolled just past the logout button (item 0) so it's hidden on open.
+    // Start scrolled just past the search header (item 0) so expenses fill from the
+    // top on open; the search bar sits above and is revealed by scrolling up.
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = 1)
     val nearEnd by remember {
         derivedStateOf {
@@ -97,70 +104,81 @@ fun ExpenseListScreen(
             }
         }
     ) { padding ->
-        if (expenses.isEmpty() && isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (expenses.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            ) {
-                AccountActionsRow(
-                    onLogout = onLogout,
-                    onSettings = { navController.navigate("settings") },
-                )
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.no_expenses_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
-            ) {
-                item(key = "logout") {
-                    AccountActionsRow(
-                        onLogout = onLogout,
-                        onSettings = { navController.navigate("settings") },
-                    )
-                }
-                grouped.forEach { (dateStr, dayExpenses) ->
-                    stickyHeader(key = "header_$dateStr") {
-                        Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
-                            Text(
-                                text = formatDate(dateStr, locale),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
-                            )
-                        }
-                    }
-                    items(dayExpenses, key = { it.id }) { expense ->
-                        ExpenseItem(
-                            expense = expense,
-                            subcategory = subcategoryMap[expense.categoryId],
-                            onClick = {
-                                viewModel.prepareEditExpense(expense, subcategoryMap[expense.categoryId])
-                                navController.navigate("expense/edit")
-                            },
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            if (expenses.isEmpty() && isLoading) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 80.dp),
+                ) {
+                    item(key = "search_header") {
+                        SearchHeader(
+                            query = viewModel.searchQuery,
+                            onQueryChange = viewModel::setSearchQuery,
+                            filtersActive = viewModel.filter.isActive,
+                            onFilterClick = { navController.navigate("expense/filter") },
+                            onSettings = { navController.navigate("settings") },
+                            onLogout = onLogout,
                         )
                     }
-                }
-                if (isLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            CircularProgressIndicator()
+                    if (expenses.isEmpty()) {
+                        item(key = "empty") {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 64.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = if (viewModel.hasActiveFilters)
+                                        stringResource(R.string.no_matching_expenses)
+                                    else
+                                        stringResource(R.string.no_expenses_yet),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    } else {
+                        grouped.forEach { (dateStr, dayExpenses) ->
+                            stickyHeader(key = "header_$dateStr") {
+                                Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
+                                    Text(
+                                        text = formatDate(dateStr, locale),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
+                                    )
+                                }
+                            }
+                            items(dayExpenses, key = { it.id }) { expense ->
+                                ExpenseItem(
+                                    expense = expense,
+                                    subcategory = subcategoryMap[expense.categoryId],
+                                    onClick = {
+                                        viewModel.prepareEditExpense(expense, subcategoryMap[expense.categoryId])
+                                        navController.navigate("expense/edit")
+                                    },
+                                )
+                            }
+                        }
+                        if (isLoading) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
                 }
@@ -170,25 +188,60 @@ fun ExpenseListScreen(
 }
 
 @Composable
-private fun AccountActionsRow(
-    onLogout: () -> Unit,
+private fun SearchHeader(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    filtersActive: Boolean,
+    onFilterClick: () -> Unit,
     onSettings: () -> Unit,
+    onLogout: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
-    ) {
-        IconButton(onClick = onSettings) {
-            Icon(
-                Icons.Default.Settings,
-                contentDescription = stringResource(R.string.cd_settings),
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            IconButton(onClick = onSettings) {
+                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cd_settings))
+            }
+            IconButton(onClick = onLogout) {
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.cd_logout))
+            }
         }
-        IconButton(onClick = onLogout) {
-            Icon(
-                Icons.AutoMirrored.Filled.Logout,
-                contentDescription = stringResource(R.string.cd_logout),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.search_expenses_hint)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = if (query.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { onQueryChange("") }) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_clear_search))
+                        }
+                    }
+                } else null,
+                singleLine = true,
+                shape = MaterialTheme.shapes.large,
             )
+            IconButton(onClick = onFilterClick) {
+                BadgedBox(
+                    badge = { if (filtersActive) Badge() },
+                ) {
+                    Icon(
+                        Icons.Default.FilterList,
+                        contentDescription = stringResource(R.string.cd_filter),
+                        tint = if (filtersActive) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 }

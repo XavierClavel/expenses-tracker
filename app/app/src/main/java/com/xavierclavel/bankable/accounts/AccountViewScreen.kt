@@ -52,8 +52,14 @@ fun AccountViewScreen(
     viewModel: AccountsViewModel,
     navController: NavController,
 ) {
-    val account = viewModel.selectedAccount ?: return
+    val selected = viewModel.selectedAccount ?: return
     val reports by viewModel.reports.collectAsState()
+    // Track the up-to-date copy from the accounts list so the balance header
+    // reflects a newly added/edited report.
+    val accounts by viewModel.accounts.collectAsState()
+    val account = remember(accounts, selected.id) {
+        accounts.find { it.id == selected.id } ?: selected
+    }
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
