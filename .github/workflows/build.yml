@@ -8,8 +8,45 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: backend-docker-release
+  cancel-in-progress: false
+
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.meta.outputs.should_deploy }}
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version & decide whether to deploy
+        id: meta
+        run: |
+          VERSION=$(grep -oP 'version\s*=\s*"\K[^"]+' build.gradle.kts | head -n1)
+          TAG="v${VERSION}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — deploying $TAG regardless of existing tag."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::notice::$TAG already exists — version unchanged, skipping deploy."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version $TAG — will deploy."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: check
+    if: needs.check.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -43,13 +80,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Extract project version
-        id: version
-        run: |
-          VERSION=$(./gradlew -q printVersion)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Detected version: $VERSION"
-
       - name: Gradle build
         run: ./gradlew clean build --no-daemon
 
@@ -57,52 +87,27 @@ jobs:
         run: ./gradlew projects
 
       - name: Build and push images
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
         run: |
           for project in $(find . -name Dockerfile -exec dirname {} \;); do
             project=$(basename $project)
             echo "Building Docker image for $project..."
-            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:${{ env.VERSION }} $project
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:${{ env.VERSION }}
-            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:latest
+            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:${VERSION} $project
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:${VERSION}
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:${VERSION} ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:latest
             docker push ${{ secrets.DOCKERHUB_USERNAME }}/expenses-tracker-$project:latest
           done
 
-      - name: Create tag if it does not exist
+      - name: Tag version & create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "Tag v${{ env.VERSION }} already exists. Skipping."
+          if git rev-parse "refs/tags/${{ needs.check.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ needs.check.outputs.tag }} already exists — skipping release."
           else
-            git tag v${{ env.VERSION }}
-            git push origin v${{ env.VERSION }}
+            gh release create "${{ needs.check.outputs.tag }}" \
+              --title "Release ${{ needs.check.outputs.version }}" \
+              --notes "Release created automatically by GitHub Actions." \
+              --target "${{ github.sha }}"
           fi
-
-      - name: Create GitHub Release if it does not exist
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const tag = `v${process.env.VERSION}`;
-            try {
-              // Check if release already exists
-              await github.rest.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag
-              });
-              core.info(`Release ${tag} already exists. Skipping.`);
-            } catch (error) {
-              if (error.status === 404) {
-                core.info(`Creating new release for ${tag}`);
-                await github.rest.repos.createRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  tag_name: tag,
-                  name: `Release ${process.env.VERSION}`,
-                  body: "Release created automatically by GitHub Actions.",
-                  draft: false,
-                  prerelease: process.env.prerelease === 'true'
-                });
-              } else {
-                throw error;
-              }
-            }
