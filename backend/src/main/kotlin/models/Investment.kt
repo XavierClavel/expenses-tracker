@@ -28,10 +28,10 @@ class Investment(
     @ManyToOne
     val user: User,
 
-    val date: LocalDate,
+    var date: LocalDate,
 
     @Enumerated(EnumType.STRING)
-    val type: InvestmentType,
+    var type: InvestmentType,
 
 ): Model() {
 

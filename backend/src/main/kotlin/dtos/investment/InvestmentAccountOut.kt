@@ -13,4 +13,9 @@ data class InvestmentAccountOut(
 
     @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,
+
+    // Cumulative net transfers into the account (deposits − withdrawals). The
+    // difference between `amount` and `contributions` is the accrued interest.
+    @Serializable(with = BigDecimalSerializer::class)
+    val contributions: BigDecimal,
 )

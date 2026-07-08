@@ -14,12 +14,17 @@ data class AccountTrendDto(
     val change: BigDecimal?,
     @Serializable(with = BigDecimalSerializer::class)
     val proportionalChange: BigDecimal?,
+    // Cumulative net transfers (deposits − withdrawals) up to and including this
+    // period. `balance − contributions` yields the accrued interest.
+    @Serializable(with = BigDecimalSerializer::class)
+    val contributions: BigDecimal? = null,
 ) {
-    constructor(year: Int, balance: BigDecimal, change: BigDecimal?, proportionalChange: BigDecimal?) : this(
+    constructor(year: Int, balance: BigDecimal, change: BigDecimal?, proportionalChange: BigDecimal?, contributions: BigDecimal?) : this(
         year = year,
         month = null,
         balance = balance,
         change = change,
         proportionalChange = proportionalChange,
+        contributions = contributions,
     )
 }

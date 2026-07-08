@@ -2,7 +2,9 @@ package com.xavierclavel.models
 
 import com.xavierclavel.dtos.investment.InvestmentAccountOut
 import com.xavierclavel.enums.AccountType
+import com.xavierclavel.enums.InvestmentType
 import com.xavierclavel.models.query.QAccountReport
+import com.xavierclavel.models.query.QInvestment
 import io.ebean.DB
 import io.ebean.Model
 import io.ebean.annotation.DbDefault
@@ -40,5 +42,11 @@ class InvestmentAccount(
             .findOne()
             ?.amount
             ?: BigDecimal.ZERO,
+        contributions = QInvestment()
+            .account.id.eq(id)
+            .findList()
+            .fold(BigDecimal.ZERO) { acc, inv ->
+                if (inv.type == InvestmentType.IN) acc + inv.amount else acc - inv.amount
+            },
     )
 }

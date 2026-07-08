@@ -129,7 +129,15 @@ class AccountService: KoinComponent {
                 balance AS balance,
                 balance - LAG(balance) OVER (ORDER BY year, month) AS change,
                 (balance - LAG(balance) OVER (ORDER BY year, month))
-                    / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange
+                    / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange,
+                COALESCE((
+                    SELECT SUM(CASE WHEN i.type = 'IN' THEN i.amount ELSE -i.amount END)
+                    FROM investments i
+                    JOIN investment_accounts ia ON i.account_id = ia.id
+                    WHERE ia.owner_id = :userId
+                      AND ia.id = :accountId
+                      AND DATE_TRUNC('month', i.date)::date <= make_date(balances.year::int, balances.month::int, 1)
+                ), 0) AS contributions
             FROM balances
             ORDER BY year, month;
             """
@@ -189,7 +197,15 @@ class AccountService: KoinComponent {
                 balance AS balance,
                 balance - LAG(balance) OVER (ORDER BY year) AS change,
                 (balance - LAG(balance) OVER (ORDER BY year))
-                    / NULLIF(LAG(balance) OVER (ORDER BY year), 0) AS proportionalChange
+                    / NULLIF(LAG(balance) OVER (ORDER BY year), 0) AS proportionalChange,
+                COALESCE((
+                    SELECT SUM(CASE WHEN i.type = 'IN' THEN i.amount ELSE -i.amount END)
+                    FROM investments i
+                    JOIN investment_accounts ia ON i.account_id = ia.id
+                    WHERE ia.owner_id = :userId
+                      AND ia.id = :accountId
+                      AND DATE_TRUNC('year', i.date)::date <= make_date(balances.year::int, 1, 1)
+                ), 0) AS contributions
             FROM balances
             ORDER BY year;
             """
@@ -281,7 +297,14 @@ class AccountService: KoinComponent {
                 balance,
                 balance - LAG(balance) OVER (ORDER BY year, month) AS change,
                 (balance - LAG(balance) OVER (ORDER BY year, month))
-                    / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange
+                    / NULLIF(LAG(balance) OVER (ORDER BY year, month), 0) AS proportionalChange,
+                COALESCE((
+                    SELECT SUM(CASE WHEN i.type = 'IN' THEN i.amount ELSE -i.amount END)
+                    FROM investments i
+                    JOIN investment_accounts ia ON i.account_id = ia.id
+                    WHERE ia.owner_id = :userId
+                      AND DATE_TRUNC('month', i.date)::date <= make_date(balances.year::int, balances.month::int, 1)
+                ), 0) AS contributions
             FROM balances
             ORDER BY year, month;
             """
@@ -369,7 +392,14 @@ class AccountService: KoinComponent {
                 balance AS balance,
                 balance - LAG(balance) OVER (ORDER BY year) AS change,
                 (balance - LAG(balance) OVER (ORDER BY year))
-                    / NULLIF(LAG(balance) OVER (ORDER BY year), 0) AS proportionalChange
+                    / NULLIF(LAG(balance) OVER (ORDER BY year), 0) AS proportionalChange,
+                COALESCE((
+                    SELECT SUM(CASE WHEN i.type = 'IN' THEN i.amount ELSE -i.amount END)
+                    FROM investments i
+                    JOIN investment_accounts ia ON i.account_id = ia.id
+                    WHERE ia.owner_id = :userId
+                      AND DATE_TRUNC('year', i.date)::date <= make_date(balances.year::int, 1, 1)
+                ), 0) AS contributions
             FROM balances
             ORDER BY year;
             """

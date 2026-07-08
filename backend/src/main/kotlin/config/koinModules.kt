@@ -7,6 +7,7 @@ import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.ExpenseService
+import com.xavierclavel.services.InvestmentService
 import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.TrendService
@@ -28,4 +29,5 @@ val koinModules = module {
     single { TrendService() }
     single { AccountService() }
     single { AccountReportService() }
+    single { InvestmentService() }
 }
