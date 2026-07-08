@@ -18,4 +18,11 @@ data class InvestmentAccountOut(
     // difference between `amount` and `contributions` is the accrued interest.
     @Serializable(with = BigDecimalSerializer::class)
     val contributions: BigDecimal,
+
+    // Most recent full-year return rate as a fraction (0.068 = +6.8%): the interest
+    // earned during `latestAnnualReturnYear` divided by that year's starting balance.
+    // Null when there isn't a prior year with a positive balance to measure against.
+    @Serializable(with = BigDecimalSerializer::class)
+    val latestAnnualReturn: BigDecimal? = null,
+    val latestAnnualReturnYear: Int? = null,
 )

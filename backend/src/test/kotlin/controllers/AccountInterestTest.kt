@@ -157,6 +157,32 @@ class AccountInterestTest: ApplicationTest() {
         result.find { it.year == 2022 }!!.apply { assertBalance("300"); assertContributions("250") }
     }
 
+    // ── Annual return rate ───────────────────────────────────────────────────────
+
+    @Test
+    fun `latest annual return is this year's interest over last year's balance`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        client.createInvestment(account.id, deposit(account.id, "1000", "2021-01-01"))
+        client.createAccountReport(account.id, report("1000", "2021-06-01"))
+        // No transfer in 2022: the +68 is pure interest -> 68 / 1000 = 6.8%
+        client.createAccountReport(account.id, report("1068", "2022-06-01"))
+
+        val result = client.getAccount(account.id)
+        assertEquals(2022, result.latestAnnualReturnYear)
+        assertEquals(0, result.latestAnnualReturn!!.compareTo(BigDecimal("0.068")))
+    }
+
+    @Test
+    fun `annual return is null without a prior year`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        client.createInvestment(account.id, deposit(account.id, "500", "2021-01-01"))
+        client.createAccountReport(account.id, report("500", "2021-06-01"))
+
+        val result = client.getAccount(account.id)
+        assertEquals(null, result.latestAnnualReturnYear)
+        assertEquals(null, result.latestAnnualReturn)
+    }
+
     @Test
     fun `contributions ignore other users transfers`() = runTest {
         runAsUser2 {

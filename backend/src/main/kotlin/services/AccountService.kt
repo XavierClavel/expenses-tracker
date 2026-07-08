@@ -15,6 +15,8 @@ import com.xavierclavel.models.query.QUser
 import io.ebean.DB
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class AccountService: KoinComponent {
     val configuration: Configuration by inject()
@@ -37,12 +39,39 @@ class AccountService: KoinComponent {
         getById(accountId)
             .checkRights(userId)
             .toOutput()
+            .withAnnualReturn(userId, accountId)
 
     fun list(userId: Long): List<InvestmentAccountOut> {
         return QInvestmentAccount()
             .owner.id.eq(userId)
             .findList()
-            .map { it.toOutput() }
+            .map { it.toOutput().withAnnualReturn(userId, it.id) }
+    }
+
+    /**
+     * The most recent full-year return: interest earned during the latest year that
+     * has a prior year to measure against, divided by that prior year's ending
+     * balance. Returns (year, fraction) or null when it can't be computed.
+     */
+    fun latestAnnualReturn(userId: Long, accountId: Long): Pair<Int, BigDecimal>? {
+        val trends = trendByAccountByYear(userId, accountId)
+        for (i in trends.indices.reversed()) {
+            if (i == 0) break
+            val prev = trends[i - 1]
+            val prevBalance = prev.balance
+            if (prevBalance.signum() == 0) continue
+            val cur = trends[i]
+            val curInterest = cur.balance - (cur.contributions ?: BigDecimal.ZERO)
+            val prevInterest = prev.balance - (prev.contributions ?: BigDecimal.ZERO)
+            val ret = (curInterest - prevInterest).divide(prevBalance, 6, RoundingMode.HALF_UP)
+            return cur.year to ret
+        }
+        return null
+    }
+
+    private fun InvestmentAccountOut.withAnnualReturn(userId: Long, accountId: Long): InvestmentAccountOut {
+        val (year, ret) = latestAnnualReturn(userId, accountId) ?: return this
+        return copy(latestAnnualReturn = ret, latestAnnualReturnYear = year)
     }
 
 
