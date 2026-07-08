@@ -4,6 +4,7 @@ import com.xavierclavel.config.Configuration
 import com.xavierclavel.models.query.QAccountReport
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
+import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
@@ -30,6 +31,7 @@ object DatabaseManager {
         QSubcategory(),
         QCategory(),
         QAccountReport(),
+        QInvestment(),
         QInvestmentAccount(),
         QUser(),
     )
