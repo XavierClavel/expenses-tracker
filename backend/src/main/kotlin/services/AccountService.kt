@@ -9,7 +9,9 @@ import com.xavierclavel.exceptions.ForbiddenCause
 import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
+import com.xavierclavel.enums.InvestmentType
 import com.xavierclavel.models.InvestmentAccount
+import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QUser
 import io.ebean.DB
@@ -17,6 +19,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class AccountService: KoinComponent {
     val configuration: Configuration by inject()
@@ -54,19 +58,8 @@ class AccountService: KoinComponent {
      * balance. Returns (year, fraction) or null when it can't be computed.
      */
     fun latestAnnualReturn(userId: Long, accountId: Long): Pair<Int, BigDecimal>? {
-        val trends = trendByAccountByYear(userId, accountId)
-        for (i in trends.indices.reversed()) {
-            if (i == 0) break
-            val prev = trends[i - 1]
-            val prevBalance = prev.balance
-            if (prevBalance.signum() == 0) continue
-            val cur = trends[i]
-            val curInterest = cur.balance - (cur.contributions ?: BigDecimal.ZERO)
-            val prevInterest = prev.balance - (prev.contributions ?: BigDecimal.ZERO)
-            val ret = (curInterest - prevInterest).divide(prevBalance, 6, RoundingMode.HALF_UP)
-            return cur.year to ret
-        }
-        return null
+        val last = trendByAccountByYear(userId, accountId).lastOrNull { it.returnRate != null } ?: return null
+        return last.year to last.returnRate!!
     }
 
     private fun InvestmentAccountOut.withAnnualReturn(userId: Long, accountId: Long): InvestmentAccountOut {
@@ -166,7 +159,8 @@ class AccountService: KoinComponent {
                     WHERE ia.owner_id = :userId
                       AND ia.id = :accountId
                       AND DATE_TRUNC('month', i.date)::date <= make_date(balances.year::int, balances.month::int, 1)
-                ), 0) AS contributions
+                ), 0) AS contributions,
+                NULL::numeric AS returnRate
             FROM balances
             ORDER BY year, month;
             """
@@ -174,6 +168,7 @@ class AccountService: KoinComponent {
             .setParameter("userId", userId)
             .setParameter("accountId", accountId)
             .findList()
+            .let { applyReturns(it, accountFlows(accountId), monthly = true) }
     }
 
     fun trendByAccountByYear(userId: Long, accountId: Long): List<AccountTrendDto> {
@@ -234,7 +229,8 @@ class AccountService: KoinComponent {
                     WHERE ia.owner_id = :userId
                       AND ia.id = :accountId
                       AND DATE_TRUNC('year', i.date)::date <= make_date(balances.year::int, 1, 1)
-                ), 0) AS contributions
+                ), 0) AS contributions,
+                NULL::numeric AS returnRate
             FROM balances
             ORDER BY year;
             """
@@ -242,6 +238,7 @@ class AccountService: KoinComponent {
             .setParameter("userId", userId)
             .setParameter("accountId", accountId)
             .findList()
+            .let { applyReturns(it, accountFlows(accountId), monthly = false) }
     }
 
     fun trendByUserByMonth(userId: Long): List<AccountTrendDto> {
@@ -333,13 +330,15 @@ class AccountService: KoinComponent {
                     JOIN investment_accounts ia ON i.account_id = ia.id
                     WHERE ia.owner_id = :userId
                       AND DATE_TRUNC('month', i.date)::date <= make_date(balances.year::int, balances.month::int, 1)
-                ), 0) AS contributions
+                ), 0) AS contributions,
+                NULL::numeric AS returnRate
             FROM balances
             ORDER BY year, month;
             """
         )
             .setParameter("userId", userId)
             .findList()
+            .let { applyReturns(it, userFlows(userId), monthly = true) }
     }
 
     fun trendByUserByYear(userId: Long): List<AccountTrendDto> {
@@ -428,13 +427,64 @@ class AccountService: KoinComponent {
                     JOIN investment_accounts ia ON i.account_id = ia.id
                     WHERE ia.owner_id = :userId
                       AND DATE_TRUNC('year', i.date)::date <= make_date(balances.year::int, 1, 1)
-                ), 0) AS contributions
+                ), 0) AS contributions,
+                NULL::numeric AS returnRate
             FROM balances
             ORDER BY year;
             """
         )
             .setParameter("userId", userId)
             .findList()
+            .let { applyReturns(it, userFlows(userId), monthly = false) }
+    }
+
+    // ── Returns (Modified Dietz) ─────────────────────────────────────────────────
+
+    private data class Flow(val date: LocalDate, val amount: BigDecimal)
+
+    private fun accountFlows(accountId: Long): List<Flow> =
+        QInvestment().account.id.eq(accountId).findList()
+            .map { Flow(it.date, if (it.type == InvestmentType.IN) it.amount else it.amount.negate()) }
+
+    private fun userFlows(userId: Long): List<Flow> =
+        QInvestment().account.owner.id.eq(userId).findList()
+            .map { Flow(it.date, if (it.type == InvestmentType.IN) it.amount else it.amount.negate()) }
+
+    /**
+     * Fills in each period's Modified-Dietz return: interest earned over the period
+     * divided by the time-weighted average capital, so a transfer is credited only
+     * for the fraction of the period it was actually invested. The first period has
+     * no prior balance to measure against and is left null.
+     */
+    private fun applyReturns(trends: List<AccountTrendDto>, flows: List<Flow>, monthly: Boolean): List<AccountTrendDto> {
+        return trends.mapIndexed { i, t ->
+            if (i == 0) return@mapIndexed t
+            val vStart = trends[i - 1].balance
+            val periodStart: LocalDate
+            val periodEnd: LocalDate
+            if (monthly) {
+                val month = t.month ?: return@mapIndexed t
+                periodStart = LocalDate.of(t.year, month, 1)
+                periodEnd = periodStart.withDayOfMonth(periodStart.lengthOfMonth())
+            } else {
+                periodStart = LocalDate.of(t.year, 1, 1)
+                periodEnd = LocalDate.of(t.year, 12, 31)
+            }
+            val length = (ChronoUnit.DAYS.between(periodStart, periodEnd) + 1).toDouble()
+            var netFlow = BigDecimal.ZERO
+            var weighted = BigDecimal.ZERO
+            flows.forEach { flow ->
+                if (flow.date < periodStart || flow.date > periodEnd) return@forEach
+                netFlow += flow.amount
+                val offset = ChronoUnit.DAYS.between(periodStart, flow.date).toDouble()
+                val weight = ((length - offset) / length).coerceIn(0.0, 1.0)
+                weighted += flow.amount.multiply(BigDecimal.valueOf(weight))
+            }
+            val gain = (t.balance - vStart) - netFlow
+            val denominator = vStart + weighted
+            val returnRate = if (denominator.signum() != 0) gain.divide(denominator, 6, RoundingMode.HALF_UP) else null
+            t.copy(returnRate = returnRate)
+        }
     }
 
 }

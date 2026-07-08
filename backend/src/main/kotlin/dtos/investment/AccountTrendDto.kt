@@ -18,13 +18,20 @@ data class AccountTrendDto(
     // period. `balance − contributions` yields the accrued interest.
     @Serializable(with = BigDecimalSerializer::class)
     val contributions: BigDecimal? = null,
+
+    // Modified-Dietz return for this period, as a fraction (0.068 = +6.8%): interest
+    // earned ÷ time-weighted average capital (so mid-period transfers are weighted by
+    // how long they were invested). Filled in by the service, not the SQL.
+    @Serializable(with = BigDecimalSerializer::class)
+    val returnRate: BigDecimal? = null,
 ) {
-    constructor(year: Int, balance: BigDecimal, change: BigDecimal?, proportionalChange: BigDecimal?, contributions: BigDecimal?) : this(
+    constructor(year: Int, balance: BigDecimal, change: BigDecimal?, proportionalChange: BigDecimal?, contributions: BigDecimal?, returnRate: BigDecimal?) : this(
         year = year,
         month = null,
         balance = balance,
         change = change,
         proportionalChange = proportionalChange,
         contributions = contributions,
+        returnRate = returnRate,
     )
 }

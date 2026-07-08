@@ -18,6 +18,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Verifies the transfer/interest calculations: `contributions` is the cumulative
@@ -170,6 +171,25 @@ class AccountInterestTest: ApplicationTest() {
         val result = client.getAccount(account.id)
         assertEquals(2022, result.latestAnnualReturnYear)
         assertEquals(0, result.latestAnnualReturn!!.compareTo(BigDecimal("0.068")))
+    }
+
+    @Test
+    fun `annual return time-weights mid-year transfers`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        // 2021: put in 1000, ends the year at 1000 (no interest yet).
+        client.createInvestment(account.id, deposit(account.id, "1000", "2021-01-01"))
+        client.createAccountReport(account.id, report("1000", "2021-12-31"))
+        // 2022: add 3500 mid-year (Jul 2), end balance 4809 -> 309 of interest.
+        client.createInvestment(account.id, deposit(account.id, "3500", "2022-07-02"))
+        client.createAccountReport(account.id, report("4809", "2022-12-31"))
+
+        val result = client.getAccount(account.id)
+        assertEquals(2022, result.latestAnnualReturnYear)
+        // Naive (interest / start balance) would be 309/1000 = 31%. Modified Dietz
+        // weights the 3500 by the ~half-year it was invested:
+        // 309 / (1000 + 3500 * 183/365) = 309 / 2754.8 ≈ 0.112
+        val ret = result.latestAnnualReturn!!.toDouble()
+        assertTrue(ret in 0.10..0.12, "expected ~0.112 but was $ret")
     }
 
     @Test
