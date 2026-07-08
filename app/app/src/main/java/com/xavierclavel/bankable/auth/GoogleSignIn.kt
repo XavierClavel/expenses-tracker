@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -61,10 +62,20 @@ suspend fun getGoogleIdToken(context: Context, onError: (String) -> Unit): Strin
     }
 }
 
-/** "Continue with Google" button that drives the on-device sign-in flow. */
+/**
+ * "Continue with Google" button that drives the on-device sign-in flow.
+ *
+ * Loading is hoisted so the caller can keep it on across BOTH phases — the
+ * Credential Manager token retrieval AND the backend token exchange that
+ * follows [onIdToken]. The button turns it on when tapped and back off if the
+ * chooser is dismissed or token retrieval fails; the caller turns it off when
+ * the backend exchange reports an error (success unmounts the screen).
+ */
 @Composable
 fun GoogleSignInButton(
     enabled: Boolean,
+    loading: Boolean,
+    onLoadingChange: (Boolean) -> Unit,
     onIdToken: (String) -> Unit,
     onError: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -73,20 +84,29 @@ fun GoogleSignInButton(
     val scope = rememberCoroutineScope()
     OutlinedButton(
         onClick = {
+            onLoadingChange(true)
             scope.launch {
-                getGoogleIdToken(context, onError)?.let(onIdToken)
+                val token = getGoogleIdToken(context, onError)
+                if (token != null) onIdToken(token) else onLoadingChange(false)
             }
         },
         enabled = enabled,
         modifier = modifier,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_google_logo),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.action_continue_google))
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.ic_google_logo),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.action_continue_google))
+        }
     }
 }

@@ -51,6 +51,7 @@ import com.xavierclavel.bankable.categories.SubcategoryViewScreen
 import com.xavierclavel.bankable.accounts.AccountEditScreen
 import com.xavierclavel.bankable.accounts.AccountListScreen
 import com.xavierclavel.bankable.accounts.AccountReportEditScreen
+import com.xavierclavel.bankable.accounts.AccountTransferEditScreen
 import com.xavierclavel.bankable.accounts.AccountViewScreen
 import com.xavierclavel.bankable.accounts.AccountsViewModel
 import com.xavierclavel.bankable.expenses.ExpenseEditScreen
@@ -211,6 +212,9 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             }
             composable("account/report/edit") {
                 AccountReportEditScreen(accountsViewModel, navController)
+            }
+            composable("account/transfer/edit") {
+                AccountTransferEditScreen(accountsViewModel, navController)
             }
         }
     }

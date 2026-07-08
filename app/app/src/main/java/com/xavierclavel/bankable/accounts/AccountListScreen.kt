@@ -50,8 +50,33 @@ fun AccountListScreen(
     navController: NavController,
 ) {
     val accounts by viewModel.accounts.collectAsState()
+    val userYearTrends by viewModel.userYearTrends.collectAsState()
     val isLoading = viewModel.isLoading
     val total = accounts.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+
+    // Total accrued interest, summed only over accounts that have declared transfers
+    // (otherwise their whole balance would count as interest). Null when none do.
+    val withContributions = accounts.filter { (it.contributions.toDoubleOrNull() ?: 0.0) > 0.0 }
+    val totalContributions = withContributions.sumOf { it.contributions.toDoubleOrNull() ?: 0.0 }
+    val totalInterest =
+        if (withContributions.isEmpty()) null
+        else withContributions.sumOf { (it.amount.toDoubleOrNull() ?: 0.0) - (it.contributions.toDoubleOrNull() ?: 0.0) }
+
+    // Interest earned across all accounts during the latest year (year-to-date for the
+    // current year): this year's cumulative interest minus last year's, over last
+    // year's balance. Uses the all-accounts yearly trends. Null when not computable.
+    val currentYearInterest: CurrentYearInterest? = remember(userYearTrends, totalInterest) {
+        if (userYearTrends.size < 2 || totalInterest == null) return@remember null
+        val last = userYearTrends.last()
+        val prev = userYearTrends[userYearTrends.size - 2]
+        fun interestOf(t: com.xavierclavel.bankable.model.AccountTrendDto) =
+            (t.balance.toDoubleOrNull() ?: 0.0) - (t.contributions?.toDoubleOrNull() ?: 0.0)
+        val gain = interestOf(last) - interestOf(prev)
+        // Percentage is the backend's Modified-Dietz return (transfers weighted by
+        // date), so mid-year deposits don't inflate the rate.
+        val pct = last.returnRate?.toDoubleOrNull()?.times(100.0)
+        CurrentYearInterest(last.year, gain, pct)
+    }
 
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -89,6 +114,27 @@ fun AccountListScreen(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                 )
+                if (totalInterest != null) {
+                    val pct = if (totalContributions > 0.0) totalInterest / totalContributions * 100.0 else null
+                    val sign = if (totalInterest > 0.0) "+" else ""
+                    val pctText = pct?.let { " (${if (it > 0.0) "+" else ""}%.1f%%)".format(it) } ?: ""
+                    Text(
+                        text = "${stringResource(R.string.label_interest)}: $sign${formatAmount(totalInterest)}$pctText",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (totalInterest >= 0.0) GAIN else LOSS,
+                    )
+                }
+                if (currentYearInterest != null) {
+                    val sign = if (currentYearInterest.gain > 0.0) "+" else ""
+                    val pctText = currentYearInterest.percent
+                        ?.let { " (${if (it > 0.0) "+" else ""}%.1f%%)".format(it) } ?: ""
+                    Text(
+                        text = "${currentYearInterest.year}: $sign${formatAmount(currentYearInterest.gain)}$pctText",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (currentYearInterest.gain >= 0.0) GAIN else LOSS,
+                    )
+                }
             }
 
             TabRow(selectedTabIndex = selectedTab) {
@@ -219,3 +265,46 @@ private fun AccountRow(account: AccountOut, onClick: () -> Unit) {
 }
 
 internal fun formatAmount(value: Double): String = "${formatRoundedAmount(value)} €"
+
+// Accrued interest for an account: the balance beyond what was put in via transfers.
+// `percent` is the return relative to net contributions, or null when contributions
+// aren't positive (so a percentage would be meaningless).
+internal data class InterestInfo(val value: Double, val percent: Double?)
+
+// Interest earned across all accounts during a single year (the latest year in the
+// yearly trends): the € gained and the return relative to the prior year's balance.
+internal data class CurrentYearInterest(val year: Int, val gain: Double, val percent: Double?)
+
+internal fun accountInterest(amount: String, contributions: String): InterestInfo {
+    val balance = amount.toDoubleOrNull() ?: 0.0
+    val contrib = contributions.toDoubleOrNull() ?: 0.0
+    val interest = balance - contrib
+    val percent = if (contrib > 0.0) interest / contrib * 100.0 else null
+    return InterestInfo(interest, percent)
+}
+
+private val GAIN = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+private val LOSS = androidx.compose.ui.graphics.Color(0xFFE53935)
+
+// Renders the most recent full-year return (e.g. "Return 2024: +6.8% / yr"), or
+// nothing when the backend hasn't provided one. Shared by the account header and
+// the distribution rows.
+@Composable
+internal fun AnnualReturnLabel(
+    latestAnnualReturn: String?,
+    latestAnnualReturnYear: Int?,
+    modifier: Modifier = Modifier,
+    style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.labelSmall,
+    textAlign: androidx.compose.ui.text.style.TextAlign? = null,
+) {
+    val pct = latestAnnualReturn?.toDoubleOrNull()?.times(100.0) ?: return
+    val year = latestAnnualReturnYear ?: return
+    val sign = if (pct > 0.0) "+" else ""
+    Text(
+        text = stringResource(R.string.annual_return_format, year, "$sign${"%.1f".format(pct)}%"),
+        style = style,
+        color = if (pct >= 0.0) GAIN else LOSS,
+        textAlign = textAlign,
+        modifier = modifier,
+    )
+}

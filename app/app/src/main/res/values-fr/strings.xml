@@ -140,6 +140,23 @@
     <string name="dialog_delete_report_title">Supprimer le relevé</string>
     <string name="dialog_delete_report_message">Êtes-vous sûr de vouloir supprimer ce relevé ?</string>
 
+    <!-- ── Account Transfers ────────────────────────────────── -->
+    <string name="label_transfers">Transferts</string>
+    <string name="label_interest">Intérêts</string>
+    <string name="screen_edit_transfer">Modifier le transfert</string>
+    <string name="screen_new_transfer">Nouveau transfert</string>
+    <string name="cd_add_transfer">Ajouter un transfert</string>
+    <string name="no_transfers_yet">Aucun transfert</string>
+    <string name="transfer_deposit">Dépôt</string>
+    <string name="transfer_withdrawal">Retrait</string>
+    <string name="dialog_delete_transfer_title">Supprimer le transfert</string>
+    <string name="dialog_delete_transfer_message">Êtes-vous sûr de vouloir supprimer ce transfert ?</string>
+    <string name="source_both">Les deux</string>
+    <string name="source_transfers">Transferts</string>
+    <string name="source_interests">Intérêts</string>
+    <!-- %1$d = année, %2$s = pourcentage signé, ex. "Rendement 2024 : +6,8 % / an" -->
+    <string name="annual_return_format">Rendement %1$d : %2$s / an</string>
+
     <!-- ── Summary ────────────────────────────────────────── -->
     <string name="summary_unspent_income">Revenu non dépensé</string>
     <string name="summary_pct_of_income">% du revenu</string>

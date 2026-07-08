@@ -36,13 +36,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
+import com.xavierclavel.bankable.model.AccountOut
 import com.xavierclavel.bankable.model.AccountReportOut
+import com.xavierclavel.bankable.model.InvestmentOut
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -54,6 +57,7 @@ fun AccountViewScreen(
 ) {
     val selected = viewModel.selectedAccount ?: return
     val reports by viewModel.reports.collectAsState()
+    val transfers by viewModel.transfers.collectAsState()
     // Track the up-to-date copy from the accounts list so the balance header
     // reflects a newly added/edited report.
     val accounts by viewModel.accounts.collectAsState()
@@ -82,12 +86,18 @@ fun AccountViewScreen(
             )
         },
         floatingActionButton = {
-            if (selectedTab == 0) {
-                FloatingActionButton(onClick = {
+            when (selectedTab) {
+                0 -> FloatingActionButton(onClick = {
                     viewModel.prepareNewReport()
                     navController.navigate("account/report/edit")
                 }) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_report))
+                }
+                1 -> FloatingActionButton(onClick = {
+                    viewModel.prepareNewTransfer()
+                    navController.navigate("account/transfer/edit")
+                }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_transfer))
                 }
             }
         }
@@ -97,12 +107,12 @@ fun AccountViewScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Balance header
-            Box(
+            // Balance header + accrued interest
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = formatAmount(account.amount.toDoubleOrNull() ?: 0.0),
@@ -110,6 +120,7 @@ fun AccountViewScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
+                InterestSummary(account)
             }
 
             TabRow(selectedTabIndex = selectedTab) {
@@ -121,13 +132,19 @@ fun AccountViewScreen(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
+                    text = { Text(stringResource(R.string.label_transfers)) },
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
                     text = { Text(stringResource(R.string.label_charts)) },
                 )
             }
 
             when (selectedTab) {
                 0 -> ReportsTab(reports, viewModel, navController)
-                1 -> AccountChartsScreen(viewModel, accountId = account.id)
+                1 -> TransfersTab(transfers, viewModel, navController)
+                2 -> AccountChartsScreen(viewModel, accountId = account.id)
             }
         }
     }
@@ -188,6 +205,97 @@ private fun ReportRow(report: AccountReportOut, onClick: () -> Unit) {
                 text = formatAmount(report.amount.toDoubleOrNull() ?: 0.0),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+}
+
+private val GAIN_COLOR = Color(0xFF4CAF50)
+private val LOSS_COLOR = Color(0xFFE53935)
+
+@Composable
+private fun InterestSummary(account: AccountOut) {
+    // Interest is only meaningful once transfers have been declared; without any
+    // net contribution recorded, the whole balance would misleadingly read as gain.
+    if ((account.contributions.toDoubleOrNull() ?: 0.0) == 0.0) return
+    val info = accountInterest(account.amount, account.contributions)
+    val color = if (info.value >= 0.0) GAIN_COLOR else LOSS_COLOR
+    val sign = if (info.value > 0.0) "+" else ""
+    val percentText = info.percent?.let { " (${if (it > 0.0) "+" else ""}%.1f%%)".format(it) } ?: ""
+
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = "${stringResource(R.string.label_interest)}: $sign${formatAmount(info.value)}$percentText",
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Medium,
+        color = color,
+    )
+    AnnualReturnLabel(
+        latestAnnualReturn = account.latestAnnualReturn,
+        latestAnnualReturnYear = account.latestAnnualReturnYear,
+        style = MaterialTheme.typography.bodySmall,
+    )
+}
+
+@Composable
+private fun TransfersTab(
+    transfers: List<InvestmentOut>,
+    viewModel: AccountsViewModel,
+    navController: NavController,
+) {
+    if (transfers.isEmpty()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(stringResource(R.string.no_transfers_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items(transfers, key = { it.id }) { transfer ->
+                TransferRow(
+                    transfer = transfer,
+                    onClick = {
+                        viewModel.prepareEditTransfer(transfer)
+                        navController.navigate("account/transfer/edit")
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TransferRow(transfer: InvestmentOut, onClick: () -> Unit) {
+    val locale = LocalConfiguration.current.locales[0]
+    val isIn = transfer.type == TRANSFER_IN
+    val color = if (isIn) GAIN_COLOR else LOSS_COLOR
+    val sign = if (isIn) "+" else "-"
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.medium,
+        tonalElevation = 2.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = formatReportDate(transfer.date, locale),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "$sign${formatAmount(transfer.amount.toDoubleOrNull() ?: 0.0)}",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = color,
             )
         }
     }

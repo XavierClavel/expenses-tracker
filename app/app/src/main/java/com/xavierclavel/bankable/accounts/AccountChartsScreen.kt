@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -56,6 +57,7 @@ import kotlin.math.pow
 
 private val COLOR_POSITIVE = Color(0xFF4CAF50)
 private val COLOR_NEGATIVE = Color(0xFFE53935)
+private val COLOR_CONTRIB  = Color(0xFF42A5F5)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +65,7 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
     val trends by viewModel.trends.collectAsState()
     val timescale = viewModel.timescale
     val display = viewModel.chartDisplay
+    val source = viewModel.chartSource
 
     LaunchedEffect(accountId) { viewModel.loadTrends(accountId) }
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
@@ -83,7 +86,25 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
                 FilterChip(selected = display == v, onClick = { viewModel.setChartDisplay(v) }, label = { Text(l) })
             }
         }
+        Spacer(Modifier.height(4.dp))
+        Row(modifier = Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("both" to stringResource(R.string.source_both), "transfers" to stringResource(R.string.source_transfers), "interests" to stringResource(R.string.source_interests)).forEach { (v, l) ->
+                FilterChip(selected = source == v, onClick = { viewModel.setChartSource(v) }, label = { Text(l) })
+            }
+        }
         Spacer(Modifier.height(8.dp))
+
+        // Legend for the stacked view (contributions + interest).
+        if (source == "both" && display == "value") {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                LegendDot(COLOR_CONTRIB, stringResource(R.string.source_transfers))
+                Spacer(Modifier.width(16.dp))
+                LegendDot(COLOR_POSITIVE, stringResource(R.string.source_interests))
+            }
+        }
 
         BoxWithConstraints(
             modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 4.dp),
@@ -95,17 +116,74 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
                 Text(stringResource(R.string.label_no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 val isPercent = display == "diff_percent"
-                val bars = trends.map { dto ->
-                    val v = when (display) {
-                        "diff"         -> dto.change?.toFloatOrNull() ?: 0f
-                        "diff_percent" -> (dto.proportionalChange?.toFloatOrNull() ?: 0f) * 100f
-                        else           -> dto.balance.toFloatOrNull() ?: 0f
+                // Cumulative value of the selected source at each period.
+                val cumulative = trends.map { dto ->
+                    val balance = dto.balance.toFloatOrNull() ?: 0f
+                    val contrib = dto.contributions?.toFloatOrNull() ?: 0f
+                    when (source) {
+                        "transfers" -> contrib
+                        "interests" -> balance - contrib
+                        else         -> balance
                     }
-                    BarEntry(value = v, label = formatTrendLabel(dto, timescale, locale))
                 }
-                BarChart(bars = bars, isPercent = isPercent, chartHeight = chartH)
+                val labels = trends.map { formatTrendLabel(it, timescale, locale) }
+
+                val bars = if (display == "value" && source == "both") {
+                    // Stacked bars: contributions (blue) + interest (green/red), summing to balance.
+                    trends.mapIndexed { i, dto ->
+                        val balance = dto.balance.toFloatOrNull() ?: 0f
+                        val contrib = dto.contributions?.toFloatOrNull() ?: 0f
+                        val interest = balance - contrib
+                        BarEntry(
+                            value = balance,
+                            label = labels[i],
+                            segments = listOf(
+                                BarSegment(contrib, COLOR_CONTRIB),
+                                BarSegment(interest, if (interest >= 0f) COLOR_POSITIVE else COLOR_NEGATIVE),
+                            ),
+                        )
+                    }
+                } else {
+                    trends.mapIndexed { i, _ ->
+                        val v = when (display) {
+                            "diff"         -> if (i == 0) 0f else cumulative[i] - cumulative[i - 1]
+                            "diff_percent" -> {
+                                if (source == "interests" || source == "both") {
+                                    // The % variation of the account is its return: the period's interest
+                                    // over its time-weighted average capital (Modified Dietz, mid-period
+                                    // transfers weighted by how long they were invested), NOT the raw
+                                    // balance change — otherwise money you add would inflate it. Same
+                                    // figure whether viewing the whole balance ("both") or interest only.
+                                    (trends[i].returnRate?.toFloatOrNull() ?: 0f) * 100f
+                                } else {
+                                    // "transfers": how much your contributions grew this period.
+                                    val denom = if (i == 0) 0f else cumulative[i - 1]
+                                    if (i == 0 || denom == 0f) 0f else (cumulative[i] - cumulative[i - 1]) / kotlin.math.abs(denom) * 100f
+                                }
+                            }
+                            else           -> cumulative[i]
+                        }
+                        BarEntry(value = v, label = labels[i])
+                    }
+                }
+
+                // Single-source "value" bars for transfers read as contributions (blue);
+                // interest keeps its sign-based green/red coloring.
+                val accent = if (display == "value" && source == "transfers") COLOR_CONTRIB else null
+                BarChart(bars = bars, isPercent = isPercent, chartHeight = chartH, accentColor = accent)
             }
         }
+    }
+}
+
+@Composable
+private fun LegendDot(color: Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Canvas(modifier = Modifier.size(10.dp)) {
+            drawRoundRect(color = color, cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()))
+        }
+        Spacer(Modifier.width(4.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -121,7 +199,13 @@ private fun formatTrendLabel(dto: AccountTrendDto, timescale: String, locale: ja
     return if (dto.year == currentYear) name else "$name '${dto.year % 100}"
 }
 
-data class BarEntry(val value: Float, val label: String)
+// A single stacked segment of a bar, drawn as a waterfall from the running baseline.
+data class BarSegment(val value: Float, val color: Color)
+
+// `value` is the net/total shown in the highlight readout. When `segments` is
+// non-empty the bar is drawn stacked (segments summing to `value`); otherwise a
+// single bar of `value` is drawn.
+data class BarEntry(val value: Float, val label: String, val segments: List<BarSegment> = emptyList())
 
 @Composable
 fun BarChart(
@@ -133,8 +217,17 @@ fun BarChart(
 ) {
     if (bars.isEmpty()) return
 
-    val maxPositive = bars.maxOf { it.value.coerceAtLeast(0f) }
-    val maxNegative = bars.maxOf { abs(it.value.coerceAtMost(0f)) }
+    // Vertical extent of a bar: the highest and lowest points its (possibly stacked)
+    // segments reach relative to zero. Single bars just reach their own value.
+    fun extent(bar: BarEntry): Pair<Float, Float> {
+        if (bar.segments.isEmpty()) return bar.value.coerceAtLeast(0f) to bar.value.coerceAtMost(0f)
+        var base = 0f; var hi = 0f; var lo = 0f
+        bar.segments.forEach { base += it.value; hi = kotlin.math.max(hi, base); lo = kotlin.math.min(lo, base) }
+        return hi to lo
+    }
+
+    val maxPositive = bars.maxOf { extent(it).first }
+    val maxNegative = bars.maxOf { abs(extent(it).second) }
     val totalRange  = (maxPositive + maxNegative).coerceAtLeast(0.001f)
     val ticks       = remember(maxPositive, maxNegative) { computeTicks(maxPositive, maxNegative) }
 
@@ -252,16 +345,35 @@ fun BarChart(
                                 val h     = size.height
                                 val scale = h / totalRange
                                 val zeroY = maxPositive * scale
-                                if (bar.value == 0f) return@Canvas
-                                val barH = abs(bar.value) * scale
-                                val top  = if (bar.value > 0f) zeroY - barH else zeroY
+                                val x      = w * 0.15f
+                                val bw     = w * 0.7f
                                 val radius = 4.dp.toPx()
-                                drawRoundRect(
-                                    color        = baseColor.copy(alpha = if (hi) 1f else 0.35f),
-                                    topLeft      = Offset(w * 0.15f, top),
-                                    size         = Size(w * 0.7f, barH),
-                                    cornerRadius = CornerRadius(radius, radius),
-                                )
+                                val alpha  = if (hi) 1f else 0.35f
+                                if (bar.segments.isNotEmpty()) {
+                                    var base = 0f
+                                    bar.segments.forEach { seg ->
+                                        if (seg.value != 0f) {
+                                            val yTop = zeroY - (base + seg.value) * scale
+                                            val yBase = zeroY - base * scale
+                                            drawRoundRect(
+                                                color        = seg.color.copy(alpha = alpha),
+                                                topLeft      = Offset(x, kotlin.math.min(yTop, yBase)),
+                                                size         = Size(bw, abs(yBase - yTop)),
+                                                cornerRadius = CornerRadius(radius, radius),
+                                            )
+                                        }
+                                        base += seg.value
+                                    }
+                                } else if (bar.value != 0f) {
+                                    val barH = abs(bar.value) * scale
+                                    val top  = if (bar.value > 0f) zeroY - barH else zeroY
+                                    drawRoundRect(
+                                        color        = baseColor.copy(alpha = alpha),
+                                        topLeft      = Offset(x, top),
+                                        size         = Size(bw, barH),
+                                        cornerRadius = CornerRadius(radius, radius),
+                                    )
+                                }
                             }
                             Text(
                                 text       = bar.label,

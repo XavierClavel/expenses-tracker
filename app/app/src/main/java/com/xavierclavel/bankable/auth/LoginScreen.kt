@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +37,8 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var googleError by remember { mutableStateOf<String?>(null) }
-    val isLoading = authState is AuthState.Loading
+    var googleLoading by remember { mutableStateOf(false) }
+    val isLoading = authState is AuthState.Loading || googleLoading
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -68,7 +70,10 @@ fun LoginScreen(
                 onClick = { onLogin(email, password) },
                 modifier = Modifier.fillMaxWidth(), enabled = !isLoading,
             ) {
-                if (isLoading) CircularProgressIndicator(modifier = Modifier.height(20.dp))
+                if (isLoading) CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                )
                 else Text(stringResource(R.string.action_log_in))
             }
             Spacer(Modifier.height(8.dp))
@@ -81,7 +86,12 @@ fun LoginScreen(
             Spacer(Modifier.height(8.dp))
             GoogleSignInButton(
                 enabled = !isLoading,
-                onIdToken = { token -> googleError = null; onGoogleSignIn(token) { googleError = it } },
+                loading = googleLoading,
+                onLoadingChange = { googleLoading = it },
+                onIdToken = { token ->
+                    googleError = null
+                    onGoogleSignIn(token) { err -> googleError = err; googleLoading = false }
+                },
                 onError = { googleError = it },
                 modifier = Modifier.fillMaxWidth(),
             )

@@ -140,6 +140,23 @@
     <string name="dialog_delete_report_title">Delete report</string>
     <string name="dialog_delete_report_message">Are you sure you want to delete this report?</string>
 
+    <!-- ── Account Transfers ────────────────────────────────── -->
+    <string name="label_transfers">Transfers</string>
+    <string name="label_interest">Interest</string>
+    <string name="screen_edit_transfer">Edit transfer</string>
+    <string name="screen_new_transfer">New transfer</string>
+    <string name="cd_add_transfer">Add transfer</string>
+    <string name="no_transfers_yet">No transfers yet</string>
+    <string name="transfer_deposit">Deposit</string>
+    <string name="transfer_withdrawal">Withdrawal</string>
+    <string name="dialog_delete_transfer_title">Delete transfer</string>
+    <string name="dialog_delete_transfer_message">Are you sure you want to delete this transfer?</string>
+    <string name="source_both">Both</string>
+    <string name="source_transfers">Transfers</string>
+    <string name="source_interests">Interest</string>
+    <!-- %1$d = year, %2$s = signed percentage, e.g. "Return 2024: +6.8% / yr" -->
+    <string name="annual_return_format">Return %1$d: %2$s / yr</string>
+
     <!-- ── Summary ────────────────────────────────────────── -->
     <string name="summary_unspent_income">Unspent income</string>
     <string name="summary_pct_of_income">% of income</string>

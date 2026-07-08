@@ -35,6 +35,7 @@ fun SignupScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var googleLoading by remember { mutableStateOf(false) }
     val passwordMismatch = stringResource(R.string.error_password_mismatch)
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -87,8 +88,13 @@ fun SignupScreen(
             }
             Spacer(Modifier.height(8.dp))
             GoogleSignInButton(
-                enabled = true,
-                onIdToken = { token -> error = null; onGoogleSignIn(token) { err -> error = err } },
+                enabled = !googleLoading,
+                loading = googleLoading,
+                onLoadingChange = { googleLoading = it },
+                onIdToken = { token ->
+                    error = null
+                    onGoogleSignIn(token) { err -> error = err; googleLoading = false }
+                },
                 onError = { err -> error = err },
                 modifier = Modifier.fillMaxWidth(),
             )
