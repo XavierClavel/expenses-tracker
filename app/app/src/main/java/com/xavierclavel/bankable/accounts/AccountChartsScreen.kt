@@ -148,14 +148,13 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
                         val v = when (display) {
                             "diff"         -> if (i == 0) 0f else cumulative[i] - cumulative[i - 1]
                             "diff_percent" -> {
-                                if (source == "interests" || source == "both") {
-                                    // The % variation of the account is its return: the period's interest
-                                    // over its time-weighted average capital (Modified Dietz, mid-period
-                                    // transfers weighted by how long they were invested), NOT the raw
-                                    // balance change — otherwise money you add would inflate it. Same
-                                    // figure whether viewing the whole balance ("both") or interest only.
+                                if (source == "interests") {
+                                    // Interest is shown as the true return: the period's interest over its
+                                    // time-weighted average capital (Modified Dietz, mid-period transfers
+                                    // weighted by how long they were invested) — not inflated by deposits.
                                     (trends[i].returnRate?.toFloatOrNull() ?: 0f) * 100f
                                 } else {
+                                    // "both": total balance growth (deposits included).
                                     // "transfers": how much your contributions grew this period.
                                     val denom = if (i == 0) 0f else cumulative[i - 1]
                                     if (i == 0 || denom == 0f) 0f else (cumulative[i] - cumulative[i - 1]) / kotlin.math.abs(denom) * 100f
