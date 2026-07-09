@@ -1,5 +1,6 @@
 package com.xavierclavel.dtos.investment
 
+import com.xavierclavel.enums.AccountTracking
 import com.xavierclavel.enums.AccountType
 import com.xavierclavel.utils.BigDecimalSerializer
 import kotlinx.serialization.Serializable
@@ -10,6 +11,7 @@ data class InvestmentAccountOut(
     val id: Long,
     val name: String,
     val type: AccountType,
+    val tracking: AccountTracking = AccountTracking.CONTRIBUTIONS,
 
     @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,

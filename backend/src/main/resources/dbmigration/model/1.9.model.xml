@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <alterColumn columnName="type" tableName="investments" type="varchar(8)" currentType="varchar(3)" currentNotnull="true" checkConstraint="check ( type in ('IN','OUT','INTEREST','FEE'))" checkConstraintName="ck_investments_type"/>
+        <addColumn tableName="investment_accounts">
+            <column name="tracking" type="varchar(13)" defaultValue="'CONTRIBUTIONS'" notnull="true" checkConstraint="check ( tracking in ('CONTRIBUTIONS','INTEREST'))" checkConstraintName="ck_investment_accounts_tracking"/>
+        </addColumn>
+    </changeSet>
+</migration>
