@@ -10,6 +10,7 @@ import com.xavierclavel.utils.createAccount
 import com.xavierclavel.utils.createAccountReport
 import com.xavierclavel.utils.createInvestment
 import com.xavierclavel.utils.getAccount
+import com.xavierclavel.utils.getAccountMonthTrendsReport
 import com.xavierclavel.utils.getUserAccountsYearTrendsReport
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -67,6 +68,22 @@ class AccountTrackingTest: ApplicationTest() {
         val result = client.getAccount(account.id)
         assertEquals(2022, result.latestAnnualReturnYear)
         assertEquals(0, result.latestAnnualReturn!!.compareTo(BigDecimal("0.068")))
+    }
+
+    @Test
+    fun `year-end interest shows even when no later report exists`() = runTestAsUser {
+        val account = client.createAccount(livret)
+        // Only a January relevé, then interest credited on Dec 31 with no December report.
+        client.createAccountReport(account.id, report("10000", "2024-01-15"))
+        client.createInvestment(account.id, interest(account.id, "300", "2024-12-31"))
+
+        val months = client.getAccountMonthTrendsReport(account.id)
+        // The series must extend to December (the interest month), not stop at January.
+        assertEquals(12, months.size)
+        val december = months.find { it.year == 2024 && it.month == 12 }!!
+        // balance carried at 10000; contributions inferred 10000 − 300 → interest 300
+        assertEquals(0, december.balance.compareTo(BigDecimal("10000")))
+        assertEquals(0, december.contributions!!.compareTo(BigDecimal("9700")))
     }
 
     @Test

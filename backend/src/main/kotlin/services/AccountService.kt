@@ -295,8 +295,14 @@ class AccountService: KoinComponent {
             """
             WITH months AS (
                 SELECT generate_series(
-                    DATE_TRUNC('month', (SELECT MIN(date)::date FROM account_reports WHERE account_id = :accountId)),
-                    DATE_TRUNC('month', (SELECT MAX(date)::date FROM account_reports WHERE account_id = :accountId)),
+                    DATE_TRUNC('month', LEAST(
+                        (SELECT MIN(date)::date FROM account_reports WHERE account_id = :accountId),
+                        (SELECT MIN(date)::date FROM investments WHERE account_id = :accountId)
+                    )),
+                    DATE_TRUNC('month', GREATEST(
+                        (SELECT MAX(date)::date FROM account_reports WHERE account_id = :accountId),
+                        (SELECT MAX(date)::date FROM investments WHERE account_id = :accountId)
+                    )),
                     INTERVAL '1 month'
                 )::date AS month
             ),
@@ -326,7 +332,7 @@ class AccountService: KoinComponent {
                 SELECT
                     EXTRACT(YEAR FROM month)  AS year,
                     EXTRACT(MONTH FROM month) AS month,
-                    MAX(amount) OVER (PARTITION BY grp) AS balance
+                    COALESCE(MAX(amount) OVER (PARTITION BY grp), 0) AS balance
                         FROM (
                             SELECT
                                 month,
@@ -359,8 +365,14 @@ class AccountService: KoinComponent {
             """
             WITH years AS (
                 SELECT generate_series(
-                    DATE_TRUNC('year', (SELECT MIN(date)::date FROM account_reports WHERE account_id = :accountId)),
-                    DATE_TRUNC('year', (SELECT MAX(date)::date FROM account_reports WHERE account_id = :accountId)),
+                    DATE_TRUNC('year', LEAST(
+                        (SELECT MIN(date)::date FROM account_reports WHERE account_id = :accountId),
+                        (SELECT MIN(date)::date FROM investments WHERE account_id = :accountId)
+                    )),
+                    DATE_TRUNC('year', GREATEST(
+                        (SELECT MAX(date)::date FROM account_reports WHERE account_id = :accountId),
+                        (SELECT MAX(date)::date FROM investments WHERE account_id = :accountId)
+                    )),
                     INTERVAL '1 year'
                 )::date AS year
             ),
@@ -389,7 +401,7 @@ class AccountService: KoinComponent {
             balances AS (
                 SELECT
                     EXTRACT(YEAR FROM year)  AS year,
-                    MAX(amount) OVER (PARTITION BY grp) AS balance
+                    COALESCE(MAX(amount) OVER (PARTITION BY grp), 0) AS balance
                         FROM (
                             SELECT
                                 year,
