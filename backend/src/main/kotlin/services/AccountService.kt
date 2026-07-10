@@ -11,6 +11,7 @@ import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.enums.AccountTracking
 import com.xavierclavel.enums.InvestmentType
 import com.xavierclavel.models.InvestmentAccount
+import com.xavierclavel.models.query.QAccountReport
 import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QUser
@@ -160,7 +161,7 @@ class AccountService: KoinComponent {
 
     private fun accountRich(userId: Long, accountId: Long, tracking: AccountTracking, monthly: Boolean): List<Rich> {
         val raw = if (monthly) accountRawMonth(userId, accountId) else accountRawYear(userId, accountId)
-        return richSeries(raw, accountEvents(accountId), tracking, monthly)
+        return richSeries(raw, accountEvents(accountId), accountReports(accountId), tracking, monthly)
     }
 
     // ── Per-account computation ───────────────────────────────────────────────────
@@ -202,17 +203,28 @@ class AccountService: KoinComponent {
     private fun accountEvents(accountId: Long): List<Event> =
         QInvestment().account.id.eq(accountId).findList().map { Event(it.date, it.amount, it.type) }
 
-    private val HALF = BigDecimal.valueOf(0.5)
+    private fun accountReports(accountId: Long): List<Pair<LocalDate, BigDecimal>> =
+        QAccountReport().account.id.eq(accountId).orderBy().date.asc().findList().map { it.date to it.amount }
 
     /**
-     * Build the per-period series for one account. Contributions are authoritative or
-     * derived depending on the tracking mode; the return is Modified Dietz (transfers
-     * date-weighted) in CONTRIBUTIONS mode, and Simple Dietz (mid-period) in INTEREST
-     * mode, where deposits aren't itemised.
+     * Build the per-period series for one account.
+     *
+     * CONTRIBUTIONS mode: contributions are the recorded IN/OUT flows; interest is
+     * inferred (`balance − contributions`) and the return is Modified Dietz (flows
+     * date-weighted). The first period is left blank — its report may be a mid-life
+     * snapshot, not inception.
+     *
+     * INTEREST mode: interest is recorded directly, so the period's interest is the
+     * net interest events dated within it, and the return is that interest over the
+     * *average balance held during the period* (from the relevés). Because the average
+     * is normalised by the full period length, a partial/first period naturally reads
+     * as the annualised rate (interest ÷ time-weighted capital) — matching how a Livret
+     * A rate is quoted. Works for the first period with no prior.
      */
     private fun richSeries(
         raw: List<AccountTrendDto>,
         events: List<Event>,
+        reports: List<Pair<LocalDate, BigDecimal>>,
         tracking: AccountTracking,
         monthly: Boolean,
     ): List<Rich> {
@@ -226,28 +238,24 @@ class AccountService: KoinComponent {
         }
         return raw.indices.map { i ->
             val balance = raw[i].balance
-            if (i == 0) {
-                // INTEREST mode records the earnings directly, so the first period's
-                // interest is known without a prior period to diff against; its return
-                // is measured against the principal. CONTRIBUTIONS mode stays blank —
-                // the first report may just be a mid-life snapshot, not inception.
-                if (tracking == AccountTracking.INTEREST) {
-                    val principal = contributions[i]
-                    Rich(keys[i], balance, principal, balance - principal, if (principal.signum() > 0) principal else null)
-                } else {
-                    Rich(keys[i], balance, contributions[i], gain = null, weightedCapital = null)
+            val (start, end) = bounds[i]
+            when (tracking) {
+                AccountTracking.INTEREST -> {
+                    val gain = netInterestIn(events, start, end)
+                    val avgBalance = averageBalance(reports, start, end)
+                    Rich(keys[i], balance, contributions[i], gain, if (avgBalance.signum() > 0) avgBalance else null)
                 }
-            } else {
-                val prevBalance = raw[i - 1].balance
-                val deltaContrib = contributions[i] - contributions[i - 1]
-                val gain = (balance - prevBalance) - deltaContrib
-                val weightedCapital = when (tracking) {
-                    AccountTracking.CONTRIBUTIONS ->
-                        prevBalance + weightedContributionFlows(events, bounds[i].first, bounds[i].second)
-                    AccountTracking.INTEREST ->
-                        prevBalance + deltaContrib.multiply(HALF)
+                AccountTracking.CONTRIBUTIONS -> {
+                    if (i == 0) {
+                        Rich(keys[i], balance, contributions[i], gain = null, weightedCapital = null)
+                    } else {
+                        val prevBalance = raw[i - 1].balance
+                        val deltaContrib = contributions[i] - contributions[i - 1]
+                        val gain = (balance - prevBalance) - deltaContrib
+                        val weightedCapital = prevBalance + weightedContributionFlows(events, start, end)
+                        Rich(keys[i], balance, contributions[i], gain, weightedCapital)
+                    }
                 }
-                Rich(keys[i], balance, contributions[i], gain, weightedCapital)
             }
         }
     }
@@ -280,6 +288,40 @@ class AccountService: KoinComponent {
                 else -> acc
             }
         }
+
+    /** Net interest (INTEREST − FEE) recorded with a date inside [start, end]. */
+    private fun netInterestIn(events: List<Event>, start: LocalDate, end: LocalDate): BigDecimal =
+        events.filter { !it.date.isBefore(start) && !it.date.isAfter(end) }.fold(BigDecimal.ZERO) { acc, e ->
+            when (e.type) {
+                InvestmentType.INTEREST -> acc + e.amount
+                InvestmentType.FEE -> acc - e.amount
+                else -> acc
+            }
+        }
+
+    /**
+     * Time-weighted average balance over [start, end] (inclusive), from the relevé
+     * snapshots: the balance is the latest report on/before each day (0 before the
+     * first report). Normalising by the full period length means a balance present for
+     * only part of the period yields a proportionally smaller average — which is what
+     * turns a partial year's interest into the annualised rate when divided in.
+     */
+    private fun averageBalance(reports: List<Pair<LocalDate, BigDecimal>>, start: LocalDate, end: LocalDate): BigDecimal {
+        val totalDays = ChronoUnit.DAYS.between(start, end) + 1
+        if (totalDays <= 0) return BigDecimal.ZERO
+        val endExclusive = end.plusDays(1)
+        var integral = BigDecimal.ZERO // €·days
+        var cursor = start
+        while (cursor.isBefore(endExclusive)) {
+            val balance = reports.lastOrNull { !it.first.isAfter(cursor) }?.second ?: BigDecimal.ZERO
+            val nextChange = reports.firstOrNull { it.first.isAfter(cursor) }?.first
+            val segmentEnd = if (nextChange != null && nextChange.isBefore(endExclusive)) nextChange else endExclusive
+            val days = ChronoUnit.DAYS.between(cursor, segmentEnd)
+            integral += balance.multiply(BigDecimal.valueOf(days))
+            cursor = segmentEnd
+        }
+        return integral.divide(BigDecimal.valueOf(totalDays), 2, RoundingMode.HALF_UP)
+    }
 
     /** Σ of contribution flows in [start, end], each weighted by the fraction of the period it was invested. */
     private fun weightedContributionFlows(events: List<Event>, start: LocalDate, end: LocalDate): BigDecimal {

@@ -16,6 +16,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Interest-tracking accounts (e.g. Livret A): the user records the known interest/fees
@@ -67,7 +68,9 @@ class AccountTrackingTest: ApplicationTest() {
 
         val result = client.getAccount(account.id)
         assertEquals(2022, result.latestAnnualReturnYear)
-        assertEquals(0, result.latestAnnualReturn!!.compareTo(BigDecimal("0.068")))
+        // 68 interest over a ~1000 average balance ≈ 6.8%
+        val ret = result.latestAnnualReturn!!.toDouble()
+        assertTrue(ret in 0.067..0.069, "expected ~6.8% but was $ret")
     }
 
     @Test
@@ -95,8 +98,25 @@ class AccountTrackingTest: ApplicationTest() {
         // Single year, yet the recorded interest gives a known first-year return.
         val result = client.getAccount(account.id)
         assertEquals(2024, result.latestAnnualReturnYear)
-        // 300 interest over 9700 principal ≈ 3.09%
-        assertEquals(0, result.latestAnnualReturn!!.compareTo(BigDecimal("0.030928")))
+        // 300 interest over a ~9600 average balance (held from mid-January) ≈ 3.1%
+        val ret = result.latestAnnualReturn!!.toDouble()
+        assertTrue(ret in 0.030..0.033, "expected ~3% annualized but was $ret")
+    }
+
+    @Test
+    fun `interest return annualizes over average balance, not year-end`() = runTestAsUser {
+        val account = client.createAccount(livret)
+        // Balance sits at 10000 almost all year; a big deposit lands only at year-end,
+        // so it earned nothing. Interest of ~300 reflects 3% on the 10000 held all year.
+        client.createAccountReport(account.id, report("10000", "2024-01-01"))
+        client.createAccountReport(account.id, report("30000", "2024-12-31"))
+        client.createInvestment(account.id, interest(account.id, "300", "2024-12-31"))
+
+        val result = client.getAccount(account.id)
+        // Dividing by year-end balance (30000) would wrongly read ~1%; dividing by the
+        // average balance (~10000) gives the true ~3% rate.
+        val ret = result.latestAnnualReturn!!.toDouble()
+        assertTrue(ret in 0.028..0.032, "expected ~3% but was $ret")
     }
 
     @Test
