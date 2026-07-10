@@ -227,7 +227,16 @@ class AccountService: KoinComponent {
         return raw.indices.map { i ->
             val balance = raw[i].balance
             if (i == 0) {
-                Rich(keys[i], balance, contributions[i], gain = null, weightedCapital = null)
+                // INTEREST mode records the earnings directly, so the first period's
+                // interest is known without a prior period to diff against; its return
+                // is measured against the principal. CONTRIBUTIONS mode stays blank —
+                // the first report may just be a mid-life snapshot, not inception.
+                if (tracking == AccountTracking.INTEREST) {
+                    val principal = contributions[i]
+                    Rich(keys[i], balance, principal, balance - principal, if (principal.signum() > 0) principal else null)
+                } else {
+                    Rich(keys[i], balance, contributions[i], gain = null, weightedCapital = null)
+                }
             } else {
                 val prevBalance = raw[i - 1].balance
                 val deltaContrib = contributions[i] - contributions[i - 1]

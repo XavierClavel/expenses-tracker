@@ -87,6 +87,19 @@ class AccountTrackingTest: ApplicationTest() {
     }
 
     @Test
+    fun `interest mode shows the first year's return without a prior year`() = runTestAsUser {
+        val account = client.createAccount(livret)
+        client.createAccountReport(account.id, report("10000", "2024-01-15"))
+        client.createInvestment(account.id, interest(account.id, "300", "2024-12-31"))
+
+        // Single year, yet the recorded interest gives a known first-year return.
+        val result = client.getAccount(account.id)
+        assertEquals(2024, result.latestAnnualReturnYear)
+        // 300 interest over 9700 principal ≈ 3.09%
+        assertEquals(0, result.latestAnnualReturn!!.compareTo(BigDecimal("0.030928")))
+    }
+
+    @Test
     fun `mixed-mode accounts aggregate correctly`() = runTestAsUser {
         val pea = client.createAccount(InvestmentAccountIn(name = "PEA")) // CONTRIBUTIONS (default)
         client.createInvestment(pea.id, deposit(pea.id, "1000", "2021-01-01"))
