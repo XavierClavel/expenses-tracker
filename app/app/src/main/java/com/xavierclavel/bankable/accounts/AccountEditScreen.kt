@@ -43,6 +43,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.constants.AccountType
+import com.xavierclavel.bankable.ui.SlidingToggle
+
+const val TRACKING_CONTRIBUTIONS = "CONTRIBUTIONS"
+const val TRACKING_INTEREST = "INTEREST"
+
+// Savings accounts (Livret A) default to recording known interest; everything else
+// records contributions and infers interest.
+private fun defaultTracking(typeKey: String) =
+    if (typeKey == AccountType.SAVINGS.key) TRACKING_INTEREST else TRACKING_CONTRIBUTIONS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +63,9 @@ fun AccountEditScreen(
     var name by rememberSaveable { mutableStateOf(viewModel.selectedAccount?.name ?: "") }
     var type by rememberSaveable {
         mutableStateOf(viewModel.selectedAccount?.type ?: AccountType.CHECKING.key)
+    }
+    var tracking by rememberSaveable {
+        mutableStateOf(viewModel.selectedAccount?.tracking ?: defaultTracking(type))
     }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -100,6 +112,29 @@ fun AccountEditScreen(
                 onSelect = { type = it.key },
             )
 
+            Text(
+                text = stringResource(R.string.label_tracking),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SlidingToggle(
+                options = listOf(
+                    TRACKING_CONTRIBUTIONS to stringResource(R.string.tracking_contributions),
+                    TRACKING_INTEREST to stringResource(R.string.tracking_interest),
+                ),
+                selected = tracking,
+                onSelect = { tracking = it },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = stringResource(
+                    if (tracking == TRACKING_INTEREST) R.string.tracking_interest_hint
+                    else R.string.tracking_contributions_hint
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
@@ -113,6 +148,7 @@ fun AccountEditScreen(
                     viewModel.saveAccount(
                         name = name,
                         type = type,
+                        tracking = tracking,
                         onSuccess = { navController.popBackStack() },
                         onError = { errorMessage = it },
                     )

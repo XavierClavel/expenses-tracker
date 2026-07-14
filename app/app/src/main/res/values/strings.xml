@@ -154,8 +154,25 @@
     <string name="source_both">Both</string>
     <string name="source_transfers">Transfers</string>
     <string name="source_interests">Interest</string>
+    <!-- Display-mode labels when the Interest source is selected -->
+    <string name="interest_metric_total">Total</string>
+    <string name="interest_metric_earned">Earned</string>
+    <string name="interest_metric_return">Return</string>
     <!-- %1$d = year, %2$s = signed percentage, e.g. "Return 2024: +6.8% / yr" -->
     <string name="annual_return_format">Return %1$d: %2$s / yr</string>
+    <!-- Account tracking mode -->
+    <string name="label_tracking">Tracking</string>
+    <string name="tracking_contributions">Contributions</string>
+    <string name="tracking_interest">Interest</string>
+    <string name="tracking_contributions_hint">You record deposits &amp; withdrawals; interest is inferred from the balance. Best for market-valued accounts (PEA).</string>
+    <string name="tracking_interest_hint">You record known interest &amp; fees; contributions are inferred from the balance. Best for fixed-rate accounts (Livret A).</string>
+    <string name="label_earnings">Interest &amp; fees</string>
+    <!-- Account-card interest switch -->
+    <string name="interest_view_label">Interest shown</string>
+    <string name="interest_view_total">Total</string>
+    <string name="interest_view_year">This year</string>
+    <string name="transfer_interest">Interest</string>
+    <string name="transfer_fee">Fee</string>
 
     <!-- ── Summary ────────────────────────────────────────── -->
     <string name="summary_unspent_income">Unspent income</string>

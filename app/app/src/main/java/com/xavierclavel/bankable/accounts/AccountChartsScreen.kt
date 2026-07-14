@@ -66,6 +66,9 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
     val timescale = viewModel.timescale
     val display = viewModel.chartDisplay
     val source = viewModel.chartSource
+    // Interest-tracking accounts record interest directly, so their first period's
+    // interest is known (only meaningful for a single account, not the all-accounts view).
+    val interestMode = accountId != null && viewModel.selectedAccount?.tracking == TRACKING_INTEREST
 
     LaunchedEffect(accountId) { viewModel.loadTrends(accountId) }
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
@@ -81,8 +84,22 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
             }
         }
         Spacer(Modifier.height(4.dp))
+        // For interest, "change" is the interest earned and "change %" is the return rate,
+        // so relabel the display modes to avoid the misleading "Variation" wording.
+        val displayLabels = if (source == "interests")
+            listOf(
+                "value" to stringResource(R.string.interest_metric_total),
+                "diff" to stringResource(R.string.interest_metric_earned),
+                "diff_percent" to stringResource(R.string.interest_metric_return),
+            )
+        else
+            listOf(
+                "value" to stringResource(R.string.label_balance),
+                "diff" to stringResource(R.string.label_change),
+                "diff_percent" to stringResource(R.string.label_change_percent),
+            )
         Row(modifier = Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("value" to stringResource(R.string.label_balance), "diff" to stringResource(R.string.label_change), "diff_percent" to stringResource(R.string.label_change_percent)).forEach { (v, l) ->
+            displayLabels.forEach { (v, l) ->
                 FilterChip(selected = display == v, onClick = { viewModel.setChartDisplay(v) }, label = { Text(l) })
             }
         }
@@ -146,7 +163,11 @@ fun AccountChartsScreen(viewModel: AccountsViewModel, accountId: Int?) {
                 } else {
                     trends.mapIndexed { i, _ ->
                         val v = when (display) {
-                            "diff"         -> if (i == 0) 0f else cumulative[i] - cumulative[i - 1]
+                            "diff"         -> if (i == 0) {
+                                // Interest accounts know their first period's interest (from a zero base);
+                                // other series have no prior period to diff against.
+                                if (source == "interests" && interestMode) cumulative[0] else 0f
+                            } else cumulative[i] - cumulative[i - 1]
                             "diff_percent" -> {
                                 if (source == "interests") {
                                     // Interest is shown as the true return: the period's interest over its

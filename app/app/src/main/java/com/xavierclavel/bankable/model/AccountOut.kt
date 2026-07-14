@@ -7,6 +7,9 @@ data class AccountOut(
     val id: Int,
     val name: String,
     val type: String = "OTHER",
+    // How the balance is split: "CONTRIBUTIONS" (record deposits, infer interest) or
+    // "INTEREST" (record known interest/fees, infer contributions).
+    val tracking: String = "CONTRIBUTIONS",
     val amount: String,
     // Cumulative net transfers (deposits − withdrawals). The gap between `amount`
     // and `contributions` is the accrued interest. Defaults to "0" so the app
@@ -16,4 +19,6 @@ data class AccountOut(
     // it covers. Null when there isn't enough history to compute it.
     val latestAnnualReturn: String? = null,
     val latestAnnualReturnYear: Int? = null,
+    // Interest earned during latestAnnualReturnYear (the € amount).
+    val latestYearInterest: String? = null,
 )

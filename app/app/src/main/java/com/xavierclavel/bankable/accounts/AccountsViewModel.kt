@@ -90,13 +90,13 @@ class AccountsViewModel : ViewModel() {
 
     fun prepareEditAccount(account: AccountOut) { selectedAccount = account }
 
-    fun saveAccount(name: String, type: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun saveAccount(name: String, type: String, tracking: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 if (selectedAccount != null) {
-                    apiUpdateAccount(selectedAccount!!.id, AccountIn(name, type))
+                    apiUpdateAccount(selectedAccount!!.id, AccountIn(name, type, tracking))
                 } else {
-                    apiCreateAccount(AccountIn(name, type))
+                    apiCreateAccount(AccountIn(name, type, tracking))
                 }
                 fetchAccounts()
                 onSuccess()

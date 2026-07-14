@@ -132,7 +132,12 @@ fun AccountViewScreen(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.label_transfers)) },
+                    text = {
+                        Text(stringResource(
+                            if (account.tracking == TRACKING_INTEREST) R.string.label_earnings
+                            else R.string.label_transfers
+                        ))
+                    },
                 )
                 Tab(
                     selected = selectedTab == 2,
@@ -268,9 +273,9 @@ private fun TransfersTab(
 @Composable
 private fun TransferRow(transfer: InvestmentOut, onClick: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
-    val isIn = transfer.type == TRANSFER_IN
-    val color = if (isIn) GAIN_COLOR else LOSS_COLOR
-    val sign = if (isIn) "+" else "-"
+    val positive = transfer.type == TRANSFER_IN || transfer.type == TRANSFER_INTEREST
+    val color = if (positive) GAIN_COLOR else LOSS_COLOR
+    val sign = if (positive) "+" else "-"
     Surface(
         modifier = Modifier
             .fillMaxWidth()

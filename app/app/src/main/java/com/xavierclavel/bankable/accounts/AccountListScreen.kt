@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,7 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +46,11 @@ import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.constants.AccountType
 import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.model.AccountOut
+import com.xavierclavel.bankable.ui.SlidingToggle
+
+// Which interest figure the account cards show — one at a time to keep them compact.
+private const val INTEREST_VIEW_TOTAL = "total"
+private const val INTEREST_VIEW_YEAR = "year"
 
 @Composable
 fun AccountListScreen(
@@ -79,6 +87,7 @@ fun AccountListScreen(
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
+    var interestView by rememberSaveable { mutableStateOf(INTEREST_VIEW_TOTAL) }
 
     Scaffold(
         floatingActionButton = {
@@ -114,25 +123,23 @@ fun AccountListScreen(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                if (totalInterest != null) {
-                    val pct = if (totalContributions > 0.0) totalInterest / totalContributions * 100.0 else null
-                    val sign = if (totalInterest > 0.0) "+" else ""
-                    val pctText = pct?.let { " (${if (it > 0.0) "+" else ""}%.1f%%)".format(it) } ?: ""
-                    Text(
-                        text = "${stringResource(R.string.label_interest)}: $sign${formatAmount(totalInterest)}$pctText",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (totalInterest >= 0.0) GAIN else LOSS,
-                    )
-                }
-                if (currentYearInterest != null) {
-                    val sign = if (currentYearInterest.gain > 0.0) "+" else ""
-                    val pctText = currentYearInterest.percent
+                // Same Total / This-year switch as the cards; value only, hidden when zero.
+                val headerInterest: Pair<Double, Double?>? = (
+                    if (interestView == INTEREST_VIEW_YEAR) {
+                        currentYearInterest?.let { it.gain to it.percent }
+                    } else {
+                        totalInterest?.let { it to (if (totalContributions > 0.0) it / totalContributions * 100.0 else null) }
+                    }
+                )?.takeIf { it.first != 0.0 }
+                if (headerInterest != null) {
+                    val sign = if (headerInterest.first > 0.0) "+" else ""
+                    val pctText = headerInterest.second
                         ?.let { " (${if (it > 0.0) "+" else ""}%.1f%%)".format(it) } ?: ""
                     Text(
-                        text = "${currentYearInterest.year}: $sign${formatAmount(currentYearInterest.gain)}$pctText",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (currentYearInterest.gain >= 0.0) GAIN else LOSS,
+                        text = "$sign${formatAmount(headerInterest.first)}$pctText",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (headerInterest.first >= 0.0) GAIN else LOSS,
                     )
                 }
             }
@@ -156,7 +163,7 @@ fun AccountListScreen(
             }
 
             when (selectedTab) {
-                0 -> BalanceTab(accounts, isLoading, viewModel, navController)
+                0 -> BalanceTab(accounts, isLoading, viewModel, navController, interestView) { interestView = it }
                 1 -> AccountDistributionScreen(viewModel)
                 2 -> AccountChartsScreen(viewModel, accountId = null)
             }
@@ -170,6 +177,8 @@ private fun BalanceTab(
     isLoading: Boolean,
     viewModel: AccountsViewModel,
     navController: NavController,
+    interestView: String,
+    onInterestViewChange: (String) -> Unit,
 ) {
     if (isLoading && accounts.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -184,25 +193,55 @@ private fun BalanceTab(
             val group = accounts.filter { AccountType.fromKey(it.type) == type }
             if (group.isEmpty()) null else type to group
         }
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(bottom = 80.dp),
-        ) {
-            item { Spacer(Modifier.height(8.dp)) }
-            grouped.forEach { (type, group) ->
-                item(key = "header_${type.key}") { AccountTypeHeader(type) }
-                items(group, key = { it.id }) { account ->
-                    AccountRow(
-                        account = account,
-                        onClick = {
-                            viewModel.selectAccount(account)
-                            navController.navigate("account/view")
-                        },
+        // Show the interest switch only when some account actually has interest to show.
+        val anyInterest = accounts.any {
+            (it.contributions.toDoubleOrNull() ?: 0.0) != 0.0 || it.latestYearInterest != null
+        }
+        Column(Modifier.fillMaxSize()) {
+            if (anyInterest) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.interest_view_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                    SlidingToggle(
+                        options = listOf(
+                            INTEREST_VIEW_TOTAL to stringResource(R.string.interest_view_total),
+                            INTEREST_VIEW_YEAR to stringResource(R.string.interest_view_year),
+                        ),
+                        selected = interestView,
+                        onSelect = onInterestViewChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        height = 36.dp,
                     )
                 }
             }
-            item { Spacer(Modifier.height(8.dp)) }
+            LazyColumn(
+                modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 80.dp),
+            ) {
+                item { Spacer(Modifier.height(8.dp)) }
+                grouped.forEach { (type, group) ->
+                    item(key = "header_${type.key}") { AccountTypeHeader(type) }
+                    items(group, key = { it.id }) { account ->
+                        AccountRow(
+                            account = account,
+                            interestView = interestView,
+                            onClick = {
+                                viewModel.selectAccount(account)
+                                navController.navigate("account/view")
+                            },
+                        )
+                    }
+                }
+                item { Spacer(Modifier.height(8.dp)) }
+            }
         }
     }
 }
@@ -232,7 +271,21 @@ private fun AccountTypeHeader(type: AccountType) {
 }
 
 @Composable
-private fun AccountRow(account: AccountOut, onClick: () -> Unit) {
+private fun AccountRow(account: AccountOut, interestView: String, onClick: () -> Unit) {
+    // Only meaningful once transfers/interest have been declared for the account.
+    val total = if ((account.contributions.toDoubleOrNull() ?: 0.0) != 0.0)
+        accountInterest(account.amount, account.contributions) else null
+    val yearInterest = account.latestYearInterest?.toDoubleOrNull()
+    val yearPercent = account.latestAnnualReturn?.toDoubleOrNull()?.times(100.0)
+
+    // The interest figure to show, per the selected view (value + optional percent);
+    // hidden when it's exactly zero.
+    val interest: Pair<Double, Double?>? = when (interestView) {
+        INTEREST_VIEW_YEAR ->
+            if (yearInterest != null && account.latestAnnualReturnYear != null) yearInterest to yearPercent else null
+        else -> total?.let { it.value to it.percent }
+    }?.takeIf { it.first != 0.0 }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -243,8 +296,8 @@ private fun AccountRow(account: AccountOut, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 16.dp),
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -254,14 +307,32 @@ private fun AccountRow(account: AccountOut, onClick: () -> Unit) {
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(8.dp))
-            Text(
-                text = formatAmount(account.amount.toDoubleOrNull() ?: 0.0),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = formatAmount(account.amount.toDoubleOrNull() ?: 0.0),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                if (interest != null) {
+                    InterestValue(interest.first, interest.second)
+                }
+            }
         }
     }
+}
+
+// Colour-coded interest figure (value + optional percent), no label. Shown under the
+// balance on each account card; the Total/This-year switch says which figure it is.
+@Composable
+private fun InterestValue(value: Double, percent: Double?) {
+    val sign = if (value > 0.0) "+" else ""
+    val percentText = percent?.let { " (${if (it > 0.0) "+" else ""}%.1f%%)".format(it) } ?: ""
+    Text(
+        text = "$sign${formatAmount(value)}$percentText",
+        style = MaterialTheme.typography.bodySmall,
+        color = if (value >= 0.0) GAIN else LOSS,
+    )
 }
 
 internal fun formatAmount(value: Double): String = "${formatRoundedAmount(value)} €"

@@ -154,8 +154,25 @@
     <string name="source_both">Les deux</string>
     <string name="source_transfers">Transferts</string>
     <string name="source_interests">Intérêts</string>
+    <!-- Libellés des modes d'affichage quand la source Intérêts est sélectionnée -->
+    <string name="interest_metric_total">Total</string>
+    <string name="interest_metric_earned">Gains</string>
+    <string name="interest_metric_return">Rendement</string>
     <!-- %1$d = année, %2$s = pourcentage signé, ex. "Rendement 2024 : +6,8 % / an" -->
     <string name="annual_return_format">Rendement %1$d : %2$s / an</string>
+    <!-- Mode de suivi du compte -->
+    <string name="label_tracking">Suivi</string>
+    <string name="tracking_contributions">Versements</string>
+    <string name="tracking_interest">Intérêts</string>
+    <string name="tracking_contributions_hint">Vous saisissez les dépôts et retraits ; les intérêts sont déduits du solde. Idéal pour les comptes à valeur de marché (PEA).</string>
+    <string name="tracking_interest_hint">Vous saisissez les intérêts et frais connus ; les versements sont déduits du solde. Idéal pour les comptes à taux fixe (Livret A).</string>
+    <string name="label_earnings">Intérêts &amp; frais</string>
+    <!-- Sélecteur d'intérêts sur les cartes de compte -->
+    <string name="interest_view_label">Intérêts affichés</string>
+    <string name="interest_view_total">Total</string>
+    <string name="interest_view_year">Cette année</string>
+    <string name="transfer_interest">Intérêt</string>
+    <string name="transfer_fee">Frais</string>
 
     <!-- ── Summary ────────────────────────────────────────── -->
     <string name="summary_unspent_income">Revenu non dépensé</string>

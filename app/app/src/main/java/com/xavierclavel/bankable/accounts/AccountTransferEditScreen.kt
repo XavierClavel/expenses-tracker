@@ -51,6 +51,8 @@ import java.util.TimeZone
 
 const val TRANSFER_IN = "IN"
 const val TRANSFER_OUT = "OUT"
+const val TRANSFER_INTEREST = "INTEREST"
+const val TRANSFER_FEE = "FEE"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,9 +62,12 @@ fun AccountTransferEditScreen(
 ) {
     val transfer = viewModel.selectedTransfer
     val isEditing = transfer != null
+    val interestMode = (viewModel.selectedAccount?.tracking ?: TRACKING_CONTRIBUTIONS) == TRACKING_INTEREST
 
     var amount by rememberSaveable { mutableStateOf(transfer?.amount ?: "") }
-    var type by rememberSaveable { mutableStateOf(transfer?.type ?: TRANSFER_IN) }
+    var type by rememberSaveable {
+        mutableStateOf(transfer?.type ?: if (interestMode) TRANSFER_INTEREST else TRANSFER_IN)
+    }
     var date by rememberSaveable { mutableStateOf(transfer?.date ?: transferTodayString()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -99,7 +104,10 @@ fun AccountTransferEditScreen(
             Spacer(Modifier.height(4.dp))
 
             SlidingToggle(
-                options = listOf(
+                options = if (interestMode) listOf(
+                    TRANSFER_INTEREST to stringResource(R.string.transfer_interest),
+                    TRANSFER_FEE to stringResource(R.string.transfer_fee),
+                ) else listOf(
                     TRANSFER_IN to stringResource(R.string.transfer_deposit),
                     TRANSFER_OUT to stringResource(R.string.transfer_withdrawal),
                 ),
