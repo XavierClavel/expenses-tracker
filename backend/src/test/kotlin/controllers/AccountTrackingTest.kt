@@ -84,6 +84,8 @@ class AccountTrackingTest: ApplicationTest() {
         // 300 interest over a ~9600 average balance (held from mid-January) ≈ 3.1%
         val ret = result.latestAnnualReturn!!.toDouble()
         assertTrue(ret in 0.030..0.033, "expected ~3% annualized but was $ret")
+        // The year's interest amount is exposed too (single year → equals total interest).
+        assertEquals(0, result.latestYearInterest!!.compareTo(BigDecimal("300")))
     }
 
     @Test
@@ -100,6 +102,22 @@ class AccountTrackingTest: ApplicationTest() {
         // average balance (~10000) gives the true ~3% rate.
         val ret = result.latestAnnualReturn!!.toDouble()
         assertTrue(ret in 0.028..0.032, "expected ~3% but was $ret")
+    }
+
+    @Test
+    fun `interests calculation is weighed by time`() = runTestAsUser {
+        val account = client.createAccount(livret)
+        client.createAccountReport(account.id, report("10000", "2024-01-01"))
+        client.createAccountReport(account.id, report("30000", "2024-05-01"))
+        client.createInvestment(account.id, interest(account.id, "700", "2024-12-31"))
+
+        val result = client.getAccount(account.id)
+        // Expected value is 3% interest:
+        // 1/3 * 3 * 10 0000 = 100€
+        // 2/3 * 3 * 30 000 = 600€
+        // Total interests over the year: 700€
+        val ret = result.latestAnnualReturn!!.toDouble()
+        assertEquals(ret, 0.03, 0.002)
     }
 
     @Test

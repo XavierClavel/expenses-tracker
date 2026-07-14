@@ -27,4 +27,8 @@ data class InvestmentAccountOut(
     @Serializable(with = BigDecimalSerializer::class)
     val latestAnnualReturn: BigDecimal? = null,
     val latestAnnualReturnYear: Int? = null,
+
+    // Interest earned during `latestAnnualReturnYear` (the € amount, not the rate).
+    @Serializable(with = BigDecimalSerializer::class)
+    val latestYearInterest: BigDecimal? = null,
 )

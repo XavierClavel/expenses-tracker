@@ -64,8 +64,18 @@ class AccountService: KoinComponent {
     }
 
     private fun InvestmentAccountOut.withAnnualReturn(userId: Long, accountId: Long): InvestmentAccountOut {
-        val (year, ret) = latestAnnualReturn(userId, accountId) ?: return this
-        return copy(latestAnnualReturn = ret, latestAnnualReturnYear = year)
+        val trends = trendByAccountByYear(userId, accountId)
+        val idx = trends.indexOfLast { it.returnRate != null }
+        if (idx < 0) return this
+        val current = trends[idx]
+        val currentInterest = current.balance - (current.contributions ?: BigDecimal.ZERO)
+        val previousInterest = if (idx > 0)
+            trends[idx - 1].let { it.balance - (it.contributions ?: BigDecimal.ZERO) } else BigDecimal.ZERO
+        return copy(
+            latestAnnualReturn = current.returnRate,
+            latestAnnualReturnYear = current.year,
+            latestYearInterest = currentInterest - previousInterest,
+        )
     }
 
 
