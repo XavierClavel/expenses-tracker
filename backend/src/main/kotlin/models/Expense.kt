@@ -10,6 +10,9 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.OnDelete
@@ -47,6 +50,14 @@ class Expense(
     @Enumerated(EnumType.STRING)
     val type: ExpenseType,
 
+    @ManyToMany
+    @JoinTable(
+        name = "expense_tag",
+        joinColumns = [JoinColumn(name = "expense_id")],
+        inverseJoinColumns = [JoinColumn(name = "tag_id")],
+    )
+    var tags: MutableList<Tag> = mutableListOf(),
+
     ): Model() {
 
     @Id
@@ -61,5 +72,6 @@ class Expense(
         date = this.date,
         categoryId = this.category?.id,
         type = this.type,
+        tagIds = this.tags.map { it.id },
     )
 }

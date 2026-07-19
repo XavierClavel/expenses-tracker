@@ -36,6 +36,9 @@ class User(
     @OneToMany(cascade = [(CascadeType.REMOVE)])
     var expenses: MutableList<Expense> = mutableListOf(),
 
+    @OneToMany(cascade = [(CascadeType.REMOVE)])
+    var tags: MutableList<Tag> = mutableListOf(),
+
     ): Model() {
 
     @Id

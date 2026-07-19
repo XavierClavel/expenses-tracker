@@ -24,4 +24,5 @@ data class ExpenseOut(
     @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate,
     val type: ExpenseType,
+    val tagIds: List<Long> = emptyList(),
 )

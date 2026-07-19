@@ -7,6 +7,7 @@ import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QSubcategory
+import com.xavierclavel.models.query.QTag
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.utils.logger
 import com.zaxxer.hikari.HikariConfig
@@ -28,6 +29,7 @@ object DatabaseManager {
 
     fun getTables() = listOf(
         QExpense(),
+        QTag(),
         QSubcategory(),
         QCategory(),
         QAccountReport(),

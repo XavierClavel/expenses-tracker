@@ -8,6 +8,7 @@ import com.xavierclavel.routes.setupExpenseController
 import com.xavierclavel.routes.setupInvestmentController
 import com.xavierclavel.routes.setupSubcategoryController
 import com.xavierclavel.routes.setupSummaryController
+import com.xavierclavel.routes.setupTagController
 import com.xavierclavel.routes.setupTrendController
 import com.xavierclavel.routes.setupUserController
 import io.ktor.server.application.Application
@@ -22,6 +23,7 @@ fun Application.serveRoutes() {
             setupCategoryController()
             setupSubcategoryController()
             setupExpenseController()
+            setupTagController()
             setupSummaryController()
             setupTrendController()
             setupAccountController()

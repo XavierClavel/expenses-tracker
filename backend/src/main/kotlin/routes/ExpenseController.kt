@@ -38,6 +38,7 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val query = call.request.queryParameters["query"]
             val minAmount = call.request.queryParameters["minAmount"]?.toBigDecimalOrNull()
             val maxAmount = call.request.queryParameters["maxAmount"]?.toBigDecimalOrNull()
+            val tagId = call.parameters["tagId"]?.toLongOrNull()
             val users = expenseService.list(
                 userId = sessionUserId,
                 paging = paging,
@@ -49,6 +50,7 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
                 query = query,
                 minAmount = minAmount,
                 maxAmount = maxAmount,
+                tagId = tagId,
             )
             call.respond(users)
         }

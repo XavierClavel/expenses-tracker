@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <createTable name="expense_tag" pkName="pk_expense_tag">
+            <column name="expense_id" type="bigint" notnull="true" primaryKey="true"/>
+            <column name="tag_id" type="bigint" notnull="true" primaryKey="true"/>
+            <foreignKey name="fk_expense_tag_expenses" columnNames="expense_id" refColumnNames="id" refTableName="expenses" indexName="ix_expense_tag_expenses"/>
+            <foreignKey name="fk_expense_tag_tags" columnNames="tag_id" refColumnNames="id" refTableName="tags" indexName="ix_expense_tag_tags"/>
+        </createTable>
+        <createTable name="tags" pkName="pk_tags">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_tags_user_id" foreignKeyIndex="ix_tags_user_id"/>
+            <column name="label" type="varchar" notnull="true"/>
+        </createTable>
+    </changeSet>
+</migration>

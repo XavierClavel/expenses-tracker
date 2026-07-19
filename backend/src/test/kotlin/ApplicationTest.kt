@@ -14,6 +14,7 @@ import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.services.InvestmentService
 import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.services.SummaryService
+import com.xavierclavel.services.TagService
 import com.xavierclavel.services.TrendService
 import com.xavierclavel.services.UserService
 import com.xavierclavel.utils.login
@@ -25,6 +26,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.Plugin
 import io.ktor.server.testing.*
+import io.ebean.DB
 import io.ktor.utils.io.KtorDsl
 import kotlinx.serialization.json.Json
 import main.com.xavierclavel.containers.RedisTestContainer
@@ -61,6 +63,7 @@ abstract class ApplicationTest: KoinTest {
                 single { CategoryService() }
                 single { SubcategoryService() }
                 single { ExpenseService() }
+                single { TagService() }
                 single { SummaryService() }
                 single { TrendService() }
                 single { AccountService() }
@@ -83,6 +86,9 @@ abstract class ApplicationTest: KoinTest {
     }
 
     fun cleanDb() {
+        // Clear the many-to-many join table first: its FKs are "on delete restrict",
+        // so the bulk table deletes below would otherwise fail while links exist.
+        DB.sqlUpdate("delete from expense_tag").execute()
         DatabaseManager.getTables().forEach { table ->
             table.delete()
         }

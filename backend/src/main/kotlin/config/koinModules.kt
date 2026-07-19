@@ -10,6 +10,7 @@ import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.services.InvestmentService
 import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.services.SummaryService
+import com.xavierclavel.services.TagService
 import com.xavierclavel.services.TrendService
 import com.xavierclavel.services.UserService
 import org.koin.dsl.module
@@ -25,6 +26,7 @@ val koinModules = module {
     single { CategoryService() }
     single { SubcategoryService() }
     single { ExpenseService() }
+    single { TagService() }
     single { SummaryService() }
     single { TrendService() }
     single { AccountService() }
