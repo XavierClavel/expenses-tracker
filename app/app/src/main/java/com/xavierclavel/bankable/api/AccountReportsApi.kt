@@ -2,6 +2,7 @@ package com.xavierclavel.bankable.api
 
 import com.xavierclavel.bankable.model.AccountReportIn
 import com.xavierclavel.bankable.model.AccountReportOut
+import com.xavierclavel.bankable.model.IdListIn
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -37,4 +38,13 @@ suspend fun apiUpdateAccountReport(id: Int, report: AccountReportIn) {
 
 suspend fun apiDeleteAccountReport(id: Int) {
     httpClient.delete("$BASE_URL/account-report/$id") { authHeader() }
+}
+
+/** Deletes every account report in [ids] in a single request. */
+suspend fun apiBatchDeleteAccountReports(ids: List<Int>) {
+    httpClient.post("$BASE_URL/account-report/batch-delete") {
+        authHeader()
+        contentType(ContentType.Application.Json)
+        setBody(IdListIn(ids.map { it.toLong() }))
+    }
 }

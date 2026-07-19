@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.xavierclavel.bankable.api.apiBatchDeleteAccountReports
+import com.xavierclavel.bankable.api.apiBatchDeleteInvestments
 import com.xavierclavel.bankable.api.apiCreateAccount
 import com.xavierclavel.bankable.api.apiCreateAccountReport
 import com.xavierclavel.bankable.api.apiCreateInvestment
@@ -176,6 +178,20 @@ class AccountsViewModel : ViewModel() {
         }
     }
 
+    /** Deletes several account reports at once, then refreshes reports and balances. */
+    fun batchDeleteReports(ids: List<Int>, onError: (String) -> Unit) {
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                apiBatchDeleteAccountReports(ids)
+                fetchReports()
+                fetchAccounts()
+            } catch (e: Exception) {
+                onError(e.message ?: "Delete failed")
+            }
+        }
+    }
+
     // ── Transfers (money added / retrieved) ─────────────────────────────────────
 
     private suspend fun fetchTransfers() {
@@ -224,6 +240,20 @@ class AccountsViewModel : ViewModel() {
                 fetchTransfers()
                 fetchAccounts()
                 onSuccess()
+            } catch (e: Exception) {
+                onError(e.message ?: "Delete failed")
+            }
+        }
+    }
+
+    /** Deletes several transfers at once, then refreshes transfers and balances. */
+    fun batchDeleteTransfers(ids: List<Long>, onError: (String) -> Unit) {
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                apiBatchDeleteInvestments(ids)
+                fetchTransfers()
+                fetchAccounts()
             } catch (e: Exception) {
                 onError(e.message ?: "Delete failed")
             }

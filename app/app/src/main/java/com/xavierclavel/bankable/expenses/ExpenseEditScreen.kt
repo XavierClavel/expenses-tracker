@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +18,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -27,6 +31,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,21 +68,25 @@ import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.currencySymbol
 import com.xavierclavel.bankable.constants.iconByName
+import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.util.ExpressionEvaluator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ExpenseEditScreen(
     viewModel: ExpensesViewModel,
+    tagsViewModel: TagsViewModel,
     navController: NavController,
 ) {
     val expense = viewModel.selectedExpense
     val isEditing = expense != null
     val subcategory = viewModel.selectedSubcategory
+    val tags by tagsViewModel.tags.collectAsState()
+    val selectedTagIds = viewModel.selectedTagIds
 
     var title by rememberSaveable { mutableStateOf(expense?.title ?: "") }
     var amount by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -230,6 +241,45 @@ fun ExpenseEditScreen(
                 onClick = { navController.navigate("expense/subcategory-picker") },
             )
 
+            if (tags.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.expense_tags_label),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val assignedTags = tags.filter { selectedTagIds.contains(it.id) }
+                val hasUnassigned = tags.any { !selectedTagIds.contains(it.id) }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    assignedTags.forEach { tag ->
+                        InputChip(
+                            selected = true,
+                            onClick = { viewModel.toggleTag(tag.id) },
+                            label = { Text(tag.label) },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.batch_remove_tag),
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            },
+                        )
+                    }
+                    if (hasUnassigned) {
+                        AssistChip(
+                            onClick = { navController.navigate("expense/tag-picker") },
+                            label = { Text(stringResource(R.string.cd_add_tag)) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            },
+                        )
+                    }
+                }
+            }
+
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
@@ -244,7 +294,10 @@ fun ExpenseEditScreen(
                         title = title,
                         amount = ExpressionEvaluator.formatAmount(computedAmount!!),
                         date = date,
-                        onSuccess = { navController.popBackStack() },
+                        onSuccess = {
+                            tagsViewModel.refreshTagExpenses()
+                            navController.popBackStack()
+                        },
                         onError = { errorMessage = it },
                     )
                 },
@@ -285,7 +338,10 @@ fun ExpenseEditScreen(
                     onClick = {
                         showDeleteDialog = false
                         viewModel.deleteExpense(
-                            onSuccess = { navController.popBackStack() },
+                            onSuccess = {
+                                tagsViewModel.refreshTagExpenses()
+                                navController.popBackStack()
+                            },
                             onError = { errorMessage = it },
                         )
                     },

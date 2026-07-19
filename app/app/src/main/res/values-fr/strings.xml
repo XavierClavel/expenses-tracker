@@ -192,6 +192,31 @@
     <string name="settings_language_french">Français</string>
     <string name="settings_account">Compte</string>
 
+    <!-- ── Tags ───────────────────────────────────────────── -->
+    <string name="nav_tags">Étiquettes</string>
+    <string name="cd_tags">Étiquettes</string>
+    <string name="cd_add_tag">Ajouter une étiquette</string>
+    <string name="screen_new_tag">Nouvelle étiquette</string>
+    <string name="screen_edit_tag">Modifier l\'étiquette</string>
+    <string name="label_tag_label">Libellé</string>
+    <string name="dialog_delete_tag_message">Êtes-vous sûr de vouloir supprimer cette étiquette ?</string>
+    <string name="tags_empty">Aucune étiquette</string>
+    <string name="tag_expense_count">%1$d dépenses</string>
+    <string name="cd_edit_tag">Modifier l\'étiquette</string>
+    <string name="no_expenses_with_tag">Aucune dépense avec cette étiquette</string>
+    <string name="tag_total">Total</string>
+    <string name="expense_tags_label">Étiquettes</string>
+    <string name="cd_has_tags">Étiqueté</string>
+    <string name="screen_select_tags">Sélectionner des étiquettes</string>
+    <string name="expense_no_tags">Aucune étiquette. Créez-en une depuis l\'écran Étiquettes.</string>
+    <string name="filter_tag">Étiquette</string>
+    <string name="filter_all_tags">Toutes les étiquettes</string>
+    <string name="batch_selected_count">%1$d sélectionné(s)</string>
+    <string name="batch_assign_tag">Assigner une étiquette</string>
+    <string name="batch_remove_tag">Retirer une étiquette</string>
+    <string name="cd_exit_selection">Quitter la sélection</string>
+    <string name="dialog_batch_delete_message">Supprimer %1$d éléments sélectionnés ? Cette action est irréversible.</string>
+
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Bleu</string>
     <string name="color_lightblue">Bleu clair</string>

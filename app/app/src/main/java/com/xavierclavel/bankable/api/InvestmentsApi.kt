@@ -1,5 +1,6 @@
 package com.xavierclavel.bankable.api
 
+import com.xavierclavel.bankable.model.IdListIn
 import com.xavierclavel.bankable.model.InvestmentIn
 import com.xavierclavel.bankable.model.InvestmentOut
 import io.ktor.client.call.body
@@ -32,4 +33,13 @@ suspend fun apiUpdateInvestment(id: Long, investment: InvestmentIn) {
 
 suspend fun apiDeleteInvestment(id: Long) {
     httpClient.delete("$BASE_URL/investment/$id") { authHeader() }
+}
+
+/** Deletes every investment (transfer) in [ids] in a single request. */
+suspend fun apiBatchDeleteInvestments(ids: List<Long>) {
+    httpClient.post("$BASE_URL/investment/batch-delete") {
+        authHeader()
+        contentType(ContentType.Application.Json)
+        setBody(IdListIn(ids))
+    }
 }

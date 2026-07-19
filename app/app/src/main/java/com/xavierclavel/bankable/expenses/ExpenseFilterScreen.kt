@@ -54,6 +54,8 @@ import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.model.CategoryOut
+import com.xavierclavel.bankable.model.TagOut
+import com.xavierclavel.bankable.tags.TagsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -64,9 +66,11 @@ import java.util.TimeZone
 fun ExpenseFilterScreen(
     expensesViewModel: ExpensesViewModel,
     categoriesViewModel: CategoriesViewModel,
+    tagsViewModel: TagsViewModel,
     navController: NavController,
 ) {
     val categories by categoriesViewModel.categories.collectAsState()
+    val tags by tagsViewModel.tags.collectAsState()
     val initial = expensesViewModel.filter
 
     // "" = all types, otherwise "EXPENSE" / "INCOME"
@@ -77,6 +81,7 @@ fun ExpenseFilterScreen(
     var maxAmount by remember { mutableStateOf(initial.maxAmount ?: "") }
     var from by remember { mutableStateOf(initial.from) }
     var to by remember { mutableStateOf(initial.to) }
+    var tagId by remember { mutableStateOf(initial.tagId) }
 
     val minValid = minAmount.isBlank() || normalizeAmount(minAmount) != null
     val maxValid = maxAmount.isBlank() || normalizeAmount(maxAmount) != null
@@ -103,6 +108,7 @@ fun ExpenseFilterScreen(
                         maxAmount = ""
                         from = null
                         to = null
+                        tagId = null
                     }) { Text(stringResource(R.string.filter_reset)) }
                 },
             )
@@ -120,6 +126,7 @@ fun ExpenseFilterScreen(
                                 to = to,
                                 minAmount = normalizeAmount(minAmount),
                                 maxAmount = normalizeAmount(maxAmount),
+                                tagId = tagId,
                             )
                         )
                         navController.popBackStack()
@@ -228,6 +235,51 @@ fun ExpenseFilterScreen(
                     onSelectCategory = { id -> categoryId = id; subcategoryId = null; categoryExpanded = false },
                     onSelectSubcategory = { id -> subcategoryId = id; categoryId = null; categoryExpanded = false },
                 )
+            }
+
+            // Tag (collapsed by default)
+            if (tags.isNotEmpty()) {
+                SectionLabel(stringResource(R.string.filter_tag))
+                var tagExpanded by remember { mutableStateOf(false) }
+                val selectedTag = tagId?.let { id -> tags.find { it.id == id } }
+                val tagSelectionLabel = selectedTag?.label
+                    ?: stringResource(R.string.filter_all_tags)
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { tagExpanded = !tagExpanded },
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 2.dp,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = tagSelectionLabel,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (selectedTag != null) FontWeight.SemiBold else FontWeight.Normal,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            imageVector = if (tagExpanded) Icons.Default.KeyboardArrowUp
+                            else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                        )
+                    }
+                }
+                if (tagExpanded) {
+                    TagFilterList(
+                        tags = tags,
+                        selectedTagId = tagId,
+                        onSelectAll = { tagId = null; tagExpanded = false },
+                        onSelectTag = { id -> tagId = id; tagExpanded = false },
+                    )
+                }
             }
 
             // Amount range
@@ -359,6 +411,29 @@ private fun CategoryFilterList(
 }
 
 @Composable
+private fun TagFilterList(
+    tags: List<TagOut>,
+    selectedTagId: Int?,
+    onSelectAll: () -> Unit,
+    onSelectTag: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        SelectableRow(
+            label = stringResource(R.string.filter_all_tags),
+            selected = selectedTagId == null,
+            onClick = onSelectAll,
+        )
+        tags.forEach { tag ->
+            SelectableRow(
+                label = tag.label,
+                selected = selectedTagId == tag.id,
+                onClick = { onSelectTag(tag.id) },
+            )
+        }
+    }
+}
+
+@Composable
 private fun SelectableRow(
     label: String,
     selected: Boolean,
@@ -404,7 +479,7 @@ private fun SelectableRow(
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(20.dp),
                 )
             }

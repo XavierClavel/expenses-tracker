@@ -1,6 +1,8 @@
 package com.xavierclavel.bankable.accounts
 
-import androidx.compose.foundation.clickable
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +13,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -32,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,11 +48,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.model.AccountOut
 import com.xavierclavel.bankable.model.AccountReportOut
 import com.xavierclavel.bankable.model.InvestmentOut
+import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
+import com.xavierclavel.bankable.ui.SelectionActionBar
+import com.xavierclavel.bankable.ui.SelectionController
+import com.xavierclavel.bankable.ui.SelectionHeaderRow
+import com.xavierclavel.bankable.ui.rememberSelectionController
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -65,6 +79,9 @@ fun AccountViewScreen(
         accounts.find { it.id == selected.id } ?: selected
     }
     var selectedTab by remember { mutableIntStateOf(0) }
+    // Held here (not inside the tabs) so the add-FAB can hide while selecting.
+    val reportsSelection = rememberSelectionController<Int>()
+    val transfersSelection = rememberSelectionController<Long>()
 
     Scaffold(
         topBar = {
@@ -87,13 +104,13 @@ fun AccountViewScreen(
         },
         floatingActionButton = {
             when (selectedTab) {
-                0 -> FloatingActionButton(onClick = {
+                0 -> if (!reportsSelection.active) FloatingActionButton(onClick = {
                     viewModel.prepareNewReport()
                     navController.navigate("account/report/edit")
                 }) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_report))
                 }
-                1 -> FloatingActionButton(onClick = {
+                1 -> if (!transfersSelection.active) FloatingActionButton(onClick = {
                     viewModel.prepareNewTransfer()
                     navController.navigate("account/transfer/edit")
                 }) {
@@ -147,8 +164,8 @@ fun AccountViewScreen(
             }
 
             when (selectedTab) {
-                0 -> ReportsTab(reports, viewModel, navController)
-                1 -> TransfersTab(transfers, viewModel, navController)
+                0 -> ReportsTab(reports, viewModel, reportsSelection, navController)
+                1 -> TransfersTab(transfers, viewModel, transfersSelection, navController)
                 2 -> AccountChartsScreen(viewModel, accountId = account.id)
             }
         }
@@ -159,39 +176,93 @@ fun AccountViewScreen(
 private fun ReportsTab(
     reports: List<AccountReportOut>,
     viewModel: AccountsViewModel,
+    selection: SelectionController<Int>,
     navController: NavController,
 ) {
+    val context = LocalContext.current
+    var showConfirm by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = selection.active) { selection.clear() }
+
+    if (showConfirm) {
+        ConfirmDeleteDialog(
+            count = selection.selectedIds.size,
+            onConfirm = {
+                showConfirm = false
+                viewModel.batchDeleteReports(
+                    selection.selectedIds.toList(),
+                    onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() },
+                )
+                selection.clear()
+            },
+            onDismiss = { showConfirm = false },
+        )
+    }
+
     if (reports.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.no_reports_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            items(reports, key = { it.id }) { report ->
-                ReportRow(
-                    report = report,
-                    onClick = {
-                        viewModel.prepareEditReport(report)
-                        navController.navigate("account/report/edit")
-                    },
-                )
+        Column(Modifier.fillMaxSize()) {
+            if (selection.active) {
+                SelectionHeaderRow(selection.selectedIds.size) { selection.clear() }
+            }
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                items(reports, key = { it.id }) { report ->
+                    ReportRow(
+                        report = report,
+                        selected = selection.selectedIds.contains(report.id),
+                        onClick = {
+                            if (selection.active) {
+                                selection.toggle(report.id)
+                            } else {
+                                viewModel.prepareEditReport(report)
+                                navController.navigate("account/report/edit")
+                            }
+                        },
+                        onLongClick = { selection.enter(report.id) },
+                    )
+                }
+            }
+            if (selection.active) {
+                SelectionActionBar {
+                    Button(
+                        onClick = { showConfirm = true },
+                        enabled = selection.selectedIds.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text(stringResource(R.string.action_delete))
+                    }
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ReportRow(report: AccountReportOut, onClick: () -> Unit) {
+private fun ReportRow(
+    report: AccountReportOut,
+    selected: Boolean = false,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+) {
     val locale = LocalConfiguration.current.locales[0]
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 2.dp,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surface,
     ) {
         Row(
             modifier = Modifier
@@ -200,6 +271,15 @@ private fun ReportRow(report: AccountReportOut, onClick: () -> Unit) {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (selected) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.size(12.dp))
+            }
             Text(
                 text = formatReportDate(report.date, locale),
                 style = MaterialTheme.typography.bodyMedium,
@@ -246,32 +326,84 @@ private fun InterestSummary(account: AccountOut) {
 private fun TransfersTab(
     transfers: List<InvestmentOut>,
     viewModel: AccountsViewModel,
+    selection: SelectionController<Long>,
     navController: NavController,
 ) {
+    val context = LocalContext.current
+    var showConfirm by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = selection.active) { selection.clear() }
+
+    if (showConfirm) {
+        ConfirmDeleteDialog(
+            count = selection.selectedIds.size,
+            onConfirm = {
+                showConfirm = false
+                viewModel.batchDeleteTransfers(
+                    selection.selectedIds.toList(),
+                    onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() },
+                )
+                selection.clear()
+            },
+            onDismiss = { showConfirm = false },
+        )
+    }
+
     if (transfers.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.no_transfers_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            items(transfers, key = { it.id }) { transfer ->
-                TransferRow(
-                    transfer = transfer,
-                    onClick = {
-                        viewModel.prepareEditTransfer(transfer)
-                        navController.navigate("account/transfer/edit")
-                    },
-                )
+        Column(Modifier.fillMaxSize()) {
+            if (selection.active) {
+                SelectionHeaderRow(selection.selectedIds.size) { selection.clear() }
+            }
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                items(transfers, key = { it.id }) { transfer ->
+                    TransferRow(
+                        transfer = transfer,
+                        selected = selection.selectedIds.contains(transfer.id),
+                        onClick = {
+                            if (selection.active) {
+                                selection.toggle(transfer.id)
+                            } else {
+                                viewModel.prepareEditTransfer(transfer)
+                                navController.navigate("account/transfer/edit")
+                            }
+                        },
+                        onLongClick = { selection.enter(transfer.id) },
+                    )
+                }
+            }
+            if (selection.active) {
+                SelectionActionBar {
+                    Button(
+                        onClick = { showConfirm = true },
+                        enabled = selection.selectedIds.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text(stringResource(R.string.action_delete))
+                    }
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun TransferRow(transfer: InvestmentOut, onClick: () -> Unit) {
+private fun TransferRow(
+    transfer: InvestmentOut,
+    selected: Boolean = false,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+) {
     val locale = LocalConfiguration.current.locales[0]
     val positive = transfer.type == TRANSFER_IN || transfer.type == TRANSFER_INTEREST
     val color = if (positive) GAIN_COLOR else LOSS_COLOR
@@ -279,9 +411,11 @@ private fun TransferRow(transfer: InvestmentOut, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 2.dp,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surface,
     ) {
         Row(
             modifier = Modifier
@@ -290,6 +424,15 @@ private fun TransferRow(transfer: InvestmentOut, onClick: () -> Unit) {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (selected) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.size(12.dp))
+            }
             Text(
                 text = formatReportDate(transfer.date, locale),
                 style = MaterialTheme.typography.bodyMedium,

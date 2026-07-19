@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
+import com.xavierclavel.bankable.api.apiBatchTagExpenses
 import com.xavierclavel.bankable.api.apiCreateCategory
 import com.xavierclavel.bankable.api.apiCreateSubcategory
 import com.xavierclavel.bankable.api.apiDeleteCategory
@@ -134,6 +136,35 @@ class CategoriesViewModel : ViewModel() {
         if (!isLoadingExpenses && expenseHasMore) loadCategoryExpenses()
     }
 
+    /** Refetches the currently-loaded category expenses in one request (stable count). */
+    private suspend fun reloadCategoryExpenses() {
+        val categoryId = selectedCategory?.id ?: return
+        val count = _categoryExpenses.value.size.coerceAtLeast(expensePageSize)
+        val refreshed = apiListExpenses(0, count, categoryId = categoryId)
+        _categoryExpenses.value = refreshed
+        expenseHasMore = refreshed.size == count
+        expensePage = count / expensePageSize
+    }
+
+    fun batchTagCategoryExpenses(ids: List<Int>, tagId: Int, add: Boolean) {
+        viewModelScope.launch {
+            try {
+                apiBatchTagExpenses(ids, tagId, add)
+                reloadCategoryExpenses()
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun batchDeleteCategoryExpenses(ids: List<Int>) {
+        viewModelScope.launch {
+            try {
+                apiBatchDeleteExpenses(ids)
+                reloadCategoryExpenses()
+                fetchCategories()
+            } catch (_: Exception) {}
+        }
+    }
+
     /** Opens the subcategory detail view and (re)loads its expense history from the first page. */
     fun prepareViewSubcategory(subcategory: SubcategoryOut) {
         selectedSubcategory = subcategory
@@ -163,6 +194,35 @@ class CategoriesViewModel : ViewModel() {
 
     fun loadMoreSubcategoryExpenses() {
         if (!isLoadingSubcategoryExpenses && subExpenseHasMore) loadSubcategoryExpenses()
+    }
+
+    /** Refetches the currently-loaded subcategory expenses in one request (stable count). */
+    private suspend fun reloadSubcategoryExpenses() {
+        val subcategoryId = selectedSubcategory?.id ?: return
+        val count = _subcategoryExpenses.value.size.coerceAtLeast(expensePageSize)
+        val refreshed = apiListExpenses(0, count, subcategoryId = subcategoryId)
+        _subcategoryExpenses.value = refreshed
+        subExpenseHasMore = refreshed.size == count
+        subExpensePage = count / expensePageSize
+    }
+
+    fun batchTagSubcategoryExpenses(ids: List<Int>, tagId: Int, add: Boolean) {
+        viewModelScope.launch {
+            try {
+                apiBatchTagExpenses(ids, tagId, add)
+                reloadSubcategoryExpenses()
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun batchDeleteSubcategoryExpenses(ids: List<Int>) {
+        viewModelScope.launch {
+            try {
+                apiBatchDeleteExpenses(ids)
+                reloadSubcategoryExpenses()
+                fetchCategories()
+            } catch (_: Exception) {}
+        }
     }
 
     fun prepareNewSubcategory(parentCategory: CategoryOut) {

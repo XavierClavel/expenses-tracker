@@ -192,6 +192,31 @@
     <string name="settings_language_french">Français</string>
     <string name="settings_account">Account</string>
 
+    <!-- ── Tags ───────────────────────────────────────────── -->
+    <string name="nav_tags">Tags</string>
+    <string name="cd_tags">Tags</string>
+    <string name="cd_add_tag">Add tag</string>
+    <string name="screen_new_tag">New tag</string>
+    <string name="screen_edit_tag">Edit tag</string>
+    <string name="label_tag_label">Label</string>
+    <string name="dialog_delete_tag_message">Are you sure you want to delete this tag?</string>
+    <string name="tags_empty">No tags yet</string>
+    <string name="tag_expense_count">%1$d expenses</string>
+    <string name="cd_edit_tag">Edit tag</string>
+    <string name="no_expenses_with_tag">No expenses with this tag</string>
+    <string name="tag_total">Total</string>
+    <string name="expense_tags_label">Tags</string>
+    <string name="cd_has_tags">Tagged</string>
+    <string name="screen_select_tags">Select tags</string>
+    <string name="expense_no_tags">No tags yet. Create one from the Tags screen.</string>
+    <string name="filter_tag">Tag</string>
+    <string name="filter_all_tags">All tags</string>
+    <string name="batch_selected_count">%1$d selected</string>
+    <string name="batch_assign_tag">Assign tag</string>
+    <string name="batch_remove_tag">Remove tag</string>
+    <string name="cd_exit_selection">Exit selection</string>
+    <string name="dialog_batch_delete_message">Delete %1$d selected items? This can\'t be undone.</string>
+
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Blue</string>
     <string name="color_lightblue">Light blue</string>

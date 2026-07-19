@@ -11,4 +11,5 @@ data class ExpenseOut(
     val date: String,
     val categoryId: Int?,
     val type: String,
+    val tagIds: List<Int> = emptyList(),
 )

@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
+import com.xavierclavel.bankable.api.apiBatchTagExpenses
 import com.xavierclavel.bankable.api.apiCreateExpense
 import com.xavierclavel.bankable.api.apiDeleteExpense
 import com.xavierclavel.bankable.api.apiListExpenses
@@ -30,10 +32,12 @@ data class ExpenseFilter(
     val to: String? = null,
     val minAmount: String? = null,
     val maxAmount: String? = null,
+    val tagId: Int? = null,
 ) {
     val isActive: Boolean
         get() = categoryId != null || subcategoryId != null || type != null ||
-            from != null || to != null || minAmount != null || maxAmount != null
+            from != null || to != null || minAmount != null || maxAmount != null ||
+            tagId != null
 }
 
 class ExpensesViewModel : ViewModel() {
@@ -47,7 +51,16 @@ class ExpensesViewModel : ViewModel() {
         private set
     var selectedType by mutableStateOf("EXPENSE")
         private set
+    // Tag ids assigned to the expense currently being created/edited.
+    var selectedTagIds by mutableStateOf<Set<Int>>(emptySet())
+        private set
     var isLoading by mutableStateOf(false)
+        private set
+
+    // --- Multi-select / batch mode (expense list) ---
+    var selectionMode by mutableStateOf(false)
+        private set
+    var selectedExpenseIds by mutableStateOf<Set<Int>>(emptySet())
         private set
 
     // --- Search / filter state ---
@@ -84,10 +97,28 @@ class ExpensesViewModel : ViewModel() {
         }
     }
 
-    private suspend fun fetchPage(page: Int): List<ExpenseOut> =
+    /**
+     * Re-fetches all expenses currently loaded (every page fetched so far) in a single request,
+     * instead of collapsing back to the first page. Keeps the list length stable after an
+     * edit/delete so the LazyColumn restores the user's scroll position.
+     */
+    private suspend fun reloadLoadedExpenses() {
+        val loadedCount = _expenses.value.size.coerceAtLeast(pageSize)
+        isLoading = true
+        try {
+            val refreshed = fetchPage(page = 0, size = loadedCount)
+            _expenses.value = refreshed
+            hasMore = refreshed.size == loadedCount
+            currentPage = loadedCount / pageSize
+        } finally {
+            isLoading = false
+        }
+    }
+
+    private suspend fun fetchPage(page: Int, size: Int = pageSize): List<ExpenseOut> =
         apiListExpenses(
             page = page,
-            size = pageSize,
+            size = size,
             categoryId = filter.categoryId,
             subcategoryId = filter.subcategoryId,
             type = filter.type,
@@ -96,6 +127,7 @@ class ExpensesViewModel : ViewModel() {
             query = searchQuery.takeIf { it.isNotBlank() },
             minAmount = filter.minAmount,
             maxAmount = filter.maxAmount,
+            tagId = filter.tagId,
         )
 
     private fun loadExpenses() {
@@ -153,16 +185,27 @@ class ExpensesViewModel : ViewModel() {
         selectedExpense = null
         selectedSubcategory = null
         selectedType = "EXPENSE"
+        selectedTagIds = emptySet()
     }
 
     fun prepareEditExpense(expense: ExpenseOut, subcategory: SubcategoryOut?) {
         selectedExpense = expense
         selectedSubcategory = subcategory
         selectedType = expense.type
+        selectedTagIds = expense.tagIds.toSet()
     }
 
     @JvmName("updateSelectedSubcategory")
     fun setSelectedSubcategory(sub: SubcategoryOut?) { selectedSubcategory = sub }
+
+    /** Adds or removes [tagId] from the set assigned to the expense being edited. */
+    fun toggleTag(tagId: Int) {
+        selectedTagIds = if (selectedTagIds.contains(tagId)) {
+            selectedTagIds - tagId
+        } else {
+            selectedTagIds + tagId
+        }
+    }
 
     @JvmName("updateSelectedType")
     fun setSelectedType(type: String) {
@@ -186,16 +229,68 @@ class ExpensesViewModel : ViewModel() {
                     date = date,
                     categoryId = selectedSubcategory?.id,
                     type = selectedType,
+                    tagIds = selectedTagIds.toList(),
                 )
                 if (selectedExpense != null) {
                     apiUpdateExpense(selectedExpense!!.id, expenseIn)
                 } else {
                     apiCreateExpense(expenseIn)
                 }
-                fetchExpenses()
+                reloadLoadedExpenses()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Save failed")
+            }
+        }
+    }
+
+    /** Enters batch-selection mode with [expenseId] as the first selected item. */
+    fun enterSelectionMode(expenseId: Int) {
+        selectionMode = true
+        selectedExpenseIds = setOf(expenseId)
+    }
+
+    /** Toggles an expense in the selection; leaving the selection empty exits the mode. */
+    fun toggleSelection(expenseId: Int) {
+        selectedExpenseIds = if (selectedExpenseIds.contains(expenseId)) {
+            selectedExpenseIds - expenseId
+        } else {
+            selectedExpenseIds + expenseId
+        }
+        if (selectedExpenseIds.isEmpty()) selectionMode = false
+    }
+
+    fun clearSelection() {
+        selectionMode = false
+        selectedExpenseIds = emptySet()
+    }
+
+    /** Adds or removes [tagId] on every currently selected expense, then refreshes and exits. */
+    fun batchTagSelection(tagId: Int, add: Boolean, onError: (String) -> Unit) {
+        val ids = selectedExpenseIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                apiBatchTagExpenses(ids, tagId, add)
+                reloadLoadedExpenses()
+                clearSelection()
+            } catch (e: Exception) {
+                onError(e.message ?: "Operation failed")
+            }
+        }
+    }
+
+    /** Deletes every currently selected expense, then refreshes and exits selection. */
+    fun batchDeleteSelection(onError: (String) -> Unit) {
+        val ids = selectedExpenseIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                apiBatchDeleteExpenses(ids)
+                reloadLoadedExpenses()
+                clearSelection()
+            } catch (e: Exception) {
+                onError(e.message ?: "Delete failed")
             }
         }
     }
@@ -204,7 +299,7 @@ class ExpensesViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 apiDeleteExpense(selectedExpense!!.id)
-                fetchExpenses()
+                reloadLoadedExpenses()
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Delete failed")

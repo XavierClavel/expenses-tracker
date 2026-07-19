@@ -59,7 +59,12 @@ import com.xavierclavel.bankable.expenses.ExpenseFilterScreen
 import com.xavierclavel.bankable.expenses.ExpenseListScreen
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
 import com.xavierclavel.bankable.expenses.SubcategoryPickerScreen
+import com.xavierclavel.bankable.expenses.TagPickerScreen
 import com.xavierclavel.bankable.settings.SettingsScreen
+import com.xavierclavel.bankable.tags.TagEditScreen
+import com.xavierclavel.bankable.tags.TagListScreen
+import com.xavierclavel.bankable.tags.TagViewScreen
+import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.summary.SummaryScreen
 import com.xavierclavel.bankable.summary.SummaryViewModel
 import com.xavierclavel.bankable.trends.TrendsScreen
@@ -136,6 +141,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
     val accountsViewModel: AccountsViewModel = viewModel()
     val summaryViewModel: SummaryViewModel = viewModel()
     val trendsViewModel: TrendsViewModel = viewModel()
+    val tagsViewModel: TagsViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -155,9 +161,19 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                 ExpenseListScreen(
                     expensesViewModel,
                     categoriesViewModel,
+                    tagsViewModel,
                     navController,
                     onLogout = { authViewModel.logout() },
                 )
+            }
+            composable("tags") {
+                TagListScreen(tagsViewModel, navController)
+            }
+            composable("tag/view") {
+                TagViewScreen(tagsViewModel, expensesViewModel, categoriesViewModel, navController)
+            }
+            composable("tag/edit") {
+                TagEditScreen(tagsViewModel, navController)
             }
             composable("settings") {
                 SettingsScreen(
@@ -166,19 +182,22 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                 )
             }
             composable("expense/edit") {
-                ExpenseEditScreen(expensesViewModel, navController)
+                ExpenseEditScreen(expensesViewModel, tagsViewModel, navController)
             }
             composable("expense/subcategory-picker") {
                 SubcategoryPickerScreen(expensesViewModel, categoriesViewModel, navController)
             }
+            composable("expense/tag-picker") {
+                TagPickerScreen(expensesViewModel, tagsViewModel, navController)
+            }
             composable("expense/filter") {
-                ExpenseFilterScreen(expensesViewModel, categoriesViewModel, navController)
+                ExpenseFilterScreen(expensesViewModel, categoriesViewModel, tagsViewModel, navController)
             }
             composable("categories") {
                 CategoryListScreen(categoriesViewModel, navController)
             }
             composable("category/view") {
-                CategoryViewScreen(categoriesViewModel, expensesViewModel, navController)
+                CategoryViewScreen(categoriesViewModel, expensesViewModel, tagsViewModel, navController)
             }
             composable("category/edit") {
                 CategoryEditScreen(categoriesViewModel, navController)
@@ -187,7 +206,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                 SubcategoryEditScreen(categoriesViewModel, navController)
             }
             composable("subcategory/view") {
-                SubcategoryViewScreen(categoriesViewModel, expensesViewModel, navController)
+                SubcategoryViewScreen(categoriesViewModel, expensesViewModel, tagsViewModel, navController)
             }
             composable("color/picker") {
                 ColorPickerScreen(categoriesViewModel, navController)

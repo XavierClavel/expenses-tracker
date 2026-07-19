@@ -20,16 +20,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.R
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
+import com.xavierclavel.bankable.tags.TagsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubcategoryViewScreen(
     viewModel: CategoriesViewModel,
     expensesViewModel: ExpensesViewModel,
+    tagsViewModel: TagsViewModel,
     navController: NavController,
 ) {
     val subcategory = viewModel.selectedSubcategory ?: return
     val expenses by viewModel.subcategoryExpenses.collectAsState()
+    val tags by tagsViewModel.tags.collectAsState()
 
     Scaffold(
         topBar = {
@@ -66,6 +69,9 @@ fun SubcategoryViewScreen(
                     expensesViewModel.prepareEditExpense(expense, subcategory)
                     navController.navigate("expense/edit")
                 },
+                tags = tags,
+                onBatchTag = { ids, tagId, add -> viewModel.batchTagSubcategoryExpenses(ids, tagId, add) },
+                onBatchDelete = { ids -> viewModel.batchDeleteSubcategoryExpenses(ids) },
             )
         }
     }
