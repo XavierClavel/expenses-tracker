@@ -138,16 +138,18 @@ class TagControllerTest: ApplicationTest() {
     }
 
     @Test
-    fun `tag total aggregates linked expenses`() = runTestAsUser {
+    fun `tag total is net income minus expenses`() = runTestAsUser {
         val tag = client.createTag(tagInTemplate.copy(label = "Holidays"))
 
-        client.createExpense(expense.copy(amount = BigDecimal("25.00"), tagIds = listOf(tag.id)))
-        client.createExpense(expense.copy(amount = BigDecimal("75.00"), tagIds = listOf(tag.id)))
+        client.createExpense(expense.copy(amount = BigDecimal("25.00"), type = ExpenseType.EXPENSE, tagIds = listOf(tag.id)))
+        client.createExpense(expense.copy(amount = BigDecimal("75.00"), type = ExpenseType.EXPENSE, tagIds = listOf(tag.id)))
+        client.createExpense(expense.copy(amount = BigDecimal("30.00"), type = ExpenseType.INCOME, tagIds = listOf(tag.id)))
         client.createExpense(expense.copy(amount = BigDecimal("10.00")))
 
         val result = client.getTag(tag.id)
-        assertEquals(2, result.expenseCount)
-        assertEquals(0, BigDecimal("100.00").compareTo(result.total))
+        assertEquals(3, result.expenseCount)
+        // net = 30 income - (25 + 75) expenses
+        assertEquals(0, BigDecimal("-70.00").compareTo(result.total))
     }
 
     @Test

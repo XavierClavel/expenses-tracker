@@ -34,16 +34,23 @@ class TagService: KoinComponent {
     }
 
     /**
-     * Map a tag to its output, computing the aggregated total spent and the number
-     * of expenses it is linked to for the given user.
+     * Map a tag to its output. The total is the net balance of the linked entries
+     * (sum of incomes minus sum of expenses); the count is every linked entry.
      */
     private fun Tag.withTotals(userId: Long): TagOut {
-        val total = QExpense()
+        val income = QExpense()
+            .select("sum(amount)")
+            .user.id.eq(userId)
+            .type.eq(ExpenseType.INCOME)
+            .tags.id.eq(this.id)
+            .findSingleAttribute() ?: BigDecimal.ZERO
+        val expenses = QExpense()
             .select("sum(amount)")
             .user.id.eq(userId)
             .type.eq(ExpenseType.EXPENSE)
             .tags.id.eq(this.id)
             .findSingleAttribute() ?: BigDecimal.ZERO
+        val total = income.subtract(expenses)
         val count = QExpense()
             .user.id.eq(userId)
             .tags.id.eq(this.id)
