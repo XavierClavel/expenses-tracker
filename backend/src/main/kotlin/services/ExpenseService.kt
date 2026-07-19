@@ -1,6 +1,8 @@
 package com.xavierclavel.services
 
 import com.xavierclavel.config.Configuration
+import com.xavierclavel.dtos.BatchTagAction
+import com.xavierclavel.dtos.ExpenseBatchIn
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.exceptions.ForbiddenCause
 import com.xavierclavel.exceptions.ForbiddenException
@@ -175,6 +177,56 @@ class ExpenseService: KoinComponent {
     }
 
 
+    /**
+     * Apply a batch update to expenses. Every referenced tag and expense must belong to the
+     * user; ownership is validated for the whole request before any change is applied, so a
+     * bad operation rejects everything. Extend [ExpenseBatchIn] with more operation lists to
+     * grow batch editing without adding endpoints.
+     */
+    fun batchUpdate(userId: Long, dto: ExpenseBatchIn) {
+        val ops = dto.tagOperations.filter { it.expenseIds.isNotEmpty() }
+        if (ops.isEmpty()) return
+
+        // Resolve and ownership-check every referenced expense and tag up front.
+        val expensesById = QExpense()
+            .id.`in`(ops.flatMap { it.expenseIds }.distinct())
+            .findList()
+            .onEach {
+                if (it.user.id != userId) throw ForbiddenException(ForbiddenCause.MUST_OWN_EXPENSE)
+            }
+            .associateBy { it.id }
+
+        val tagIds = ops.map { it.tagId }.distinct()
+        val tagsById = QTag()
+            .id.`in`(tagIds)
+            .findList()
+            .onEach {
+                if (it.user.id != userId) throw ForbiddenException(ForbiddenCause.MUST_OWN_TAG)
+            }
+            .associateBy { it.id }
+        if (tagsById.size != tagIds.size) throw NotFoundException(NotFoundCause.TAG_NOT_FOUND)
+
+        // Apply each operation to its expenses.
+        ops.forEach { op ->
+            val tag = tagsById.getValue(op.tagId)
+            op.expenseIds.distinct().forEach expense@{ expenseId ->
+                val expense = expensesById[expenseId] ?: return@expense
+                when (op.operation) {
+                    BatchTagAction.ADD ->
+                        if (expense.tags.none { it.id == tag.id }) {
+                            expense.tags.add(tag)
+                            expense.update()
+                        }
+                    BatchTagAction.REMOVE ->
+                        if (expense.tags.any { it.id == tag.id }) {
+                            expense.tags.removeIf { it.id == tag.id }
+                            expense.update()
+                        }
+                }
+            }
+        }
+    }
+
     //TODO: prevent deletion if expense used
     fun delete(userId: Long, expenseId: Long) {
         val result = getById(expenseId)
@@ -183,5 +235,20 @@ class ExpenseService: KoinComponent {
         if (!result) {
             throw Exception("Failed to delete expense $expenseId")
         }
+    }
+
+    /**
+     * Delete several expenses at once. Every expense must belong to the user.
+     * The many-to-many tag links are removed by the single-entity delete.
+     */
+    fun batchDelete(userId: Long, ids: List<Long>) {
+        if (ids.isEmpty()) return
+        val expenses = QExpense().id.`in`(ids.distinct()).findList()
+        expenses.forEach {
+            if (it.user.id != userId) {
+                throw ForbiddenException(ForbiddenCause.MUST_OWN_EXPENSE)
+            }
+        }
+        expenses.forEach { it.delete() }
     }
 }

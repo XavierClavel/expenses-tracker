@@ -82,4 +82,18 @@ class AccountReportService: KoinComponent {
         }
     }
 
+    /**
+     * Delete several account reports at once. Every report must belong to the user.
+     */
+    fun batchDelete(userId: Long, ids: List<Long>) {
+        if (ids.isEmpty()) return
+        val reports = QAccountReport().id.`in`(ids.distinct()).findList()
+        reports.forEach {
+            if (it.account.owner.id != userId) {
+                throw ForbiddenException(ForbiddenCause.MUST_BE_OWNER)
+            }
+        }
+        reports.forEach { it.delete() }
+    }
+
 }

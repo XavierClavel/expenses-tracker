@@ -1,7 +1,9 @@
 package com.xavierclavel.routes
 
 import com.xavierclavel.dtos.DateDto
+import com.xavierclavel.dtos.ExpenseBatchIn
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.exceptions.BadRequestCause
 import com.xavierclavel.exceptions.BadRequestException
@@ -76,6 +78,26 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val expenseDto = call.receive<ExpenseIn>()
             val category = expenseService.create(userId = userId, expenseDto = expenseDto)
             call.respond(category)
+        }
+
+        /**
+         * Apply a batch update (e.g. tag add/remove) to several expenses at once.
+         */
+        put("/batch") {
+            val userId = getSessionUserId(redisService)
+            val dto = call.receive<ExpenseBatchIn>()
+            expenseService.batchUpdate(userId = userId, dto = dto)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        /**
+         * Delete several expenses at once.
+         */
+        post("/batch-delete") {
+            val userId = getSessionUserId(redisService)
+            val dto = call.receive<IdListIn>()
+            expenseService.batchDelete(userId = userId, ids = dto.ids)
+            call.respond(HttpStatusCode.OK)
         }
 
         put("/{id}") {

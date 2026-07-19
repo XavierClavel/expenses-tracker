@@ -2,6 +2,7 @@ package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.utils.EXPENSES_URL
 import com.xavierclavel.utils.assertExpenseDoesNotExist
@@ -14,6 +15,7 @@ import com.xavierclavel.utils.listExpenses
 import com.xavierclavel.utils.updateExpense
 import io.ktor.client.request.delete
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -148,6 +150,37 @@ class ExpenseControllerTest: ApplicationTest() {
             assertEquals(2011, date.year)
             assertEquals(Month.JANUARY, date.month)
         }
+    }
+
+    @Test
+    fun `batch delete expenses`() = runTestAsUser {
+        val e1 = client.createExpense(expense.copy(title = "A"))
+        val e2 = client.createExpense(expense.copy(title = "B"))
+        val e3 = client.createExpense(expense.copy(title = "C"))
+
+        client.post("$EXPENSES_URL/batch-delete") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(IdListIn(listOf(e1.id, e2.id)))
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
+        client.assertExpenseDoesNotExist(e1.id)
+        client.assertExpenseDoesNotExist(e2.id)
+        client.assertExpenseExists(e3.id)
+    }
+
+    @Test
+    fun `cannot batch delete expenses owned by another user`() = runTest {
+        var foreignId: Long = 0
+        runAsUser2 { foreignId = client.createExpense(expense).id }
+        runAsUser1 {
+            client.post("$EXPENSES_URL/batch-delete") {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(IdListIn(listOf(foreignId)))
+            }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
+        }
+        runAsUser2 { client.assertExpenseExists(foreignId) }
     }
 
 }

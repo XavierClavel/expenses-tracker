@@ -1,5 +1,6 @@
 package com.xavierclavel.routes
 
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.dtos.investment.InvestmentIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.InvestmentService
@@ -56,6 +57,13 @@ fun Route.setupInvestmentController() = route(INVESTMENT_URL) {
             val investmentId = getPathId()
             val userId = getSessionUserId(redisService)
             investmentService.delete(userId = userId, investmentId = investmentId)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/batch-delete") {
+            val userId = getSessionUserId(redisService)
+            val dto = call.receive<IdListIn>()
+            investmentService.batchDelete(userId = userId, ids = dto.ids)
             call.respond(HttpStatusCode.OK)
         }
 

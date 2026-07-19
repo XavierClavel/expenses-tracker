@@ -1,7 +1,10 @@
 package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
+import com.xavierclavel.dtos.BatchTagAction
+import com.xavierclavel.dtos.ExpenseBatchIn
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.dtos.TagOperation
 import com.xavierclavel.dtos.TagIn
 import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.utils.EXPENSES_URL
@@ -189,6 +192,76 @@ class TagControllerTest: ApplicationTest() {
             }.apply {
                 assertEquals(HttpStatusCode.Forbidden, status)
             }
+        }
+    }
+
+    @Test
+    fun `batch assign and remove a tag over several expenses`() = runTestAsUser {
+        val tag = client.createTag(tagInTemplate)
+        val e1 = client.createExpense(expense.copy(title = "A"))
+        val e2 = client.createExpense(expense.copy(title = "B"))
+
+        client.put("$EXPENSES_URL/batch") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseBatchIn(listOf(TagOperation(tag.id, BatchTagAction.ADD, listOf(e1.id, e2.id)))))
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
+        assertEquals(2, client.getTag(tag.id).expenseCount)
+        assertTrue { client.getExpense(e1.id).tagIds.contains(tag.id) }
+        assertTrue { client.getExpense(e2.id).tagIds.contains(tag.id) }
+
+        client.put("$EXPENSES_URL/batch") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseBatchIn(listOf(TagOperation(tag.id, BatchTagAction.REMOVE, listOf(e1.id)))))
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
+        assertEquals(1, client.getTag(tag.id).expenseCount)
+        assertTrue { client.getExpense(e1.id).tagIds.isEmpty() }
+        assertTrue { client.getExpense(e2.id).tagIds.contains(tag.id) }
+    }
+
+    @Test
+    fun `batch assign is idempotent`() = runTestAsUser {
+        val tag = client.createTag(tagInTemplate)
+        val e1 = client.createExpense(expense.copy(tagIds = listOf(tag.id)))
+
+        client.put("$EXPENSES_URL/batch") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseBatchIn(listOf(TagOperation(tag.id, BatchTagAction.ADD, listOf(e1.id)))))
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
+        assertEquals(listOf(tag.id), client.getExpense(e1.id).tagIds)
+    }
+
+    @Test
+    fun `batch tag rejects a tag owned by another user`() = runTest {
+        var tagId: Long = 0
+        runAsUser2 { tagId = client.createTag(tagInTemplate).id }
+        runAsUser1 {
+            val e = client.createExpense(expense)
+            client.put("$EXPENSES_URL/batch") {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(ExpenseBatchIn(listOf(TagOperation(tagId, BatchTagAction.ADD, listOf(e.id)))))
+            }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
+        }
+    }
+
+    @Test
+    fun `batch tag rejects an expense owned by another user`() = runTest {
+        var tagId: Long = 0
+        var foreignExpenseId: Long = 0
+        runAsUser1 { tagId = client.createTag(tagInTemplate).id }
+        runAsUser2 { foreignExpenseId = client.createExpense(expense).id }
+        runAsUser1 {
+            client.put("$EXPENSES_URL/batch") {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(ExpenseBatchIn(listOf(TagOperation(tagId, BatchTagAction.ADD, listOf(foreignExpenseId)))))
+            }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
         }
     }
 

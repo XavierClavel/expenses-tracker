@@ -85,4 +85,18 @@ class InvestmentService: KoinComponent {
             throw Exception("Failed to delete transfer $investmentId")
         }
     }
+
+    /**
+     * Delete several transfers at once. Every transfer must belong to the user.
+     */
+    fun batchDelete(userId: Long, ids: List<Long>) {
+        if (ids.isEmpty()) return
+        val investments = QInvestment().id.isIn(ids.distinct()).findList()
+        investments.forEach {
+            if (it.account.owner.id != userId) {
+                throw ForbiddenException(ForbiddenCause.MUST_BE_OWNER)
+            }
+        }
+        investments.forEach { it.delete() }
+    }
 }

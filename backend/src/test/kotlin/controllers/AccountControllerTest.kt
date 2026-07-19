@@ -1,9 +1,13 @@
 package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.dtos.investment.AccountReportIn
 import com.xavierclavel.dtos.investment.InvestmentAccountIn
 import com.xavierclavel.models.query.QAccountReport
+import com.xavierclavel.utils.ACCOUNT_REPORT_URL
+import com.xavierclavel.utils.assertAccountReportDoesNotExist
+import com.xavierclavel.utils.assertAccountReportExists
 import com.xavierclavel.utils.createAccount
 import com.xavierclavel.utils.createAccountReport
 import com.xavierclavel.utils.getAccount
@@ -11,6 +15,13 @@ import com.xavierclavel.utils.getAccountMonthTrendsReport
 import com.xavierclavel.utils.getAccountYearTrendsReport
 import com.xavierclavel.utils.getUserAccountsMonthTrendsReport
 import com.xavierclavel.utils.getUserAccountsYearTrendsReport
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
@@ -158,6 +169,41 @@ class AccountControllerTest: ApplicationTest() {
         assertEquals(0, result.find{it.year == 2021}!!.balance.compareTo(BigDecimal("20")))
         assertEquals(0, result.find{it.year == 2022}!!.balance.compareTo(BigDecimal("20")))
         assertEquals(0, result.find{it.year == 2023}!!.balance.compareTo(BigDecimal("50")))
+    }
+
+    @Test
+    fun `batch delete account reports`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        val r1 = client.createAccountReport(account.id, AccountReportIn(BigDecimal("10"), LocalDate.parse("2021-01-01")))
+        val r2 = client.createAccountReport(account.id, AccountReportIn(BigDecimal("20"), LocalDate.parse("2021-02-01")))
+        val r3 = client.createAccountReport(account.id, AccountReportIn(BigDecimal("30"), LocalDate.parse("2021-03-01")))
+
+        client.post("$ACCOUNT_REPORT_URL/batch-delete") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(IdListIn(listOf(r1.id, r2.id)))
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
+        client.assertAccountReportDoesNotExist(r1.id)
+        client.assertAccountReportDoesNotExist(r2.id)
+        client.assertAccountReportExists(r3.id)
+    }
+
+    @Test
+    fun `cannot batch delete another user's account reports`() = runTest {
+        var foreignId = 0L
+        runAsUser1 {
+            val account = client.createAccount(accountDto)
+            foreignId = client.createAccountReport(account.id, AccountReportIn(BigDecimal("10"), LocalDate.parse("2021-01-01"))).id
+        }
+        runAsUser2 {
+            client.post("$ACCOUNT_REPORT_URL/batch-delete") {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(IdListIn(listOf(foreignId)))
+            }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
+        }
+        runAsUser1 { client.assertAccountReportExists(foreignId) }
     }
 
 }

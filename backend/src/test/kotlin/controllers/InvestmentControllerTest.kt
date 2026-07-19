@@ -1,10 +1,13 @@
 package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.dtos.investment.InvestmentIn
 import com.xavierclavel.dtos.investment.InvestmentAccountIn
 import com.xavierclavel.enums.InvestmentType
 import com.xavierclavel.utils.INVESTMENT_URL
+import com.xavierclavel.utils.assertInvestmentDoesNotExist
+import com.xavierclavel.utils.assertInvestmentExists
 import com.xavierclavel.utils.createAccount
 import com.xavierclavel.utils.createInvestment
 import com.xavierclavel.utils.deleteInvestment
@@ -13,7 +16,13 @@ import com.xavierclavel.utils.listInvestments
 import com.xavierclavel.utils.listInvestmentsByAccount
 import com.xavierclavel.utils.updateInvestment
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
@@ -95,5 +104,40 @@ class InvestmentControllerTest: ApplicationTest() {
             }
             assertEquals(0, client.listInvestments().size)
         }
+    }
+
+    @Test
+    fun `batch delete transfers`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        val t1 = client.createInvestment(account.id, investmentIn(account.id, "100"))
+        val t2 = client.createInvestment(account.id, investmentIn(account.id, "50", InvestmentType.OUT, "2021-02-01"))
+        val t3 = client.createInvestment(account.id, investmentIn(account.id, "30", InvestmentType.IN, "2021-03-01"))
+
+        client.post("$INVESTMENT_URL/batch-delete") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(IdListIn(listOf(t1.id, t2.id)))
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
+        client.assertInvestmentDoesNotExist(t1.id)
+        client.assertInvestmentDoesNotExist(t2.id)
+        client.assertInvestmentExists(t3.id)
+    }
+
+    @Test
+    fun `cannot batch delete another user's transfers`() = runTest {
+        var foreignId = 0L
+        runAsUser1 {
+            val account = client.createAccount(accountDto)
+            foreignId = client.createInvestment(account.id, investmentIn(account.id)).id
+        }
+        runAsUser2 {
+            client.post("$INVESTMENT_URL/batch-delete") {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(IdListIn(listOf(foreignId)))
+            }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
+        }
+        runAsUser1 { client.assertInvestmentExists(foreignId) }
     }
 }

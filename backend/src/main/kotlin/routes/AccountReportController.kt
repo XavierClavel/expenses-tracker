@@ -1,5 +1,6 @@
 package com.xavierclavel.routes
 
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.dtos.investment.AccountReportIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AccountReportService
@@ -67,6 +68,13 @@ fun Route.setupAccountReportController() = route(ACCOUNT_REPORT_URL) {
             val reportId = getPathId()
             val userId = getSessionUserId(redisService)
             accountReportService.delete(userId = userId, reportId = reportId)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/batch-delete") {
+            val userId = getSessionUserId(redisService)
+            val dto = call.receive<IdListIn>()
+            accountReportService.batchDelete(userId = userId, ids = dto.ids)
             call.respond(HttpStatusCode.OK)
         }
 
