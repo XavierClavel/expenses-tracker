@@ -1,0 +1,105 @@
+package com.xavierclavel.bankable.auth
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import com.xavierclavel.bankable.resources.Res
+import com.xavierclavel.bankable.resources.action_log_in
+import com.xavierclavel.bankable.resources.action_sign_up
+import com.xavierclavel.bankable.resources.label_email
+import com.xavierclavel.bankable.resources.label_password
+import com.xavierclavel.bankable.resources.screen_login
+import org.jetbrains.compose.resources.stringResource
+
+@Composable
+fun LoginScreen(
+    authState: AuthState,
+    onLogin: (String, String) -> Unit,
+    onGoogleSignIn: (String, (String) -> Unit) -> Unit,
+    onNavigateToSignup: () -> Unit,
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var googleError by remember { mutableStateOf<String?>(null) }
+    var googleLoading by remember { mutableStateOf(false) }
+    val isLoading = authState is AuthState.Loading || googleLoading
+
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(stringResource(Res.string.screen_login), style = MaterialTheme.typography.headlineMedium)
+            Spacer(Modifier.height(24.dp))
+            OutlinedTextField(
+                value = email, onValueChange = { email = it },
+                label = { Text(stringResource(Res.string.label_email)) },
+                modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !isLoading,
+            )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = password, onValueChange = { password = it },
+                label = { Text(stringResource(Res.string.label_password)) },
+                modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !isLoading,
+                visualTransformation = PasswordVisualTransformation(),
+            )
+            val errorMessage = (authState as? AuthState.Unauthenticated)?.error ?: googleError
+            if (errorMessage != null) {
+                Spacer(Modifier.height(8.dp))
+                Text(errorMessage, color = MaterialTheme.colorScheme.error)
+            }
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = { onLogin(email, password) },
+                modifier = Modifier.fillMaxWidth(), enabled = !isLoading,
+            ) {
+                if (isLoading) CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                )
+                else Text(stringResource(Res.string.action_log_in))
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onNavigateToSignup,
+                modifier = Modifier.fillMaxWidth(), enabled = !isLoading,
+            ) {
+                Text(stringResource(Res.string.action_sign_up))
+            }
+            Spacer(Modifier.height(8.dp))
+            GoogleSignInButton(
+                enabled = !isLoading,
+                loading = googleLoading,
+                onLoadingChange = { googleLoading = it },
+                onIdToken = { token ->
+                    googleError = null
+                    onGoogleSignIn(token) { err -> googleError = err; googleLoading = false }
+                },
+                onError = { googleError = it },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}

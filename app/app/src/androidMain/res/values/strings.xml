@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only the launcher label lives here: everything the UI renders is a
+         Compose Multiplatform resource under commonMain/composeResources. -->
+    <string name="app_name">Bankable</string>
+</resources>

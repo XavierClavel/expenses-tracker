@@ -22,3 +22,15 @@ keystore.properties
 # Release build artifacts
 *.aab
 *.apk
+
+# Xcode / iOS
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Kotlin/Native
+.kotlin/
