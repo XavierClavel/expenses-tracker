@@ -8,7 +8,9 @@ import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
 import com.xavierclavel.plugins.RedisService
+import com.xavierclavel.plugins.SessionData
 import io.ebean.Paging
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
@@ -27,6 +29,21 @@ suspend fun RoutingContext.createSession(user: UserOut, redisService: RedisServi
     val sessionId = UUID.randomUUID().toString()
     redisService.createSession(sessionId, user)
     return sessionId
+}
+
+/**
+ * Rolls a session forward: restarts its idle window server-side and re-issues the
+ * cookie so its Max-Age tracks the new expiry. Returns null when the session has
+ * expired or been revoked, in which case the stale cookie is dropped.
+ */
+suspend fun ApplicationCall.rollSession(session: UserSession, redisService: RedisService): SessionData? {
+    val sessionData = redisService.rollSession(session.sessionId)
+    if (sessionData == null) {
+        sessions.clear<UserSession>()
+        return null
+    }
+    sessions.set(session)
+    return sessionData
 }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)

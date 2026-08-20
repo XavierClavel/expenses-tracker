@@ -1,12 +1,14 @@
 package com.xavierclavel.plugins
 
 import com.xavierclavel.config.Configuration
+import com.xavierclavel.enums.UserRole
 import com.xavierclavel.exceptions.BadRequestException
 import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.UserService
 import com.xavierclavel.utils.UserSession
+import com.xavierclavel.utils.rollSession
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -33,7 +35,7 @@ fun Application.configureAuthentication() {
         cookie<UserSession>("user_session") {
             cookie.httpOnly = true
             cookie.path = "/"
-            cookie.maxAgeInSeconds = 7 * 24 * 60 * 60
+            cookie.maxAgeInSeconds = SESSION_TTL_SECONDS
         }
     }
 
@@ -73,7 +75,7 @@ fun Application.configureAuthentication() {
 
         session<UserSession>("auth-session") {
             validate { session ->
-                if (redisService.hasSession(session.sessionId)) {
+                if (rollSession(session, redisService) != null) {
                     session
                 } else {
                     null
@@ -86,7 +88,7 @@ fun Application.configureAuthentication() {
 
         bearer("bearer-auth") {
             authenticate { tokenCredential ->
-                val session = redisService.getSession(tokenCredential.token)
+                val session = redisService.rollSession(tokenCredential.token)
                 if (session != null) {
                     UserIdPrincipal(session.userId.toString())
                 } else {
@@ -97,7 +99,7 @@ fun Application.configureAuthentication() {
 
         session<UserSession>("admin-session") {
             validate { session ->
-                if (redisService.isUserAdmin(session.sessionId)) {
+                if (rollSession(session, redisService)?.role == UserRole.ADMIN) {
                     session
                 } else {
                     null

@@ -1,5 +1,6 @@
 package com.xavierclavel.utils
 
+import com.xavierclavel.dtos.auth.SessionDto
 import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.dtos.UserOut
 import io.ktor.client.HttpClient
@@ -8,6 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -40,6 +42,12 @@ suspend fun HttpClient.login(mail: String, password: String) =
     this.post("$AUTH_URL/login") {
         basicAuth(username = mail, password = password)
     }
+
+/** Session id returned by a successful login, as used for bearer authentication. */
+suspend fun HttpResponse.sessionToken(): String {
+    assertEquals(HttpStatusCode.OK, status)
+    return Json.decodeFromString<SessionDto>(bodyAsText()).token
+}
 
 
 suspend fun HttpClient.logout() =
