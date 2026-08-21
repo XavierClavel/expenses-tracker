@@ -46,3 +46,7 @@ app/fastlane/play-service-account.json
 **/fastlane/Preview.html
 **/fastlane/test_output/
 **/fastlane/README.md
+
+### Kubernetes ###
+k8s/secrets.env
+k8s/*.secret.env

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expenses-tracker-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: expenses-tracker-redis
+  template:
+    metadata:
+      labels:
+        app: expenses-tracker-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          args: ["redis-server", "--appendonly", "yes", "--requirepass", "$(REDIS_PASSWORD)"]
+          envFrom:
+            - secretRef:
+                name: expenses-tracker-secrets
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: expenses-tracker-redis-pvc
