@@ -19,6 +19,9 @@ individual manifest hardcodes it.
 
 ## Deploy
 
+Normally you don't — CI does it on every release (see
+[CI deployment](#ci-deployment)). To deploy by hand:
+
 ```sh
 # inspect what would change
 kubectl diff -k k8s/overlays/prod
@@ -56,20 +59,61 @@ kubectl rollout restart deployment -n expenses-tracker \
   expenses-tracker-backend expenses-tracker-redis expenses-tracker-database
 ```
 
-## Releasing a new backend version
+## CI deployment
 
-CI (`.github/workflows/build.yml`) reads `version` from `build.gradle.kts` and
-pushes `xavierclavel/expenses-tracker-backend:<version>` plus `:latest`.
-The deployed tag is pinned in one place — `images.newTag` in
-`overlays/prod/kustomization.yaml`. Bump it to match `build.gradle.kts`:
+`.github/workflows/build.yml` reads `version` from `build.gradle.kts`. When that
+version has no matching git tag yet (or on manual dispatch) it builds and pushes
+`xavierclavel/expenses-tracker-backend:<version>` **and** `:latest`, then the
+`deploy` job ships it:
+
+1. renders `overlays/prod` on the runner — so what is applied is exactly the
+   manifests from the commit that built the image, with no checkout to keep in
+   sync on the server
+2. pipes the result over SSH into `kubectl apply -f -` on the node
+3. `kubectl rollout restart` the backend, then `rollout status --timeout=5m`
+
+Step 3 is not redundant: prod tracks `:latest`, so the rendered Deployment spec
+is byte-identical between releases and `apply` alone would be a no-op. The
+restart is what pulls the new image (`imagePullPolicy: Always`). The job fails
+if the new pods don't become ready.
+
+A push to `master` with an unchanged `version` builds and deploys nothing. To
+force a redeploy of `:latest`, run the workflow manually
+(Actions → Docker Image CI → Run workflow).
+
+### Required repository secrets
+
+| Secret | Purpose |
+| --- | --- |
+| `SSH_HOST` | cluster node hostname or IP |
+| `SSH_USER` | SSH user; must have a working `kubectl` on the node |
+| `SSH_KEY` | private key, PEM, no passphrase |
+| `SSH_KNOWN_HOSTS` | output of `ssh-keyscan -H <host>` — pins the host key so the deploy can't be MITM'd |
 
 ```sh
-kustomize edit set image xavierclavel/expenses-tracker-backend=:1.3.4
-# or just edit overlays/prod/kustomization.yaml
+gh secret set SSH_HOST --body '<host>'
+gh secret set SSH_USER --body '<user>'
+gh secret set SSH_KEY < ~/.ssh/deploy_key
+ssh-keyscan -H <host> | gh secret set SSH_KNOWN_HOSTS
 ```
 
-`base/` deliberately references `:latest` so it stays applyable on its own;
-prod always pins an explicit tag.
+If `kubectl` on the node needs an explicit config (k3s puts it at
+`/etc/rancher/k3s/k3s.yaml`, root-readable only), either use a root-capable
+`SSH_USER` or copy that file into the user's `~/.kube/config`.
+
+### Rolling back
+
+`images.newTag` in `overlays/prod/kustomization.yaml` is the lever — set it to a
+released version instead of `latest` and apply:
+
+```sh
+kustomize edit set image xavierclavel/expenses-tracker-backend=:1.3.2
+kubectl apply -k k8s/overlays/prod
+```
+
+Because prod tracks a mutable tag, `kubectl get deploy` will not tell you which
+version is live. `kubectl describe pod` shows the resolved image digest, and the
+GitHub release list gives you the candidate versions.
 
 ## Notes / known rough edges
 
@@ -79,6 +123,15 @@ prod always pins an explicit tag.
 - No CPU/memory requests or limits are set on any container, matching the
   previous setup. Worth adding before this shares a node with anything else.
 - `redis:alpine` is an unpinned tag; postgres is pinned to `17.2`.
+- Prod deploys a mutable `:latest`, so git does not record which version is
+  live and rollback means editing `newTag` rather than reverting a commit. If
+  that traceability matters later, have CI run
+  `kustomize edit set image ...=:$VERSION` before applying: the spec then
+  changes on every release, the rollout happens without a restart step, and the
+  live version is visible in `kubectl get deploy`.
+- The deploy job applies the whole overlay, so a bad manifest change can touch
+  postgres, redis and the PVCs — not just the backend. `kubectl diff -k` before
+  merging anything structural.
 - Postgres and Redis run as single-replica Deployments backed by
   `ReadWriteOnce` PVCs. A rolling update can deadlock (new pod waits for a
   volume the old pod still holds). `Recreate` strategy or a StatefulSet would

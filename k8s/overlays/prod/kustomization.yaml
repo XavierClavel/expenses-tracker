@@ -8,8 +8,10 @@ resources:
   - certificate.yaml
   - ingress.yaml
 
-# Single source of truth for the deployed backend version.
-# Keep in sync with `version` in build.gradle.kts (the tag CI pushes).
+# Prod tracks :latest, which CI republishes on every release; the deploy job
+# then forces a rollout to pull it (applying an unchanged spec would be a no-op).
+# This is also the rollback lever: set newTag to a released version (e.g. 1.3.2)
+# and apply to pin prod to it.
 images:
   - name: xavierclavel/expenses-tracker-backend
-    newTag: "1.3.3"
+    newTag: latest
