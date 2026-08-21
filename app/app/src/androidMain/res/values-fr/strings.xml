@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The UI strings live in commonMain/composeResources, but Android resolves
+         Configuration.getLocales() against the *Android* resource qualifiers an
+         APK ships. Without a values-fr folder a French device would resolve to
+         en, and both LocalAppLocale and Compose Multiplatform's resource lookup
+         (which read that same configuration) would fall back to English.
+         Keeping the launcher label here declares French support to the platform. -->
+    <string name="app_name">Bankable</string>
+</resources>
