@@ -34,6 +34,11 @@ class SummaryViewModel : ViewModel() {
     private var oldestYear = 2000
     private var oldestMonth = 1
 
+    // Stamps every load so a slow response can never overwrite a newer one, and tracks
+    // which period is currently being fetched so a refresh can't duplicate it.
+    private var lastRequestId = 0
+    private var inFlightPeriod: String? = null
+
     init {
         viewModelScope.launch {
             try {
@@ -48,21 +53,38 @@ class SummaryViewModel : ViewModel() {
         }
     }
 
-    fun refresh() = loadSummary()
+    fun refresh() {
+        // Reopening the screen must not wipe what is already drawn: showing the skeleton
+        // for data we already hold makes the whole page blink on every open. Only the
+        // very first load (nothing on screen yet) is allowed to show it.
+        if (inFlightPeriod == currentPeriodKey()) return
+        loadSummary(showSkeleton = summary == null)
+    }
 
-    private fun loadSummary() {
+    private fun currentPeriodKey(): String =
+        if (timescale == "month") "$selectedYear-$selectedMonth" else "$selectedYear"
+
+    private fun loadSummary(showSkeleton: Boolean = true) {
+        val requestId = ++lastRequestId
+        inFlightPeriod = currentPeriodKey()
         viewModelScope.launch {
-            isLoading = true
+            if (showSkeleton) isLoading = true
             try {
-                summary = if (timescale == "month") {
+                val result = if (timescale == "month") {
                     apiGetMonthSummary(selectedYear, selectedMonth)
                 } else {
                     apiGetYearSummary(selectedYear)
                 }
+                if (requestId == lastRequestId) summary = result
             } catch (_: Exception) {
-                summary = null
+                // A background refresh keeps the current data — flashing the empty state
+                // for what may be a transient failure is worse than showing stale totals.
+                if (showSkeleton && requestId == lastRequestId) summary = null
             } finally {
-                isLoading = false
+                if (requestId == lastRequestId) {
+                    inFlightPeriod = null
+                    if (showSkeleton) isLoading = false
+                }
             }
         }
     }
