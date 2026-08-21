@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: expenses-tracker
+
+resources:
+  - ../../base
+  - certificate.yaml
+  - ingress.yaml
+
+# Prod tracks :latest, which CI republishes on every release; the deploy job
+# then forces a rollout to pull it (applying an unchanged spec would be a no-op).
+# This is also the rollback lever: set newTag to a released version (e.g. 1.3.2)
+# and apply to pin prod to it.
+images:
+  - name: xavierclavel/expenses-tracker-backend
+    newTag: latest

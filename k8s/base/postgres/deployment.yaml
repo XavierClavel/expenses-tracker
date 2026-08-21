@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expenses-tracker-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: expenses-tracker-database
+  template:
+    metadata:
+      labels:
+        app: expenses-tracker-database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.2
+          ports:
+            - name: postgres
+              containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: expenses-tracker-secrets
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: expenses-tracker-postgres-pvc

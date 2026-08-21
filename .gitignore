@@ -46,3 +46,9 @@ app/fastlane/play-service-account.json
 **/fastlane/Preview.html
 **/fastlane/test_output/
 **/fastlane/README.md
+
+### Kubernetes ###
+k8s/secrets.env
+k8s/*.secret.env
+# rendered by the CI deploy job / `kubectl kustomize ... > manifests.yaml`
+manifests.yaml
