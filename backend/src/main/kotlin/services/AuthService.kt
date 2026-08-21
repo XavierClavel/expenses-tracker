@@ -72,7 +72,7 @@ class AuthService: KoinComponent {
     }
 
     private fun findOrCreateGoogleUser(sub: String, email: String, name: String?, emailVerified: Boolean): UserOut {
-        userService.exportByGoogleId(sub)?.let { return it }
+        userService.exportByGoogleId(sub, email)?.let { return it }
         if (userService.existsByEmail(email)) {
             // An account with this email already exists (e.g. created via email/password).
             // Link Google to it — but only when Google has verified the email, otherwise
@@ -80,10 +80,10 @@ class AuthService: KoinComponent {
             if (!emailVerified) throw UnauthorizedException(UnauthorizedCause.OAUTH_NOT_SETUP)
             return userService.linkGoogleId(email, sub)
         }
-        return createGoogleOauthUser(sub, name)
+        return createGoogleOauthUser(sub, email, name)
     }
 
-    private fun createGoogleOauthUser(sub: String, name: String?): UserOut {
+    private fun createGoogleOauthUser(sub: String, email: String, name: String?): UserOut {
         val baseName = name?.trim() ?: UUID.randomUUID().toString()
         var username = baseName
         var index = 1
@@ -93,6 +93,7 @@ class AuthService: KoinComponent {
         }
         val userCreated = User(
             username = username,
+            emailAddress = email,
             googleId = sub,
         ).apply { save() }
         .toOutput()

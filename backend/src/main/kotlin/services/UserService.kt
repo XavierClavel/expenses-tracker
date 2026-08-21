@@ -39,8 +39,21 @@ class UserService: KoinComponent {
     fun exportByMail(mail: String): UserOut? =
         QUser().emailAddress.eq(mail).findOne()?.toOutput()
 
-    fun exportByGoogleId(googleId: String): UserOut? =
-        QUser().googleId.eq(googleId).findOne()?.toOutput()
+    /**
+     * Returns the account owning this Google identity, backfilling its email when
+     * one is missing. Accounts created by the Google flow before it persisted the
+     * email have a blank email_address; heal them on their next login, unless
+     * another account has since claimed that address.
+     */
+    fun exportByGoogleId(googleId: String, email: String): UserOut? {
+        val user = QUser().googleId.eq(googleId).findOne() ?: return null
+        if (user.emailAddress.isBlank() && email.isNotBlank() && !existsByEmail(email)) {
+            user.emailAddress = email
+            user.save()
+            logger.info { "Backfilled the missing email of Google account ${user.id}" }
+        }
+        return user.toOutput()
+    }
 
 
     fun exportAll(paging: Paging): List<UserOut> =
