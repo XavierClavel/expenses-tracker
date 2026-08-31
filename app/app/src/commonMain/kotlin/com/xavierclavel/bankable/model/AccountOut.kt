@@ -21,4 +21,8 @@ data class AccountOut(
     val latestAnnualReturnYear: Int? = null,
     // Interest earned during latestAnnualReturnYear (the € amount).
     val latestYearInterest: String? = null,
+    // Averages over every year with a measurable return: the € interest earned per
+    // year, and the mean of those years' return rates (e.g. "0.035" = +3.5% / yr).
+    val meanAnnualInterest: String? = null,
+    val meanAnnualReturn: String? = null,
 )

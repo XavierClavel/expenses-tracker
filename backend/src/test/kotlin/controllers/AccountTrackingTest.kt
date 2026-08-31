@@ -121,6 +121,24 @@ class AccountTrackingTest: ApplicationTest() {
     }
 
     @Test
+    fun `interest mode means average the first year in too`() = runTestAsUser {
+        val account = client.createAccount(livret)
+        // Recorded interest makes even the first year measurable, so both years count.
+        client.createAccountReport(account.id, report("10000", "2023-01-01"))
+        client.createInvestment(account.id, interest(account.id, "300", "2023-12-31"))
+        client.createAccountReport(account.id, report("10300", "2023-12-31"))
+        client.createInvestment(account.id, interest(account.id, "400", "2024-12-31"))
+        client.createAccountReport(account.id, report("10700", "2024-12-31"))
+
+        val result = client.getAccount(account.id)
+        // (300 + 400) / 2 years
+        assertEquals(0, result.meanAnnualInterest!!.compareTo(BigDecimal("350.00")))
+        // ~3% then ~3.9% on a ~10300 average balance
+        val mean = result.meanAnnualReturn!!.toDouble()
+        assertTrue(mean in 0.032..0.036, "expected ~3.4% but was $mean")
+    }
+
+    @Test
     fun `mixed-mode accounts aggregate correctly`() = runTestAsUser {
         val pea = client.createAccount(InvestmentAccountIn(name = "PEA")) // CONTRIBUTIONS (default)
         client.createInvestment(pea.id, deposit(pea.id, "1000", "2021-01-01"))

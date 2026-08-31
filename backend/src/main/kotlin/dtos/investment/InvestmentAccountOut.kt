@@ -31,4 +31,13 @@ data class InvestmentAccountOut(
     // Interest earned during `latestAnnualReturnYear` (the € amount, not the rate).
     @Serializable(with = BigDecimalSerializer::class)
     val latestYearInterest: BigDecimal? = null,
+
+    // Averages over every year whose return could be measured: the € interest earned
+    // per year, and the mean of those years' return rates (0.035 = +3.5% / yr). Null
+    // when no year is measurable.
+    @Serializable(with = BigDecimalSerializer::class)
+    val meanAnnualInterest: BigDecimal? = null,
+
+    @Serializable(with = BigDecimalSerializer::class)
+    val meanAnnualReturn: BigDecimal? = null,
 )

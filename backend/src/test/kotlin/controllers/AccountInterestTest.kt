@@ -192,6 +192,39 @@ class AccountInterestTest: ApplicationTest() {
         assertTrue(ret in 0.10..0.12, "expected ~0.112 but was $ret")
     }
 
+    // ── Mean annual interest ─────────────────────────────────────────────────────
+
+    @Test
+    fun `mean annual interest averages every measured year`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        // 2021 is the first year: a snapshot of unknown history, so it isn't measured.
+        client.createInvestment(account.id, deposit(account.id, "1000", "2021-01-01"))
+        client.createAccountReport(account.id, report("1000", "2021-12-31"))
+        client.createAccountReport(account.id, report("1100", "2022-12-31")) // +100 -> 10%
+        client.createAccountReport(account.id, report("1300", "2023-12-31")) // +200 -> 18.2%
+
+        val result = client.getAccount(account.id)
+        // (100 + 200) / 2 years
+        assertEquals(0, result.meanAnnualInterest!!.compareTo(BigDecimal("150.00")))
+        // (0.1 + 0.1818) / 2 ≈ 0.141
+        val mean = result.meanAnnualReturn!!.toDouble()
+        assertTrue(mean in 0.139..0.143, "expected ~14.1% but was $mean")
+        // The latest year is unaffected by the averaging.
+        assertEquals(2023, result.latestAnnualReturnYear)
+        assertEquals(0, result.latestYearInterest!!.compareTo(BigDecimal("200")))
+    }
+
+    @Test
+    fun `mean annual interest is null without a measured year`() = runTestAsUser {
+        val account = client.createAccount(accountDto)
+        client.createInvestment(account.id, deposit(account.id, "500", "2021-01-01"))
+        client.createAccountReport(account.id, report("500", "2021-06-01"))
+
+        val result = client.getAccount(account.id)
+        assertEquals(null, result.meanAnnualInterest)
+        assertEquals(null, result.meanAnnualReturn)
+    }
+
     @Test
     fun `annual return is null without a prior year`() = runTestAsUser {
         val account = client.createAccount(accountDto)

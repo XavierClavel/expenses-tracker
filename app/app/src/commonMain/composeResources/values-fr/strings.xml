@@ -171,6 +171,7 @@
     <string name="interest_view_label">Intérêts affichés</string>
     <string name="interest_view_total">Total</string>
     <string name="interest_view_year">Cette année</string>
+    <string name="interest_view_mean">Moyenne</string>
     <string name="transfer_interest">Intérêt</string>
     <string name="transfer_fee">Frais</string>
 

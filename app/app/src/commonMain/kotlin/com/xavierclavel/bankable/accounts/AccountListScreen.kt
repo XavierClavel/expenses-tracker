@@ -48,6 +48,7 @@ import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.annual_return_format
 import com.xavierclavel.bankable.resources.cd_add_account
 import com.xavierclavel.bankable.resources.interest_view_label
+import com.xavierclavel.bankable.resources.interest_view_mean
 import com.xavierclavel.bankable.resources.interest_view_total
 import com.xavierclavel.bankable.resources.interest_view_year
 import com.xavierclavel.bankable.resources.label_charts
@@ -62,6 +63,7 @@ import org.jetbrains.compose.resources.stringResource
 // Which interest figure the account cards show — one at a time to keep them compact.
 private const val INTEREST_VIEW_TOTAL = "total"
 private const val INTEREST_VIEW_YEAR = "year"
+private const val INTEREST_VIEW_MEAN = "mean"
 
 @Composable
 fun AccountListScreen(
@@ -95,6 +97,28 @@ fun AccountListScreen(
         // date), so mid-year deposits don't inflate the rate.
         val pct = last.returnRate?.toDoubleOrNull()?.times(100.0)
         CurrentYearInterest(last.year, gain, pct)
+    }
+
+    // Mean interest per year across all accounts: the average of the yearly gains and
+    // of the yearly returns, over the years the all-accounts trends could measure.
+    // Null when no year is measurable.
+    val meanAnnualInterest: MeanAnnualInterest? = remember(userYearTrends) {
+        fun accruedOf(t: com.xavierclavel.bankable.model.AccountTrendDto) =
+            (t.balance.toDoubleOrNull() ?: 0.0) - (t.contributions?.toDoubleOrNull() ?: 0.0)
+        // A year counts only when the backend could measure its return; its gain is
+        // the accrued interest minus the previous year's (zero before the series).
+        val measured = userYearTrends.mapIndexedNotNull { i, trend ->
+            val rate = trend.returnRate?.toDoubleOrNull() ?: return@mapIndexedNotNull null
+            val previous = if (i > 0) accruedOf(userYearTrends[i - 1]) else 0.0
+            MeasuredYear(trend.year, accruedOf(trend) - previous, rate)
+        }
+        if (measured.isEmpty()) return@remember null
+        MeanAnnualInterest(
+            firstYear = measured.first().year,
+            lastYear = measured.last().year,
+            gain = measured.sumOf { it.gain } / measured.size,
+            percent = measured.sumOf { it.rate } / measured.size * 100.0,
+        )
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -134,14 +158,14 @@ fun AccountListScreen(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                // Same Total / This-year switch as the cards; value only, hidden when zero.
-                val headerInterest: Pair<Double, Double?>? = (
-                    if (interestView == INTEREST_VIEW_YEAR) {
-                        currentYearInterest?.let { it.gain to it.percent }
-                    } else {
-                        totalInterest?.let { it to (if (totalContributions > 0.0) it / totalContributions * 100.0 else null) }
+                // Same Total / This-year / Mean switch as the cards; value only, hidden when zero.
+                val headerInterest: Pair<Double, Double?>? = when (interestView) {
+                    INTEREST_VIEW_YEAR -> currentYearInterest?.let { it.gain to it.percent }
+                    INTEREST_VIEW_MEAN -> meanAnnualInterest?.let { it.gain to it.percent }
+                    else -> totalInterest?.let {
+                        it to (if (totalContributions > 0.0) it / totalContributions * 100.0 else null)
                     }
-                )?.takeIf { it.first != 0.0 }
+                }?.takeIf { it.first != 0.0 }
                 if (headerInterest != null) {
                     val sign = if (headerInterest.first > 0.0) "+" else ""
                     val pctText = headerInterest.second
@@ -152,6 +176,14 @@ fun AccountListScreen(
                         fontWeight = FontWeight.Medium,
                         color = if (headerInterest.first >= 0.0) GAIN else LOSS,
                     )
+                    // The mean is only readable if you know the span it covers.
+                    if (interestView == INTEREST_VIEW_MEAN && meanAnnualInterest != null) {
+                        Text(
+                            text = meanAnnualInterest.spanLabel(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
@@ -206,7 +238,8 @@ private fun BalanceTab(
         }
         // Show the interest switch only when some account actually has interest to show.
         val anyInterest = accounts.any {
-            (it.contributions.toDoubleOrNull() ?: 0.0) != 0.0 || it.latestYearInterest != null
+            (it.contributions.toDoubleOrNull() ?: 0.0) != 0.0 ||
+                it.latestYearInterest != null || it.meanAnnualInterest != null
         }
         Column(Modifier.fillMaxSize()) {
             if (anyInterest) {
@@ -224,6 +257,7 @@ private fun BalanceTab(
                         options = listOf(
                             INTEREST_VIEW_TOTAL to stringResource(Res.string.interest_view_total),
                             INTEREST_VIEW_YEAR to stringResource(Res.string.interest_view_year),
+                            INTEREST_VIEW_MEAN to stringResource(Res.string.interest_view_mean),
                         ),
                         selected = interestView,
                         onSelect = onInterestViewChange,
@@ -288,12 +322,15 @@ private fun AccountRow(account: AccountOut, interestView: String, onClick: () ->
         accountInterest(account.amount, account.contributions) else null
     val yearInterest = account.latestYearInterest?.toDoubleOrNull()
     val yearPercent = account.latestAnnualReturn?.toDoubleOrNull()?.times(100.0)
+    val meanInterest = account.meanAnnualInterest?.toDoubleOrNull()
+    val meanPercent = account.meanAnnualReturn?.toDoubleOrNull()?.times(100.0)
 
     // The interest figure to show, per the selected view (value + optional percent);
     // hidden when it's exactly zero.
     val interest: Pair<Double, Double?>? = when (interestView) {
         INTEREST_VIEW_YEAR ->
             if (yearInterest != null && account.latestAnnualReturnYear != null) yearInterest to yearPercent else null
+        INTEREST_VIEW_MEAN -> meanInterest?.let { it to meanPercent }
         else -> total?.let { it.value to it.percent }
     }?.takeIf { it.first != 0.0 }
 
@@ -356,6 +393,21 @@ internal data class InterestInfo(val value: Double, val percent: Double?)
 // Interest earned across all accounts during a single year (the latest year in the
 // yearly trends): the € gained and the return relative to the prior year's balance.
 internal data class CurrentYearInterest(val year: Int, val gain: Double, val percent: Double?)
+
+// One year the all-accounts trends could measure: the interest earned during it and
+// that year's return.
+private data class MeasuredYear(val year: Int, val gain: Double, val rate: Double)
+
+// Mean interest earned per year across all accounts, and the years it averages over.
+internal data class MeanAnnualInterest(
+    val firstYear: Int,
+    val lastYear: Int,
+    val gain: Double,
+    val percent: Double?,
+) {
+    // Language-neutral span, e.g. "2021–2024" (or just "2024" for a single year).
+    fun spanLabel(): String = if (firstYear == lastYear) "$firstYear" else "$firstYear–$lastYear"
+}
 
 internal fun accountInterest(amount: String, contributions: String): InterestInfo {
     val balance = amount.toDoubleOrNull() ?: 0.0
