@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: expenses-tracker-database
+  labels:
+    type: local
+spec:
+  selector:
+    app: expenses-tracker-database
+  ports:
+    - port: 5432
+      targetPort: 5432

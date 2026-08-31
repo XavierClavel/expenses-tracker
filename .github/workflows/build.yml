@@ -111,3 +111,54 @@ jobs:
               --notes "Release created automatically by GitHub Actions." \
               --target "${{ github.sha }}"
           fi
+
+  deploy:
+    needs: [check, build]
+    if: needs.check.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.31.0
+
+      # Rendering here rather than on the node means what gets applied is exactly
+      # this commit's manifests — no checkout to keep in sync on the server.
+      - name: Render manifests
+        run: |
+          kubectl kustomize k8s/overlays/prod > manifests.yaml
+          echo "Rendered $(grep -c '^kind:' manifests.yaml) resources:"
+          grep -E '^(kind|  name):' manifests.yaml | paste - -
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Apply manifests
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" \
+            'kubectl apply -f -' < manifests.yaml
+
+      # :latest is republished by the build job, but the Deployment spec is
+      # unchanged, so apply alone would not restart anything.
+      - name: Redeploy :latest and wait for rollout
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" bash -eu <<'REMOTE'
+            kubectl rollout restart -n expenses-tracker deployment/expenses-tracker-backend
+            kubectl rollout status  -n expenses-tracker deployment/expenses-tracker-backend --timeout=5m
+            kubectl get pods -n expenses-tracker -l app=expenses-tracker-backend
+          REMOTE
