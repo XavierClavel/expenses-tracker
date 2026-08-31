@@ -44,13 +44,13 @@ class AccountService: KoinComponent {
         getById(accountId)
             .checkRights(userId)
             .toOutput()
-            .withAnnualReturn(userId, accountId)
+            .withInterestSummary(userId, accountId)
 
     fun list(userId: Long): List<InvestmentAccountOut> {
         return QInvestmentAccount()
             .owner.id.eq(userId)
             .findList()
-            .map { it.toOutput().withAnnualReturn(userId, it.id) }
+            .map { it.toOutput().withInterestSummary(userId, it.id) }
     }
 
     /**
@@ -63,21 +63,44 @@ class AccountService: KoinComponent {
         return last.year to last.returnRate!!
     }
 
-    private fun InvestmentAccountOut.withAnnualReturn(userId: Long, accountId: Long): InvestmentAccountOut {
-        val trends = trendByAccountByYear(userId, accountId)
-        val idx = trends.indexOfLast { it.returnRate != null }
-        if (idx < 0) return this
-        val current = trends[idx]
-        val currentInterest = current.balance - (current.contributions ?: BigDecimal.ZERO)
-        val previousInterest = if (idx > 0)
-            trends[idx - 1].let { it.balance - (it.contributions ?: BigDecimal.ZERO) } else BigDecimal.ZERO
+    /** The interest earned during one year, and that year's return rate. */
+    private data class YearInterest(val year: Int, val interest: BigDecimal, val rate: BigDecimal)
+
+    /**
+     * The latest and mean annual interest figures, derived from the yearly trends.
+     *
+     * Only years whose return could be measured count: in CONTRIBUTIONS mode the first
+     * year is a snapshot of unknown history, so it is skipped. The means are plain
+     * arithmetic averages over those years — the € interest earned per year, and the
+     * average of the yearly returns.
+     */
+    private fun InvestmentAccountOut.withInterestSummary(userId: Long, accountId: Long): InvestmentAccountOut {
+        val measured = measuredYears(trendByAccountByYear(userId, accountId))
+        if (measured.isEmpty()) return this
+        val latest = measured.last()
+        val years = BigDecimal(measured.size)
         return copy(
-            latestAnnualReturn = current.returnRate,
-            latestAnnualReturnYear = current.year,
-            latestYearInterest = currentInterest - previousInterest,
+            latestAnnualReturn = latest.rate,
+            latestAnnualReturnYear = latest.year,
+            latestYearInterest = latest.interest,
+            meanAnnualInterest = measured.sumOf { it.interest }.divide(years, 2, RoundingMode.HALF_UP),
+            meanAnnualReturn = measured.sumOf { it.rate }.divide(years, 6, RoundingMode.HALF_UP),
         )
     }
 
+    /**
+     * The years of a yearly series that carry a measurable return, each with the
+     * interest earned during it — the accrued interest (`balance − contributions`)
+     * minus the previous year's, taken as zero before the series starts.
+     */
+    private fun measuredYears(trends: List<AccountTrendDto>): List<YearInterest> {
+        fun accruedAt(i: Int) = trends[i].let { it.balance - (it.contributions ?: BigDecimal.ZERO) }
+        return trends.indices.mapNotNull { i ->
+            val rate = trends[i].returnRate ?: return@mapNotNull null
+            val previous = if (i > 0) accruedAt(i - 1) else BigDecimal.ZERO
+            YearInterest(trends[i].year, accruedAt(i) - previous, rate)
+        }
+    }
 
     fun create(accountDto: InvestmentAccountIn, userId: Long): InvestmentAccountOut {
         val user = QUser().id.eq(userId).findOne() ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND)
