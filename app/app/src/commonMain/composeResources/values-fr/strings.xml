@@ -176,7 +176,7 @@
     <string name="transfer_fee">Frais</string>
 
     <!-- ── Summary ────────────────────────────────────────── -->
-    <string name="summary_unspent_income">Revenu non dépensé</string>
+    <string name="summary_saved_income">Revenu épargné</string>
     <string name="summary_pct_of_income">% du revenu</string>
     <string name="summary_pct_of_spending">% des dépenses</string>
     <string name="summary_no_data">Aucune donnée pour cette période</string>
