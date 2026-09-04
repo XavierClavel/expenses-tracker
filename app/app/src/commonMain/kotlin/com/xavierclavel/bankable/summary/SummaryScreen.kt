@@ -106,7 +106,7 @@ import com.xavierclavel.bankable.resources.summary_no_data
 import com.xavierclavel.bankable.resources.summary_no_expenses
 import com.xavierclavel.bankable.resources.summary_pct_of_income
 import com.xavierclavel.bankable.resources.summary_pct_of_spending
-import com.xavierclavel.bankable.resources.summary_unspent_income
+import com.xavierclavel.bankable.resources.summary_saved_income
 import com.xavierclavel.bankable.ui.SlidingToggle
 import com.xavierclavel.bankable.util.formatFixed
 import com.xavierclavel.bankable.util.formatIsoDateShort
@@ -352,7 +352,7 @@ fun SummaryScreen(
                             pieEntries + PieEntry(
                                 categoryId = -1,
                                 value      = savingsValue,
-                                label      = stringResource(Res.string.summary_unspent_income),
+                                label      = stringResource(Res.string.summary_saved_income),
                                 color      = ResidualColor,
                                 icon       = null,
                                 isResidual = true,
@@ -514,7 +514,7 @@ private fun SavingsLegendRow(
             ) {
                 Icon(Icons.Default.TrendingUp, null, tint = color, modifier = Modifier.size(22.dp))
                 Text(
-                    text       = stringResource(Res.string.summary_unspent_income),
+                    text       = stringResource(Res.string.summary_saved_income),
                     style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier   = Modifier.weight(1f),

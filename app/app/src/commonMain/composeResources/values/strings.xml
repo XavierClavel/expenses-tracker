@@ -176,7 +176,7 @@
     <string name="transfer_fee">Fee</string>
 
     <!-- ── Summary ────────────────────────────────────────── -->
-    <string name="summary_unspent_income">Unspent income</string>
+    <string name="summary_saved_income">Saved income</string>
     <string name="summary_pct_of_income">% of income</string>
     <string name="summary_pct_of_spending">% of spending</string>
     <string name="summary_no_data">No data for this period</string>
