@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
@@ -75,6 +76,8 @@ import com.xavierclavel.bankable.platform.showToast
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.action_delete
 import com.xavierclavel.bankable.resources.batch_assign_tag
+import com.xavierclavel.bankable.resources.batch_duplicate
+import com.xavierclavel.bankable.resources.batch_duplicate_done
 import com.xavierclavel.bankable.resources.batch_remove_tag
 import com.xavierclavel.bankable.resources.batch_selected_count
 import com.xavierclavel.bankable.resources.cd_add_expense
@@ -90,6 +93,8 @@ import com.xavierclavel.bankable.resources.search_expenses_hint
 import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
 import com.xavierclavel.bankable.ui.TagPickerDialog
+import com.xavierclavel.bankable.util.currentMonth
+import com.xavierclavel.bankable.util.currentYear
 import com.xavierclavel.bankable.util.formatIsoDateLong
 import org.jetbrains.compose.resources.stringResource
 
@@ -117,6 +122,7 @@ fun ExpenseListScreen(
     // null = closed, true = pick a tag to add, false = pick a tag to remove
     var tagPickerAdd by remember { mutableStateOf<Boolean?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showDuplicatePicker by remember { mutableStateOf(false) }
 
     // Hardware back exits selection mode instead of leaving the screen.
     BackHandler(enabled = selectionMode) { viewModel.clearSelection() }
@@ -151,6 +157,31 @@ fun ExpenseListScreen(
         )
     }
 
+    if (showDuplicatePicker) {
+        // Default to the month after the most recent selected expense: the usual case is
+        // carrying recurring expenses over to the next month.
+        val latestDate = expenses.filter { selectedIds.contains(it.id) }.maxOfOrNull { it.date }
+        val latestYear = latestDate?.substring(0, 4)?.toIntOrNull() ?: currentYear()
+        val latestMonth = latestDate?.substring(5, 7)?.toIntOrNull() ?: currentMonth()
+        val count = selectedIds.size
+        val doneMessage = stringResource(Res.string.batch_duplicate_done, count)
+        DuplicateExpensesDialog(
+            count = count,
+            initialYear = if (latestMonth == 12) latestYear + 1 else latestYear,
+            initialMonth = latestMonth % 12 + 1,
+            onConfirm = { year, month ->
+                showDuplicatePicker = false
+                viewModel.batchDuplicateSelection(
+                    year = year,
+                    month = month,
+                    onSuccess = { showToast(doneMessage) },
+                    onError = { msg -> showToast(msg) },
+                )
+            },
+            onDismiss = { showDuplicatePicker = false },
+        )
+    }
+
     val grouped = remember(expenses) {
         expenses.groupBy { it.date }
     }
@@ -180,6 +211,12 @@ fun ExpenseListScreen(
                         }
                     },
                     actions = {
+                        IconButton(
+                            onClick = { showDuplicatePicker = true },
+                            enabled = selectedIds.isNotEmpty(),
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = stringResource(Res.string.batch_duplicate))
+                        }
                         IconButton(
                             onClick = { showDeleteConfirm = true },
                             enabled = selectedIds.isNotEmpty(),

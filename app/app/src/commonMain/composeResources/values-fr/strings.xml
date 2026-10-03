@@ -218,6 +218,9 @@
     <string name="batch_remove_tag">Retirer une étiquette</string>
     <string name="cd_exit_selection">Quitter la sélection</string>
     <string name="dialog_batch_delete_message">Supprimer %1$d éléments sélectionnés ? Cette action est irréversible.</string>
+    <string name="batch_duplicate">Dupliquer</string>
+    <string name="dialog_batch_duplicate_message">Copier %1$d dépenses sélectionnées vers :</string>
+    <string name="batch_duplicate_done">%1$d dépenses dupliquées</string>
 
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Bleu</string>
