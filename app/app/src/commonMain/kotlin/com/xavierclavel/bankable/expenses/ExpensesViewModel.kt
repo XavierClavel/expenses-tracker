@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
+import com.xavierclavel.bankable.api.apiBatchDuplicateExpenses
 import com.xavierclavel.bankable.api.apiBatchTagExpenses
 import com.xavierclavel.bankable.api.apiCreateExpense
 import com.xavierclavel.bankable.api.apiDeleteExpense
@@ -277,6 +278,22 @@ class ExpensesViewModel : ViewModel() {
                 clearSelection()
             } catch (e: Exception) {
                 onError(e.message ?: "Operation failed")
+            }
+        }
+    }
+
+    /** Copies every currently selected expense into [month] of [year], then refreshes and exits. */
+    fun batchDuplicateSelection(year: Int, month: Int, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val ids = selectedExpenseIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                apiBatchDuplicateExpenses(ids, year, month)
+                reloadLoadedExpenses()
+                clearSelection()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(e.message ?: "Duplicate failed")
             }
         }
     }

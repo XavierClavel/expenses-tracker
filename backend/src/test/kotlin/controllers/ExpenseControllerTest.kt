@@ -1,7 +1,9 @@
 package com.xavierclavel.controllers
 
 import com.xavierclavel.ApplicationTest
+import com.xavierclavel.dtos.ExpenseDuplicateIn
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.dtos.ExpenseOut
 import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.utils.EXPENSES_URL
@@ -18,6 +20,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -28,6 +31,7 @@ import java.time.LocalDate
 import java.time.Month
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.Json
 import kotlin.time.ExperimentalTime
 
 class ExpenseControllerTest: ApplicationTest() {
@@ -181,6 +185,57 @@ class ExpenseControllerTest: ApplicationTest() {
             }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
         }
         runAsUser2 { client.assertExpenseExists(foreignId) }
+    }
+
+    @Test
+    fun `batch duplicate expenses into another month`() = runTestAsUser {
+        val e1 = client.createExpense(expense.copy(title = "A", date = LocalDate.parse("2020-01-15")))
+        val e2 = client.createExpense(expense.copy(title = "B", date = LocalDate.parse("2020-01-31")))
+
+        val copies = client.post("$EXPENSES_URL/batch-duplicate") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseDuplicateIn(listOf(e1.id, e2.id), year = 2020, month = 2))
+        }.run {
+            assertEquals(HttpStatusCode.OK, status)
+            Json.decodeFromString<List<ExpenseOut>>(bodyAsText())
+        }
+
+        assertEquals(2, copies.size)
+        val copyA = copies.single { it.title == "A" }
+        val copyB = copies.single { it.title == "B" }
+        assertEquals(LocalDate.parse("2020-02-15"), copyA.date)
+        // Day of month is clamped to the length of the target month.
+        assertEquals(LocalDate.parse("2020-02-29"), copyB.date)
+        assertEquals(e1.amount, copyA.amount)
+        assertTrue(copyA.id != e1.id)
+
+        // Originals are untouched.
+        client.assertExpenseExists(e1.id)
+        assertEquals(LocalDate.parse("2020-01-15"), client.getExpense(e1.id).date)
+    }
+
+    @Test
+    fun `batch duplicate rejects an invalid month`() = runTestAsUser {
+        val e1 = client.createExpense(expense)
+        client.post("$EXPENSES_URL/batch-duplicate") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseDuplicateIn(listOf(e1.id), year = 2020, month = 13))
+        }.apply { assertEquals(HttpStatusCode.BadRequest, status) }
+    }
+
+    @Test
+    fun `cannot batch duplicate expenses owned by another user`() = runTest {
+        var foreignId: Long = 0
+        runAsUser2 { foreignId = client.createExpense(expense).id }
+        runAsUser1 {
+            client.post("$EXPENSES_URL/batch-duplicate") {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(ExpenseDuplicateIn(listOf(foreignId), year = 2020, month = 7))
+            }.apply { assertEquals(HttpStatusCode.Forbidden, status) }
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package com.xavierclavel.routes
 
 import com.xavierclavel.dtos.DateDto
 import com.xavierclavel.dtos.ExpenseBatchIn
+import com.xavierclavel.dtos.ExpenseDuplicateIn
 import com.xavierclavel.dtos.ExpenseIn
 import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.enums.ExpenseType
@@ -20,7 +21,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import java.time.DateTimeException
 import java.time.LocalDate
+import java.time.YearMonth
 
 fun Route.setupExpenseController() = route(EXPENSES_URL) {
     val expenseService: ExpenseService by inject()
@@ -98,6 +101,21 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
             val dto = call.receive<IdListIn>()
             expenseService.batchDelete(userId = userId, ids = dto.ids)
             call.respond(HttpStatusCode.OK)
+        }
+
+        /**
+         * Duplicate several expenses into another month.
+         */
+        post("/batch-duplicate") {
+            val userId = getSessionUserId(redisService)
+            val dto = call.receive<ExpenseDuplicateIn>()
+            val targetMonth = try {
+                YearMonth.of(dto.year, dto.month)
+            } catch (_: DateTimeException) {
+                throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+            }
+            val expenses = expenseService.batchDuplicate(userId = userId, ids = dto.ids, targetMonth = targetMonth)
+            call.respond(expenses)
         }
 
         put("/{id}") {

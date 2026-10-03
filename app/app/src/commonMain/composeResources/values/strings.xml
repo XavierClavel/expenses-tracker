@@ -218,6 +218,9 @@
     <string name="batch_remove_tag">Remove tag</string>
     <string name="cd_exit_selection">Exit selection</string>
     <string name="dialog_batch_delete_message">Delete %1$d selected items? This can\'t be undone.</string>
+    <string name="batch_duplicate">Duplicate</string>
+    <string name="dialog_batch_duplicate_message">Copy %1$d selected expenses into:</string>
+    <string name="batch_duplicate_done">%1$d expenses duplicated</string>
 
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Blue</string>

@@ -22,6 +22,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 
 class ExpenseService: KoinComponent {
     val configuration: Configuration by inject()
@@ -225,6 +226,37 @@ class ExpenseService: KoinComponent {
                 }
             }
         }
+    }
+
+    /**
+     * Copy several expenses into [targetMonth]. Every expense must belong to the user; each
+     * copy keeps its title, amount, category and tags, and its day of month (clamped to the
+     * length of the target month).
+     */
+    fun batchDuplicate(userId: Long, ids: List<Long>, targetMonth: YearMonth): List<ExpenseOut> {
+        if (ids.isEmpty()) return emptyList()
+        val expenses = QExpense().id.`in`(ids.distinct()).findList()
+        expenses.forEach {
+            if (it.user.id != userId) {
+                throw ForbiddenException(ForbiddenCause.MUST_OWN_EXPENSE)
+            }
+        }
+        return expenses
+            .sortedBy { it.date }
+            .map {
+                Expense(
+                    user = it.user,
+                    title = it.title,
+                    category = it.category,
+                    date = targetMonth.atDay(minOf(it.date.dayOfMonth, targetMonth.lengthOfMonth())),
+                    amount = it.amount,
+                    currency = it.currency,
+                    type = it.type,
+                    tags = it.tags.toMutableList(),
+                )
+                    .apply { insert() }
+                    .toOutput()
+            }
     }
 
     //TODO: prevent deletion if expense used
