@@ -71,7 +71,9 @@
     <string name="screen_new_expense">New expense</string>
     <string name="cd_add_expense">Add expense</string>
     <string name="cd_operators">Insert operator</string>
-    <string name="no_expenses_yet">No expenses yet</string>
+    <string name="expenses_empty_title">No expenses yet</string>
+    <string name="expenses_empty_description">Track your first expense or income to start seeing where your money goes.</string>
+    <string name="expenses_empty_cta">Add your first expense</string>
     <string name="no_category_selected">No category selected</string>
     <string name="dialog_delete_expense_title">Delete expense</string>
     <string name="dialog_delete_expense_message">Are you sure you want to delete "%1$s"?</string>

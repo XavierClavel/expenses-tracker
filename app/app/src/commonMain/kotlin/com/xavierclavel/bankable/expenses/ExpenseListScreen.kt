@@ -88,12 +88,15 @@ import com.xavierclavel.bankable.resources.cd_filter
 import com.xavierclavel.bankable.resources.cd_has_tags
 import com.xavierclavel.bankable.resources.cd_logout
 import com.xavierclavel.bankable.resources.cd_settings
-import com.xavierclavel.bankable.resources.no_expenses_yet
+import com.xavierclavel.bankable.resources.expenses_empty_cta
+import com.xavierclavel.bankable.resources.expenses_empty_description
+import com.xavierclavel.bankable.resources.expenses_empty_title
 import com.xavierclavel.bankable.resources.no_matching_expenses
 import com.xavierclavel.bankable.resources.screen_recurring_expenses
 import com.xavierclavel.bankable.resources.search_expenses_hint
 import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
+import com.xavierclavel.bankable.ui.EmptyState
 import com.xavierclavel.bankable.ui.TagPickerDialog
 import com.xavierclavel.bankable.util.currentMonth
 import com.xavierclavel.bankable.util.currentYear
@@ -293,7 +296,7 @@ fun ExpenseListScreen(
                             onLogout = onLogout,
                         )
                     }
-                    if (expenses.isEmpty()) {
+                    if (expenses.isEmpty() && viewModel.hasActiveFilters) {
                         item(key = "empty") {
                             Box(
                                 modifier = Modifier
@@ -302,13 +305,25 @@ fun ExpenseListScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = if (viewModel.hasActiveFilters)
-                                        stringResource(Res.string.no_matching_expenses)
-                                    else
-                                        stringResource(Res.string.no_expenses_yet),
+                                    text = stringResource(Res.string.no_matching_expenses),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                        }
+                    } else if (expenses.isEmpty()) {
+                        item(key = "empty") {
+                            EmptyState(
+                                animationPath = "files/empty_expenses.json",
+                                title = stringResource(Res.string.expenses_empty_title),
+                                description = stringResource(Res.string.expenses_empty_description),
+                                actionLabel = stringResource(Res.string.expenses_empty_cta),
+                                actionIcon = Icons.Default.Add,
+                                onAction = {
+                                    viewModel.prepareNewExpense()
+                                    navController.navigate("expense/edit")
+                                },
+                                modifier = Modifier.fillParentMaxSize(),
+                            )
                         }
                     } else {
                         grouped.forEach { (dateStr, dayExpenses) ->
