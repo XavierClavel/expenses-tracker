@@ -222,6 +222,23 @@
     <string name="dialog_batch_duplicate_message">Copier %1$d dépenses sélectionnées vers :</string>
     <string name="batch_duplicate_done">%1$d dépenses dupliquées</string>
 
+    <!-- ── Recurring expenses ─────────────────────────────── -->
+    <string name="screen_recurring_expenses">Dépenses récurrentes</string>
+    <string name="screen_new_recurring_expense">Nouvelle dépense récurrente</string>
+    <string name="screen_edit_recurring_expense">Modifier la dépense récurrente</string>
+    <string name="cd_add_recurring_expense">Ajouter une dépense récurrente</string>
+    <string name="recurring_expenses_empty">Aucune dépense récurrente</string>
+    <string name="recurring_expenses_empty_hint">Ajoutez-en une : elle sera ajoutée automatiquement à vos dépenses chaque mois.</string>
+    <string name="recurring_day_label">Jour du mois</string>
+    <string name="recurring_day_value">Tous les mois, le %1$d</string>
+    <string name="recurring_due_today_hint">C'est aujourd'hui : la dépense de ce mois-ci sera ajoutée tout de suite.</string>
+    <string name="recurring_short_months_hint">Les mois plus courts, elle est ajoutée le dernier jour.</string>
+    <string name="recurring_edit_hint">Les modifications ne s'appliquent qu'aux prochaines dépenses ; celles déjà ajoutées restent inchangées.</string>
+    <!-- %1$d = jour du mois, %2$s = date courte de la prochaine dépense, ex. "Le 5 · prochaine le 5 nov." -->
+    <string name="recurring_schedule">Le %1$d · prochaine le %2$s</string>
+    <string name="dialog_delete_recurring_expense_message">Supprimer « %1$s » ? Les dépenses déjà ajoutées sont conservées.</string>
+    <string name="recurring_expense_added">La dépense de ce mois-ci a été ajoutée</string>
+
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Bleu</string>
     <string name="color_lightblue">Bleu clair</string>

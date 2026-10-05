@@ -222,6 +222,23 @@
     <string name="dialog_batch_duplicate_message">Copy %1$d selected expenses into:</string>
     <string name="batch_duplicate_done">%1$d expenses duplicated</string>
 
+    <!-- ── Recurring expenses ─────────────────────────────── -->
+    <string name="screen_recurring_expenses">Recurring expenses</string>
+    <string name="screen_new_recurring_expense">New recurring expense</string>
+    <string name="screen_edit_recurring_expense">Edit recurring expense</string>
+    <string name="cd_add_recurring_expense">Add recurring expense</string>
+    <string name="recurring_expenses_empty">No recurring expenses yet</string>
+    <string name="recurring_expenses_empty_hint">Add one and it will be added to your expenses automatically every month.</string>
+    <string name="recurring_day_label">Day of the month</string>
+    <string name="recurring_day_value">Every month on day %1$d</string>
+    <string name="recurring_due_today_hint">That's today: this month's expense will be added right away.</string>
+    <string name="recurring_short_months_hint">In shorter months, it's added on the last day.</string>
+    <string name="recurring_edit_hint">Changes only apply to upcoming expenses; the ones already added stay as they are.</string>
+    <!-- %1$d = day of month, %2$s = short date of the next expense, e.g. "Day 5 · next on 5 Nov" -->
+    <string name="recurring_schedule">Day %1$d · next on %2$s</string>
+    <string name="dialog_delete_recurring_expense_message">Delete "%1$s"? The expenses it already added are kept.</string>
+    <string name="recurring_expense_added">This month's expense was added</string>
+
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Blue</string>
     <string name="color_lightblue">Light blue</string>

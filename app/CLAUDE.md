@@ -23,7 +23,7 @@ app/                              ← this directory (Gradle root, settings.grad
         api/                      ← one *Api.kt per feature + ApiClient.kt
         model/                    ← *In (request) / *Out (response) / *Dto data classes
         platform/                 ← `expect` declarations for everything platform-specific
-        auth/ categories/ expenses/ accounts/ summary/ trends/ tags/ settings/  ← feature packages
+        auth/ categories/ expenses/ recurring/ accounts/ summary/ trends/ tags/ settings/  ← feature packages
         constants/                ← AppColors, AppIcons, AccountTypes, Currencies
         storage/                  ← TokenStorage, PersistentCookiesStorage, LocalePreferences
         ui/                       ← shared composables (e.g. SlidingToggle) + ui/theme/
@@ -92,7 +92,7 @@ Targets are `iosArm64` (device) and `iosSimulatorArm64`. There's no `iosX64`: Co
 - Async work runs in `viewModelScope.launch { ... }` with try/catch; on error, `onError(e.message ?: "...")` is invoked rather than thrown. Loading is tracked with an `isLoading` flag.
 - The "edit" screens are reused for create vs. update: the ViewModel exposes `prepareNewX()` / `prepareEditX(item)` before navigating, then `saveX(...)` branches on whether a `selectedX` is set.
 
-**ViewModel lifecycle (important).** The session-scoped ViewModels (Categories, Expenses, Accounts, Summary, Trends, Tags) are created in `MainNavGraphContent` and hung off a custom `SessionViewModelStoreOwner` that is cleared on logout (`DisposableEffect.onDispose`). This guarantees a fresh login rebuilds them with the new account's data. Don't move these into per-screen `viewModel()` scopes.
+**ViewModel lifecycle (important).** The session-scoped ViewModels (Categories, Expenses, RecurringExpenses, Accounts, Summary, Trends, Tags) are created in `MainNavGraphContent` and hung off a custom `SessionViewModelStoreOwner` that is cleared on logout (`DisposableEffect.onDispose`). This guarantees a fresh login rebuilds them with the new account's data. Don't move these into per-screen `viewModel()` scopes.
 
 **Navigation.** All routes are registered centrally in `navigation/AppNavigation.kt` as string routes (e.g. `"category/edit"`, `"account/report/edit"`). There are no typed nav args — data is passed between screens via the shared ViewModels' `selected*` state, not route parameters. Top-level tabs are in `TOP_LEVEL_ROUTES`; the bottom bar only shows on those. To add a screen: add a `composable("...")` entry and navigate to it after calling the relevant `prepare*` on the ViewModel.
 

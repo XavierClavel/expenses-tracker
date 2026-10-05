@@ -58,6 +58,9 @@ import com.xavierclavel.bankable.expenses.ExpenseListScreen
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
 import com.xavierclavel.bankable.expenses.SubcategoryPickerScreen
 import com.xavierclavel.bankable.expenses.TagPickerScreen
+import com.xavierclavel.bankable.recurring.RecurringExpenseEditScreen
+import com.xavierclavel.bankable.recurring.RecurringExpenseListScreen
+import com.xavierclavel.bankable.recurring.RecurringExpensesViewModel
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.nav_accounts
 import com.xavierclavel.bankable.resources.nav_categories
@@ -147,6 +150,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
     val summaryViewModel: SummaryViewModel = viewModel()
     val trendsViewModel: TrendsViewModel = viewModel()
     val tagsViewModel: TagsViewModel = viewModel()
+    val recurringExpensesViewModel: RecurringExpensesViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -180,6 +184,36 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             composable("tag/edit") {
                 TagEditScreen(tagsViewModel, navController)
             }
+            composable("recurring") {
+                RecurringExpenseListScreen(recurringExpensesViewModel, categoriesViewModel, navController)
+            }
+            composable("recurring/edit") {
+                RecurringExpenseEditScreen(
+                    recurringExpensesViewModel,
+                    tagsViewModel,
+                    navController,
+                    onExpenseCreated = {
+                        expensesViewModel.refresh()
+                        tagsViewModel.loadTags()
+                    },
+                )
+            }
+            composable("recurring/subcategory-picker") {
+                SubcategoryPickerScreen(
+                    selectedType = recurringExpensesViewModel.selectedType,
+                    onPick = recurringExpensesViewModel::setSelectedSubcategory,
+                    categoriesViewModel = categoriesViewModel,
+                    navController = navController,
+                )
+            }
+            composable("recurring/tag-picker") {
+                TagPickerScreen(
+                    selectedIds = recurringExpensesViewModel.selectedTagIds,
+                    onToggle = recurringExpensesViewModel::toggleTag,
+                    tagsViewModel = tagsViewModel,
+                    navController = navController,
+                )
+            }
             composable("settings") {
                 SettingsScreen(
                     navController,
@@ -190,10 +224,20 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                 ExpenseEditScreen(expensesViewModel, tagsViewModel, navController)
             }
             composable("expense/subcategory-picker") {
-                SubcategoryPickerScreen(expensesViewModel, categoriesViewModel, navController)
+                SubcategoryPickerScreen(
+                    selectedType = expensesViewModel.selectedType,
+                    onPick = expensesViewModel::setSelectedSubcategory,
+                    categoriesViewModel = categoriesViewModel,
+                    navController = navController,
+                )
             }
             composable("expense/tag-picker") {
-                TagPickerScreen(expensesViewModel, tagsViewModel, navController)
+                TagPickerScreen(
+                    selectedIds = expensesViewModel.selectedTagIds,
+                    onToggle = expensesViewModel::toggleTag,
+                    tagsViewModel = tagsViewModel,
+                    navController = navController,
+                )
             }
             composable("expense/filter") {
                 ExpenseFilterScreen(expensesViewModel, categoriesViewModel, tagsViewModel, navController)

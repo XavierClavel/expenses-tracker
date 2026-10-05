@@ -122,8 +122,8 @@ android {
         applicationId = "com.xavierclavel.bankable"
         minSdk = 24
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.6.2"
+        versionCode = 15
+        versionName = "1.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
