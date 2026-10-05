@@ -12,6 +12,7 @@ import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.services.InvestmentService
+import com.xavierclavel.services.RecurringExpenseService
 import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.TagService
@@ -64,6 +65,7 @@ abstract class ApplicationTest: KoinTest {
                 single { SubcategoryService() }
                 single { ExpenseService() }
                 single { TagService() }
+                single { RecurringExpenseService() }
                 single { SummaryService() }
                 single { TrendService() }
                 single { AccountService() }
@@ -86,9 +88,10 @@ abstract class ApplicationTest: KoinTest {
     }
 
     fun cleanDb() {
-        // Clear the many-to-many join table first: its FKs are "on delete restrict",
+        // Clear the many-to-many join tables first: their FKs are "on delete restrict",
         // so the bulk table deletes below would otherwise fail while links exist.
         DB.sqlUpdate("delete from expense_tag").execute()
+        DB.sqlUpdate("delete from recurring_expense_tag").execute()
         DatabaseManager.getTables().forEach { table ->
             table.delete()
         }

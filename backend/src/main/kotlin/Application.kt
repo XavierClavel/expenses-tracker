@@ -7,6 +7,7 @@ import com.xavierclavel.plugins.configureAuthentication
 import com.xavierclavel.plugins.configureMonitoring
 import com.xavierclavel.plugins.configureSerialization
 import com.xavierclavel.plugins.configureStatusPages
+import com.xavierclavel.plugins.scheduleRecurringExpenses
 import com.xavierclavel.plugins.setupOpenAPI
 import com.xavierclavel.services.UserService
 import io.ktor.server.application.*
@@ -23,7 +24,11 @@ fun main() {
         )
     }
     DatabaseManager.init()
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        module()
+        // Kept out of module() so tests, which load module(), control when expenses get generated.
+        scheduleRecurringExpenses()
+    }
         .start(wait = true)
 }
 

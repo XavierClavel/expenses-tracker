@@ -4,7 +4,9 @@ import com.xavierclavel.ApplicationTest
 import com.xavierclavel.TestBuilderWrapper
 import com.xavierclavel.dtos.CategoryIn
 import com.xavierclavel.dtos.ExpenseIn
+import com.xavierclavel.dtos.RecurringExpenseIn
 import com.xavierclavel.dtos.SubcategoryIn
+import com.xavierclavel.dtos.TagIn
 import com.xavierclavel.dtos.auth.SignupDto
 import com.xavierclavel.dtos.investment.AccountReportIn
 import com.xavierclavel.dtos.investment.InvestmentAccountIn
@@ -15,6 +17,7 @@ import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QMonthCommentary
+import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.utils.assertUserDoesNotExist
@@ -23,7 +26,9 @@ import com.xavierclavel.utils.createAccount
 import com.xavierclavel.utils.createAccountReport
 import com.xavierclavel.utils.createCategory
 import com.xavierclavel.utils.createExpense
+import com.xavierclavel.utils.createRecurringExpense
 import com.xavierclavel.utils.createSubcategory
+import com.xavierclavel.utils.createTag
 import com.xavierclavel.utils.deleteUser
 import com.xavierclavel.utils.getMe
 import com.xavierclavel.utils.getUser
@@ -124,6 +129,19 @@ class UserControllerTest: ApplicationTest() {
         val category = client.createCategory(categoryTemplate)
         val subcategory = client.createSubcategory(subcategoryTemplate.copy(parentCategory = category.id))
         client.createExpense(expenseTemplate.copy(categoryId = subcategory.id))
+        val tag = client.createTag(TagIn(label = "Home"))
+        client.createRecurringExpense(
+            RecurringExpenseIn(
+                title = "Rent",
+                categoryId = subcategory.id,
+                amount = BigDecimal("800.00"),
+                currency = "eur",
+                type = ExpenseType.EXPENSE,
+                tagIds = listOf(tag.id),
+                // Never today, so no expense is generated on top of the seeded one.
+                dayOfMonth = LocalDate.now().dayOfMonth % 28 + 1,
+            )
+        )
         val account = client.createAccount(InvestmentAccountIn(name = "Savings"))
         client.createAccountReport(
             account.id,
@@ -145,6 +163,7 @@ class UserControllerTest: ApplicationTest() {
             assertTrue(QSubcategory().user.id.eq(userId).findCount() > 0)
             assertTrue(QInvestmentAccount().owner.id.eq(userId).findCount() > 0)
             assertTrue(QAccountReport().account.owner.id.eq(userId).findCount() > 0)
+            assertTrue(QRecurringExpense().user.id.eq(userId).findCount() > 0)
             client.deleteUser()
         }
         assertFalse(QUser().id.eq(userId).exists())
@@ -155,6 +174,7 @@ class UserControllerTest: ApplicationTest() {
         assertEquals(0, QAccountReport().account.owner.id.eq(userId).findCount())
         assertEquals(0, QInvestment().user.id.eq(userId).findCount())
         assertEquals(0, QMonthCommentary().user.id.eq(userId).findCount())
+        assertEquals(0, QRecurringExpense().user.id.eq(userId).findCount())
     }
 
     // One user deleting their account must never touch another user's data.

@@ -6,6 +6,7 @@ import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
+import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QTag
 import com.xavierclavel.models.query.QUser
@@ -29,6 +30,7 @@ object DatabaseManager {
 
     fun getTables() = listOf(
         QExpense(),
+        QRecurringExpense(),
         QTag(),
         QSubcategory(),
         QCategory(),

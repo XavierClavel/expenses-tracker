@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <createTable name="recurring_expenses" pkName="pk_recurring_expenses">
+            <column name="id" type="bigint" primaryKey="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_recurring_expenses_user_id" foreignKeyIndex="ix_recurring_expenses_user_id"/>
+            <column name="category_id" type="bigint" references="subcategories.id" foreignKeyName="fk_recurring_expenses_category_id" foreignKeyIndex="ix_recurring_expenses_category_id"/>
+            <column name="title" type="varchar" notnull="true"/>
+            <column name="amount" type="decimal(15,2)" notnull="true"/>
+            <column name="currency" type="varchar" notnull="true"/>
+            <column name="type" type="varchar(7)" notnull="true" checkConstraint="check ( type in ('EXPENSE','INCOME'))" checkConstraintName="ck_recurring_expenses_type"/>
+            <column name="day_of_month" type="integer" notnull="true"/>
+            <column name="next_date" type="date" notnull="true"/>
+            <column name="last_generated_date" type="date"/>
+        </createTable>
+        <createTable name="recurring_expense_tag" pkName="pk_recurring_expense_tag">
+            <column name="recurring_expense_id" type="bigint" notnull="true" primaryKey="true"/>
+            <column name="tag_id" type="bigint" notnull="true" primaryKey="true"/>
+            <foreignKey name="fk_recurring_expense_tag_recurring_expenses" columnNames="recurring_expense_id" refColumnNames="id" refTableName="recurring_expenses" indexName="ix_recurring_expense_tag_recurring_expenses"/>
+            <foreignKey name="fk_recurring_expense_tag_tags" columnNames="tag_id" refColumnNames="id" refTableName="tags" indexName="ix_recurring_expense_tag_tags"/>
+        </createTable>
+    </changeSet>
+</migration>
