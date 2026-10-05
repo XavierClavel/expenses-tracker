@@ -40,7 +40,7 @@
     <string name="label_confirm_password">Confirm password</string>
     <string name="error_password_mismatch">Passwords do not match</string>
     <string name="error_google_signin">Google sign-in failed. Please try again.</string>
-    <string name="error_google_reauth">Couldn\'t sign in with Google. Re-add your Google account in Settings → Passwords &amp; accounts, then try again.</string>
+    <string name="error_google_reauth">Couldn't sign in with Google. Re-add your Google account in Settings → Passwords &amp; accounts, then try again.</string>
     <string name="label_expense">Expense</string>
     <string name="label_income">Income</string>
     <string name="label_expenses">Expenses</string>
@@ -74,7 +74,7 @@
     <string name="no_expenses_yet">No expenses yet</string>
     <string name="no_category_selected">No category selected</string>
     <string name="dialog_delete_expense_title">Delete expense</string>
-    <string name="dialog_delete_expense_message">Are you sure you want to delete \"%1$s\"?</string>
+    <string name="dialog_delete_expense_message">Are you sure you want to delete "%1$s"?</string>
 
     <!-- ── Expense search &amp; filters ────────────────────────── -->
     <string name="search_expenses_hint">Search expenses</string>
@@ -122,7 +122,7 @@
     <string name="label_total_balance">Total balance</string>
     <string name="no_accounts_yet">No accounts yet</string>
     <string name="dialog_delete_account_title">Delete account</string>
-    <string name="dialog_delete_account_message">Are you sure you want to delete \"%1$s\"? All associated reports will also be deleted.</string>
+    <string name="dialog_delete_account_message">Are you sure you want to delete "%1$s"? All associated reports will also be deleted.</string>
     <string name="tab_balance">Balance</string>
     <string name="cd_edit_account">Edit account</string>
     <string name="label_account_type">Account type</string>
@@ -217,7 +217,7 @@
     <string name="batch_assign_tag">Assign tag</string>
     <string name="batch_remove_tag">Remove tag</string>
     <string name="cd_exit_selection">Exit selection</string>
-    <string name="dialog_batch_delete_message">Delete %1$d selected items? This can\'t be undone.</string>
+    <string name="dialog_batch_delete_message">Delete %1$d selected items? This can't be undone.</string>
     <string name="batch_duplicate">Duplicate</string>
     <string name="dialog_batch_duplicate_message">Copy %1$d selected expenses into:</string>
     <string name="batch_duplicate_done">%1$d expenses duplicated</string>

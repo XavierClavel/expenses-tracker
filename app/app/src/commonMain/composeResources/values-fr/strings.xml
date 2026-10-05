@@ -24,7 +24,7 @@
     <string name="action_previous">Précédent</string>
     <string name="action_next">Suivant</string>
     <string name="action_log_in">Se connecter</string>
-    <string name="action_sign_up">S\'inscrire</string>
+    <string name="action_sign_up">S'inscrire</string>
     <string name="action_continue_google">Continuer avec Google</string>
 
     <!-- ── Common labels ──────────────────────────────────── -->
@@ -74,7 +74,7 @@
     <string name="no_expenses_yet">Aucune dépense</string>
     <string name="no_category_selected">Aucune catégorie sélectionnée</string>
     <string name="dialog_delete_expense_title">Supprimer la dépense</string>
-    <string name="dialog_delete_expense_message">Êtes-vous sûr de vouloir supprimer \"%1$s\" ?</string>
+    <string name="dialog_delete_expense_message">Êtes-vous sûr de vouloir supprimer "%1$s" ?</string>
 
     <!-- ── Recherche &amp; filtres de dépenses ─────────────────── -->
     <string name="search_expenses_hint">Rechercher des dépenses</string>
@@ -122,7 +122,7 @@
     <string name="label_total_balance">Solde total</string>
     <string name="no_accounts_yet">Aucun compte</string>
     <string name="dialog_delete_account_title">Supprimer le compte</string>
-    <string name="dialog_delete_account_message">Êtes-vous sûr de vouloir supprimer \"%1$s\" ? Tous les relevés associés seront également supprimés.</string>
+    <string name="dialog_delete_account_message">Êtes-vous sûr de vouloir supprimer "%1$s" ? Tous les relevés associés seront également supprimés.</string>
     <string name="tab_balance">Solde</string>
     <string name="cd_edit_account">Modifier le compte</string>
     <string name="label_account_type">Type de compte</string>
@@ -199,18 +199,18 @@
     <string name="cd_tags">Étiquettes</string>
     <string name="cd_add_tag">Ajouter une étiquette</string>
     <string name="screen_new_tag">Nouvelle étiquette</string>
-    <string name="screen_edit_tag">Modifier l\'étiquette</string>
+    <string name="screen_edit_tag">Modifier l'étiquette</string>
     <string name="label_tag_label">Libellé</string>
     <string name="dialog_delete_tag_message">Êtes-vous sûr de vouloir supprimer cette étiquette ?</string>
     <string name="tags_empty">Aucune étiquette</string>
     <string name="tag_expense_count">%1$d dépenses</string>
-    <string name="cd_edit_tag">Modifier l\'étiquette</string>
+    <string name="cd_edit_tag">Modifier l'étiquette</string>
     <string name="no_expenses_with_tag">Aucune dépense avec cette étiquette</string>
     <string name="tag_total">Total</string>
     <string name="expense_tags_label">Étiquettes</string>
     <string name="cd_has_tags">Étiqueté</string>
     <string name="screen_select_tags">Sélectionner des étiquettes</string>
-    <string name="expense_no_tags">Aucune étiquette. Créez-en une depuis l\'écran Étiquettes.</string>
+    <string name="expense_no_tags">Aucune étiquette. Créez-en une depuis l'écran Étiquettes.</string>
     <string name="filter_tag">Étiquette</string>
     <string name="filter_all_tags">Toutes les étiquettes</string>
     <string name="batch_selected_count">%1$d sélectionné(s)</string>
