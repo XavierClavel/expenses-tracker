@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Search
@@ -89,6 +90,7 @@ import com.xavierclavel.bankable.resources.cd_logout
 import com.xavierclavel.bankable.resources.cd_settings
 import com.xavierclavel.bankable.resources.no_expenses_yet
 import com.xavierclavel.bankable.resources.no_matching_expenses
+import com.xavierclavel.bankable.resources.screen_recurring_expenses
 import com.xavierclavel.bankable.resources.search_expenses_hint
 import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
@@ -286,6 +288,7 @@ fun ExpenseListScreen(
                             onQueryChange = viewModel::setSearchQuery,
                             filtersActive = viewModel.filter.isActive,
                             onFilterClick = { navController.navigate("expense/filter") },
+                            onRecurring = { navController.navigate("recurring") },
                             onSettings = { navController.navigate("settings") },
                             onLogout = onLogout,
                         )
@@ -363,6 +366,7 @@ private fun SearchHeader(
     onQueryChange: (String) -> Unit,
     filtersActive: Boolean,
     onFilterClick: () -> Unit,
+    onRecurring: () -> Unit,
     onSettings: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -371,6 +375,9 @@ private fun SearchHeader(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
+            IconButton(onClick = onRecurring) {
+                Icon(Icons.Default.EventRepeat, contentDescription = stringResource(Res.string.screen_recurring_expenses))
+            }
             IconButton(onClick = onSettings) {
                 Icon(Icons.Default.Settings, contentDescription = stringResource(Res.string.cd_settings))
             }

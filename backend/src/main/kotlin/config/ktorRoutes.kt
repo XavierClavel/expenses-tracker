@@ -6,6 +6,7 @@ import com.xavierclavel.routes.setupAuthController
 import com.xavierclavel.routes.setupCategoryController
 import com.xavierclavel.routes.setupExpenseController
 import com.xavierclavel.routes.setupInvestmentController
+import com.xavierclavel.routes.setupRecurringExpenseController
 import com.xavierclavel.routes.setupSubcategoryController
 import com.xavierclavel.routes.setupSummaryController
 import com.xavierclavel.routes.setupTagController
@@ -24,6 +25,7 @@ fun Application.serveRoutes() {
             setupSubcategoryController()
             setupExpenseController()
             setupTagController()
+            setupRecurringExpenseController()
             setupSummaryController()
             setupTrendController()
             setupAccountController()

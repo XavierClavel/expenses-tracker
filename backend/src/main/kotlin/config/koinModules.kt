@@ -8,6 +8,7 @@ import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
 import com.xavierclavel.services.ExpenseService
 import com.xavierclavel.services.InvestmentService
+import com.xavierclavel.services.RecurringExpenseService
 import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.services.SummaryService
 import com.xavierclavel.services.TagService
@@ -27,6 +28,7 @@ val koinModules = module {
     single { SubcategoryService() }
     single { ExpenseService() }
     single { TagService() }
+    single { RecurringExpenseService() }
     single { SummaryService() }
     single { TrendService() }
     single { AccountService() }

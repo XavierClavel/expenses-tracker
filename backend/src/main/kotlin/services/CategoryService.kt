@@ -11,6 +11,7 @@ import com.xavierclavel.models.Category
 import com.xavierclavel.models.Subcategory
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
+import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import org.koin.core.component.KoinComponent
@@ -88,8 +89,12 @@ class CategoryService: KoinComponent {
             .category.parentCategory.id.eq(categoryId)
             .user.id.eq(userId)
             .exists()
+        val isUsedByRecurringExpense = QRecurringExpense()
+            .category.parentCategory.id.eq(categoryId)
+            .user.id.eq(userId)
+            .exists()
 
-        if(isCategoryUsed) {
+        if(isCategoryUsed || isUsedByRecurringExpense) {
             throw ForbiddenException(ForbiddenCause.MUST_OWN_CATEGORY)
         }
 

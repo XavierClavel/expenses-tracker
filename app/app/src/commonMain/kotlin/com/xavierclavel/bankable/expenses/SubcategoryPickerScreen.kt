@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.iconByName
+import com.xavierclavel.bankable.model.SubcategoryOut
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.action_back
 import com.xavierclavel.bankable.resources.screen_select_category
@@ -43,12 +44,12 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubcategoryPickerScreen(
-    expensesViewModel: ExpensesViewModel,
+    selectedType: String,
+    onPick: (SubcategoryOut?) -> Unit,
     categoriesViewModel: CategoriesViewModel,
     navController: NavController,
 ) {
     val categories by categoriesViewModel.categories.collectAsState()
-    val selectedType = expensesViewModel.selectedType
     val filtered = categories.filter { it.type == selectedType }
 
     var expandedIds by remember { mutableStateOf(setOf<Int>()) }
@@ -81,7 +82,7 @@ fun SubcategoryPickerScreen(
                         .fillMaxWidth()
                         .padding(vertical = 3.dp)
                         .clickable {
-                            expensesViewModel.setSelectedSubcategory(defaultSub)
+                            onPick(defaultSub)
                             navController.popBackStack()
                         },
                     shape = MaterialTheme.shapes.medium,
@@ -132,7 +133,7 @@ fun SubcategoryPickerScreen(
                                     .fillMaxWidth()
                                     .padding(start = 36.dp, end = 0.dp, top = 2.dp, bottom = 2.dp)
                                     .clickable {
-                                        expensesViewModel.setSelectedSubcategory(child)
+                                        onPick(child)
                                         navController.popBackStack()
                                     },
                                 shape = MaterialTheme.shapes.medium,

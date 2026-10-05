@@ -95,6 +95,9 @@ class TagService: KoinComponent {
         DB.sqlUpdate("delete from expense_tag where tag_id = :tagId")
             .setParameter("tagId", tagId)
             .execute()
+        DB.sqlUpdate("delete from recurring_expense_tag where tag_id = :tagId")
+            .setParameter("tagId", tagId)
+            .execute()
 
         val result = tag.delete()
         if (!result) {

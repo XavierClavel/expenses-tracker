@@ -40,12 +40,12 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagPickerScreen(
-    expensesViewModel: ExpensesViewModel,
+    selectedIds: Set<Int>,
+    onToggle: (Int) -> Unit,
     tagsViewModel: TagsViewModel,
     navController: NavController,
 ) {
     val tags by tagsViewModel.tags.collectAsState()
-    val selectedIds = expensesViewModel.selectedTagIds
 
     Scaffold(
         topBar = {
@@ -81,7 +81,7 @@ fun TagPickerScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 3.dp)
-                            .clickable { expensesViewModel.toggleTag(tag.id) },
+                            .clickable { onToggle(tag.id) },
                         shape = MaterialTheme.shapes.medium,
                         tonalElevation = 2.dp,
                         color = if (assigned) MaterialTheme.colorScheme.primaryContainer

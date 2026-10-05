@@ -18,6 +18,7 @@ import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QMonthCommentary
+import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.utils.logger
@@ -94,6 +95,7 @@ class UserService: KoinComponent {
             QInvestmentAccount().owner.id.eq(id).delete()
             QMonthCommentary().user.id.eq(id).delete()
             QExpense().user.id.eq(id).delete()
+            QRecurringExpense().user.id.eq(id).delete()
             QSubcategory().user.id.eq(id).delete()
             QCategory().user.id.eq(id).delete()
             val user = getById(id)

@@ -10,6 +10,7 @@ import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.Subcategory
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
+import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QUser
 import org.koin.core.component.KoinComponent
@@ -90,8 +91,12 @@ class SubcategoryService: KoinComponent {
             .category.id.eq(subcategoryId)
             .user.id.eq(userId)
             .exists()
+        val isUsedByRecurringExpense = QRecurringExpense()
+            .category.id.eq(subcategoryId)
+            .user.id.eq(userId)
+            .exists()
 
-        if(isCategoryUsed) {
+        if(isCategoryUsed || isUsedByRecurringExpense) {
             throw ForbiddenException(ForbiddenCause.MUST_OWN_CATEGORY)
         }
 

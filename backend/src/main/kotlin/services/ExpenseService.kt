@@ -9,13 +9,10 @@ import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.Expense
-import com.xavierclavel.models.Subcategory
-import com.xavierclavel.models.Tag
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.dtos.ExpenseOut
 import com.xavierclavel.enums.ExpenseType
-import com.xavierclavel.models.query.QSubcategory
 import com.xavierclavel.models.query.QTag
 import io.ebean.Paging
 import org.koin.core.component.KoinComponent
@@ -38,38 +35,6 @@ class ExpenseService: KoinComponent {
             throw ForbiddenException(ForbiddenCause.MUST_OWN_EXPENSE)
         }
         return this
-    }
-
-    /**
-     * Resolve the subcategory referenced by an expense and ensure the user owns it.
-     * A null categoryId is allowed (uncategorized expense).
-     */
-    private fun resolveOwnedSubcategory(categoryId: Long?, userId: Long): Subcategory? {
-        if (categoryId == null) return null
-        val subcategory = QSubcategory().id.eq(categoryId).findOne()
-            ?: throw NotFoundException(NotFoundCause.SUBCATEGORY_NOT_FOUND)
-        if (subcategory.user.id != userId) {
-            throw ForbiddenException(ForbiddenCause.MUST_OWN_CATEGORY)
-        }
-        return subcategory
-    }
-
-    /**
-     * Resolve the tags referenced by an expense and ensure the user owns all of them.
-     */
-    private fun resolveOwnedTags(tagIds: List<Long>, userId: Long): MutableList<Tag> {
-        if (tagIds.isEmpty()) return mutableListOf()
-        val distinctIds = tagIds.distinct()
-        val tags = QTag().id.isIn(distinctIds).findList()
-        if (tags.size != distinctIds.size) {
-            throw NotFoundException(NotFoundCause.TAG_NOT_FOUND)
-        }
-        tags.forEach {
-            if (it.user.id != userId) {
-                throw ForbiddenException(ForbiddenCause.MUST_OWN_TAG)
-            }
-        }
-        return tags.toMutableList()
     }
 
     fun export(userId: Long, expenseId: Long): ExpenseOut =

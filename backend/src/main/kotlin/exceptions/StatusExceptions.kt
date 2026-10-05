@@ -22,6 +22,7 @@ enum class ForbiddenCause(val key: String) {
     MUST_OWN_CATEGORY("must_own_category"),
     MUST_OWN_EXPENSE("must_own_expense"),
     MUST_OWN_TAG("must_own_tag"),
+    MUST_OWN_RECURRING_EXPENSE("must_own_recurring_expense"),
     CANNOT_DELETE_USED_CATEGORY("cannot_delete use_category"),
     MUST_BE_OWNER("must_be_owner"),
     ADMIN_REQUIRED("admin_required")
@@ -33,6 +34,7 @@ enum class NotFoundCause(val key: String) {
     SUBCATEGORY_NOT_FOUND("subcategory_not_found"),
     EXPENSE_NOT_FOUND("expense_not_found"),
     TAG_NOT_FOUND("tag_not_found"),
+    RECURRING_EXPENSE_NOT_FOUND("recurring_expense_not_found"),
     ACCOUNT_NOT_FOUND("account_not_found"),
     ACCOUNT_REPORT_NOT_FOUND("account_report_not_found"),
 }
@@ -43,4 +45,5 @@ enum class BadRequestCause (val key: String) {
     USERNAME_ALREADY_USED("username_already_used"),
     OAUTH_ONLY("oauth_only"),
     INVALID_REQUEST("invalid_request"),
+    INVALID_DAY_OF_MONTH("invalid_day_of_month"),
 }
