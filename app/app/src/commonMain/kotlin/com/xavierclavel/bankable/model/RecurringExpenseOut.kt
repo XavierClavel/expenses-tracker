@@ -14,6 +14,7 @@ data class RecurringExpenseOut(
     val dayOfMonth: Int,
     // "yyyy-MM-dd" of the next expense the backend will create.
     val nextDate: String,
-    // "yyyy-MM-dd" of the last expense created, or null if none was created yet.
+    // "yyyy-MM-dd" of the last expense created, or of the expense it was created from, or null if
+    // there is none yet.
     val lastGeneratedDate: String? = null,
 )

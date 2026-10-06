@@ -79,6 +79,8 @@ import com.xavierclavel.bankable.resources.action_delete
 import com.xavierclavel.bankable.resources.batch_assign_tag
 import com.xavierclavel.bankable.resources.batch_duplicate
 import com.xavierclavel.bankable.resources.batch_duplicate_done
+import com.xavierclavel.bankable.resources.batch_make_recurring
+import com.xavierclavel.bankable.resources.batch_make_recurring_done
 import com.xavierclavel.bankable.resources.batch_remove_tag
 import com.xavierclavel.bankable.resources.batch_selected_count
 import com.xavierclavel.bankable.resources.cd_add_expense
@@ -128,6 +130,7 @@ fun ExpenseListScreen(
     var tagPickerAdd by remember { mutableStateOf<Boolean?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showDuplicatePicker by remember { mutableStateOf(false) }
+    var showMakeRecurringConfirm by remember { mutableStateOf(false) }
 
     // Hardware back exits selection mode instead of leaving the screen.
     BackHandler(enabled = selectionMode) { viewModel.clearSelection() }
@@ -187,6 +190,22 @@ fun ExpenseListScreen(
         )
     }
 
+    if (showMakeRecurringConfirm) {
+        val count = selectedIds.size
+        val doneMessage = stringResource(Res.string.batch_make_recurring_done, count)
+        MakeRecurringDialog(
+            count = count,
+            onConfirm = {
+                showMakeRecurringConfirm = false
+                viewModel.batchMakeRecurringSelection(
+                    onSuccess = { showToast(doneMessage) },
+                    onError = { msg -> showToast(msg) },
+                )
+            },
+            onDismiss = { showMakeRecurringConfirm = false },
+        )
+    }
+
     val grouped = remember(expenses) {
         expenses.groupBy { it.date }
     }
@@ -221,6 +240,12 @@ fun ExpenseListScreen(
                             enabled = selectedIds.isNotEmpty(),
                         ) {
                             Icon(Icons.Default.ContentCopy, contentDescription = stringResource(Res.string.batch_duplicate))
+                        }
+                        IconButton(
+                            onClick = { showMakeRecurringConfirm = true },
+                            enabled = selectedIds.isNotEmpty(),
+                        ) {
+                            Icon(Icons.Default.EventRepeat, contentDescription = stringResource(Res.string.batch_make_recurring))
                         }
                         IconButton(
                             onClick = { showDeleteConfirm = true },

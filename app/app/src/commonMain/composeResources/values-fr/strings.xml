@@ -223,6 +223,9 @@
     <string name="batch_duplicate">Dupliquer</string>
     <string name="dialog_batch_duplicate_message">Copier %1$d dépenses sélectionnées vers :</string>
     <string name="batch_duplicate_done">%1$d dépenses dupliquées</string>
+    <string name="batch_make_recurring">Répéter chaque mois</string>
+    <string name="dialog_batch_make_recurring_message">Créer %1$d dépenses récurrentes ? Chacune sera ajoutée tous les mois le même jour que sa dépense, sans dupliquer celles sélectionnées.</string>
+    <string name="batch_make_recurring_done">%1$d dépenses récurrentes créées</string>
 
     <!-- ── Recurring expenses ─────────────────────────────── -->
     <string name="screen_recurring_expenses">Dépenses récurrentes</string>
