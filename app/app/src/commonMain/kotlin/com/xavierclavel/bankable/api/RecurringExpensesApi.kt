@@ -1,5 +1,6 @@
 package com.xavierclavel.bankable.api
 
+import com.xavierclavel.bankable.model.IdListIn
 import com.xavierclavel.bankable.model.RecurringExpenseIn
 import com.xavierclavel.bankable.model.RecurringExpenseOut
 import io.ktor.client.call.body
@@ -20,6 +21,18 @@ suspend fun apiCreateRecurringExpense(recurringExpense: RecurringExpenseIn): Rec
         authHeader()
         contentType(ContentType.Application.Json)
         setBody(recurringExpense)
+    }.body()
+}
+
+/**
+ * Creates a recurring expense from each expense in [expenseIds], repeating on its day of month.
+ * Each expense counts as its month's occurrence, so it is never duplicated.
+ */
+suspend fun apiCreateRecurringExpensesFromExpenses(expenseIds: List<Int>): List<RecurringExpenseOut> {
+    return httpClient.post("$BASE_URL/recurring-expenses/from-expenses") {
+        authHeader()
+        contentType(ContentType.Application.Json)
+        setBody(IdListIn(expenseIds.map { it.toLong() }))
     }.body()
 }
 

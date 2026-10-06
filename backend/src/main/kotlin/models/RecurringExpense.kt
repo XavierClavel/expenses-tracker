@@ -23,7 +23,8 @@ import java.time.LocalDate
  *
  * @property dayOfMonth 1 to 31. In months shorter than that, the occurrence falls on the last day.
  * @property nextDate Date of the next expense to create.
- * @property lastGeneratedDate Date of the last expense created, or null if none was created yet.
+ * @property lastGeneratedDate Date of the last expense created, or of the expense it was created
+ * from, or null if there is none yet.
  */
 @Entity
 @Table(name = "recurring_expenses")

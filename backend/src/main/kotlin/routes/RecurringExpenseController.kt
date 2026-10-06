@@ -1,5 +1,6 @@
 package com.xavierclavel.routes
 
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.dtos.RecurringExpenseIn
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.RecurringExpenseService
@@ -40,6 +41,16 @@ fun Route.setupRecurringExpenseController() = route(RECURRING_EXPENSES_URL) {
         val userId = getSessionUserId(redisService)
         val dto = call.receive<RecurringExpenseIn>()
         call.respond(recurringExpenseService.create(userId = userId, dto = dto))
+    }
+
+    /**
+     * Creates a recurring expense from each of several expenses, repeating on its day of month.
+     * Each expense counts as its month's occurrence, so it is never duplicated.
+     */
+    post("/from-expenses") {
+        val userId = getSessionUserId(redisService)
+        val dto = call.receive<IdListIn>()
+        call.respond(recurringExpenseService.createFromExpenses(userId = userId, ids = dto.ids))
     }
 
     put("/{id}") {

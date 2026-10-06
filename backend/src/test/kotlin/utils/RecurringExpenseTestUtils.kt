@@ -1,5 +1,6 @@
 package com.xavierclavel.utils
 
+import com.xavierclavel.dtos.IdListIn
 import com.xavierclavel.dtos.RecurringExpenseIn
 import com.xavierclavel.dtos.RecurringExpenseOut
 import io.ktor.client.HttpClient
@@ -25,6 +26,17 @@ suspend fun HttpClient.createRecurringExpense(recurringExpense: RecurringExpense
     }.apply {
         assertEquals(HttpStatusCode.OK, status)
         return Json.decodeFromString<RecurringExpenseOut>(bodyAsText())
+    }
+}
+
+suspend fun HttpClient.createRecurringExpensesFromExpenses(expenseIds: List<Long>): List<RecurringExpenseOut> {
+    this.post("$RECURRING_EXPENSES_URL/from-expenses"){
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.ContentType, ContentType.Application.Json)
+        setBody(IdListIn(expenseIds))
+    }.apply {
+        assertEquals(HttpStatusCode.OK, status)
+        return Json.decodeFromString<List<RecurringExpenseOut>>(bodyAsText())
     }
 }
 

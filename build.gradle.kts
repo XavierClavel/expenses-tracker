@@ -1,5 +1,5 @@
 allprojects {
-    version = "1.6.0"
+    version = "1.7.0"
     group = "com.expenses-tracker"
 }
 

@@ -9,6 +9,7 @@ import com.xavierclavel.exceptions.ForbiddenException
 import com.xavierclavel.exceptions.NotFoundCause
 import com.xavierclavel.exceptions.NotFoundException
 import com.xavierclavel.models.RecurringExpense
+import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QUser
 import io.ebean.DB
@@ -125,6 +126,49 @@ class RecurringExpenseService: KoinComponent {
             tx.commit()
         }
         return recurringExpense.toOutput()
+    }
+
+    /**
+     * Create a recurring expense from each of the given expenses, with its title, amount,
+     * category and tags, repeating on its day of month. Every expense must belong to the user.
+     *
+     * An expense counts as its month's occurrence, so the series never adds a second expense in
+     * that month. Otherwise, as with [create], the first occurrence is the next one on or after
+     * [today], created right away when that is [today] itself.
+     */
+    fun createFromExpenses(userId: Long, ids: List<Long>, today: LocalDate = LocalDate.now()): List<RecurringExpenseOut> {
+        if (ids.isEmpty()) return emptyList()
+        val expenses = QExpense().id.`in`(ids.distinct()).findList()
+        expenses.forEach {
+            if (it.user.id != userId) {
+                throw ForbiddenException(ForbiddenCause.MUST_OWN_EXPENSE)
+            }
+        }
+        return DB.beginTransaction().use { tx ->
+            val created = expenses
+                .sortedBy { it.date }
+                .map { expense ->
+                    val dayOfMonth = expense.date.dayOfMonth
+                    val monthAfter = YearMonth.from(expense.date).plusMonths(1).atDay(1)
+                    RecurringExpense(
+                        user = expense.user,
+                        category = expense.category,
+                        title = expense.title,
+                        amount = expense.amount,
+                        currency = expense.currency,
+                        type = expense.type,
+                        dayOfMonth = dayOfMonth,
+                        nextDate = nextOccurrence(dayOfMonth, maxOf(today, monthAfter)),
+                        lastGeneratedDate = expense.date,
+                        tags = expense.tags.toMutableList(),
+                    ).apply {
+                        insert()
+                        generateUntil(today)
+                    }
+                }
+            tx.commit()
+            created.map { it.toOutput() }
+        }
     }
 
     /**

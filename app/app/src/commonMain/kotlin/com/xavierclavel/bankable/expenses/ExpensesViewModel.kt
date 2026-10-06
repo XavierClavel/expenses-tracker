@@ -9,6 +9,7 @@ import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
 import com.xavierclavel.bankable.api.apiBatchDuplicateExpenses
 import com.xavierclavel.bankable.api.apiBatchTagExpenses
 import com.xavierclavel.bankable.api.apiCreateExpense
+import com.xavierclavel.bankable.api.apiCreateRecurringExpensesFromExpenses
 import com.xavierclavel.bankable.api.apiDeleteExpense
 import com.xavierclavel.bankable.api.apiListExpenses
 import com.xavierclavel.bankable.api.apiUpdateExpense
@@ -294,6 +295,25 @@ class ExpensesViewModel : ViewModel() {
                 onSuccess()
             } catch (e: Exception) {
                 onError(e.message ?: "Duplicate failed")
+            }
+        }
+    }
+
+    /**
+     * Creates a recurring expense from every currently selected expense, then refreshes and exits.
+     * The list is refreshed because one coming due today adds this month's expense right away.
+     */
+    fun batchMakeRecurringSelection(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val ids = selectedExpenseIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                apiCreateRecurringExpensesFromExpenses(ids)
+                reloadLoadedExpenses()
+                clearSelection()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(e.message ?: "Operation failed")
             }
         }
     }
