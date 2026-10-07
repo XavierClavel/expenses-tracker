@@ -16,6 +16,7 @@ import com.xavierclavel.utils.EXPENSES_URL
 import com.xavierclavel.utils.getPaging
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
+import com.xavierclavel.utils.getUserIdAllowingApiKey
 import io.ktor.http.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
@@ -76,8 +77,11 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
         call.respond(DateDto(oldestExpenseDate))
     }
 
+        /**
+         * Creates an expense. Also reachable with a personal API key.
+         */
         post {
-            val userId = getSessionUserId(redisService)
+            val userId = getUserIdAllowingApiKey(redisService)
             val expenseDto = call.receive<ExpenseIn>()
             val category = expenseService.create(userId = userId, expenseDto = expenseDto)
             call.respond(category)

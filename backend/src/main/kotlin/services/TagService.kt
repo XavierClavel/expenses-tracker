@@ -2,6 +2,7 @@ package com.xavierclavel.services
 
 import com.xavierclavel.config.Configuration
 import com.xavierclavel.dtos.TagIn
+import com.xavierclavel.dtos.TagLookupOut
 import com.xavierclavel.dtos.TagOut
 import com.xavierclavel.enums.ExpenseType
 import com.xavierclavel.exceptions.ForbiddenCause
@@ -69,6 +70,14 @@ class TagService: KoinComponent {
             .orderBy().label.asc()
             .findList()
             .map { it.withTotals(userId) }
+
+    /** Every tag of the user, without the per-tag aggregates. */
+    fun listLookups(userId: Long): List<TagLookupOut> =
+        QTag()
+            .user.id.eq(userId)
+            .orderBy().label.asc()
+            .findList()
+            .map { TagLookupOut(id = it.id, label = it.label) }
 
     fun create(tagDto: TagIn, userId: Long): TagOut {
         val user = QUser().id.eq(userId).findOne() ?: throw NotFoundException(NotFoundCause.USER_NOT_FOUND)

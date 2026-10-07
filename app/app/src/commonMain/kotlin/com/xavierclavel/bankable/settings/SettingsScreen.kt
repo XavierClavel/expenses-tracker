@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,7 +40,9 @@ import com.xavierclavel.bankable.resources.action_delete
 import com.xavierclavel.bankable.resources.cd_delete_account
 import com.xavierclavel.bankable.resources.dialog_delete_account_self_message
 import com.xavierclavel.bankable.resources.dialog_delete_account_self_title
+import com.xavierclavel.bankable.resources.screen_api_keys
 import com.xavierclavel.bankable.resources.settings_account
+import com.xavierclavel.bankable.resources.settings_api_keys_hint
 import com.xavierclavel.bankable.resources.settings_language
 import com.xavierclavel.bankable.resources.settings_language_restart_hint
 import com.xavierclavel.bankable.resources.settings_title
@@ -152,6 +156,35 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 4.dp),
             )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { navController.navigate("api-keys") }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Default.Key, contentDescription = null)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 12.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.screen_api_keys),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = stringResource(Res.string.settings_api_keys_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

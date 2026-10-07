@@ -40,6 +40,8 @@ import com.xavierclavel.bankable.accounts.AccountReportEditScreen
 import com.xavierclavel.bankable.accounts.AccountTransferEditScreen
 import com.xavierclavel.bankable.accounts.AccountViewScreen
 import com.xavierclavel.bankable.accounts.AccountsViewModel
+import com.xavierclavel.bankable.apikeys.ApiKeysScreen
+import com.xavierclavel.bankable.apikeys.ApiKeysViewModel
 import com.xavierclavel.bankable.auth.AuthState
 import com.xavierclavel.bankable.auth.AuthViewModel
 import com.xavierclavel.bankable.auth.LoginScreen
@@ -151,6 +153,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
     val trendsViewModel: TrendsViewModel = viewModel()
     val tagsViewModel: TagsViewModel = viewModel()
     val recurringExpensesViewModel: RecurringExpensesViewModel = viewModel()
+    val apiKeysViewModel: ApiKeysViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -219,6 +222,9 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                     navController,
                     onDeleteAccount = { onError -> authViewModel.deleteAccount(onError) },
                 )
+            }
+            composable("api-keys") {
+                ApiKeysScreen(apiKeysViewModel, navController)
             }
             composable("expense/edit") {
                 ExpenseEditScreen(expensesViewModel, tagsViewModel, navController)

@@ -6,6 +6,8 @@ import com.xavierclavel.services.TagService
 import com.xavierclavel.utils.TAG_URL
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
+import com.xavierclavel.utils.getUserIdAllowingApiKey
+import com.xavierclavel.utils.isApiKeyRequest
 import io.ktor.http.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
@@ -17,11 +19,16 @@ fun Route.setupTagController() = route(TAG_URL) {
     val redisService: RedisService by inject()
 
     /**
-     * Retrieves every tag of the logged user, each with its aggregated total.
+     * Retrieves every tag of the logged user, each with its aggregated total. A personal
+     * API key gets only ids and labels: it may look tags up, not read spending totals.
      */
     get {
-        val userId = getSessionUserId(redisService)
-        call.respond(tagService.list(userId = userId))
+        val userId = getUserIdAllowingApiKey(redisService)
+        if (isApiKeyRequest()) {
+            call.respond(tagService.listLookups(userId = userId))
+        } else {
+            call.respond(tagService.list(userId = userId))
+        }
     }
 
     /**

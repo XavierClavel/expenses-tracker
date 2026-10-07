@@ -6,6 +6,7 @@ import com.xavierclavel.services.SubcategoryService
 import com.xavierclavel.utils.SUBCATEGORY_URL
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
+import com.xavierclavel.utils.getUserIdAllowingApiKey
 import io.ktor.http.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
@@ -29,8 +30,12 @@ fun Route.setupSubcategoryController() = route(SUBCATEGORY_URL) {
             call.respond(user)
         }
 
+        /**
+         * Retrieves every subcategory of the logged user. Also reachable with a personal
+         * API key, to look up subcategory ids.
+         */
         get {
-            val userId = getSessionUserId(redisService)
+            val userId = getUserIdAllowingApiKey(redisService)
             val user = subcategoryService.list(userId = userId)
             call.respond(user)
         }

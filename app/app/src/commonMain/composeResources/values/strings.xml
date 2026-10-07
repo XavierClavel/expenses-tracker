@@ -244,6 +244,31 @@
     <string name="dialog_delete_recurring_expense_message">Delete "%1$s"? The expenses it already added are kept.</string>
     <string name="recurring_expense_added">This month's expense was added</string>
 
+    <!-- ── API keys ───────────────────────────────────────── -->
+    <string name="screen_api_keys">API keys</string>
+    <string name="settings_api_keys_hint">Let other apps add expenses</string>
+    <string name="api_keys_intro">Let another app, such as an automation tool, a script or your own service, add expenses to your account. A key can only add expenses and read your categories and tags.</string>
+    <string name="api_keys_usage">To add an expense, send:</string>
+    <string name="api_keys_usage_header">Authorization: Bearer &lt;key&gt;</string>
+    <string name="api_keys_empty">No API keys yet</string>
+    <string name="cd_add_api_key">New API key</string>
+    <string name="screen_new_api_key">New API key</string>
+    <string name="api_key_name_hint">Something to recognize it by, like the app that will use it.</string>
+    <string name="api_key_created_title">Copy your API key</string>
+    <string name="api_key_created_warning">This is the only time it will be shown. Store it somewhere safe: if you lose it, revoke it and create a new one.</string>
+    <!-- %1$s = long date, e.g. "Created on 7 October 2026" -->
+    <string name="api_key_created_on">Created on %1$s</string>
+    <string name="api_key_last_used_on">Last used on %1$s</string>
+    <string name="api_key_never_used">Never used</string>
+    <string name="cd_revoke_api_key">Revoke key</string>
+    <string name="dialog_revoke_api_key_title">Revoke API key?</string>
+    <string name="dialog_revoke_api_key_message">Apps using "%1$s" will lose access immediately. This can't be undone.</string>
+    <string name="action_create">Create</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_copied">Copied</string>
+    <string name="action_done">Done</string>
+    <string name="action_revoke">Revoke</string>
+
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Blue</string>
     <string name="color_lightblue">Light blue</string>

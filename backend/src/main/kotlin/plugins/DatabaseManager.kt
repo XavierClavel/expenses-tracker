@@ -2,6 +2,7 @@ package com.xavierclavel.plugins
 
 import com.xavierclavel.config.Configuration
 import com.xavierclavel.models.query.QAccountReport
+import com.xavierclavel.models.query.QApiKey
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QInvestment
@@ -37,6 +38,7 @@ object DatabaseManager {
         QAccountReport(),
         QInvestment(),
         QInvestmentAccount(),
+        QApiKey(),
         QUser(),
     )
 

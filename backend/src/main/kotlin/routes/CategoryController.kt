@@ -7,6 +7,7 @@ import com.xavierclavel.utils.CATEGORY_URL
 import com.xavierclavel.utils.getPaging
 import com.xavierclavel.utils.getPathId
 import com.xavierclavel.utils.getSessionUserId
+import com.xavierclavel.utils.getUserIdAllowingApiKey
 import io.ktor.http.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
@@ -18,12 +19,11 @@ fun Route.setupCategoryController() = route(CATEGORY_URL) {
     val redisService: RedisService by inject()
 
         /**
-         * Retrieves all users registered in the system.
-         *
-         * @response 200 OK - Returns a list of User objects
+         * Retrieves every category of the logged user with its subcategories. Also
+         * reachable with a personal API key, to look up subcategory ids.
          */
         get {
-            val sessionUserId = getSessionUserId(redisService)
+            val sessionUserId = getUserIdAllowingApiKey(redisService)
             val users = categoryService.list(userId = sessionUserId)
             call.respond(users)
         }

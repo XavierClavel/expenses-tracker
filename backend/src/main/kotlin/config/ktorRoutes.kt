@@ -2,6 +2,7 @@ package com.xavierclavel.config
 
 import com.xavierclavel.routes.setupAccountController
 import com.xavierclavel.routes.setupAccountReportController
+import com.xavierclavel.routes.setupApiKeyController
 import com.xavierclavel.routes.setupAuthController
 import com.xavierclavel.routes.setupCategoryController
 import com.xavierclavel.routes.setupExpenseController
@@ -20,11 +21,12 @@ fun Application.serveRoutes() {
     routing {
         setupUserController()
         setupAuthController()
-        authenticate("bearer-auth", "auth-session") {
+        authenticate("bearer-auth", "api-key", "auth-session") {
             setupCategoryController()
             setupSubcategoryController()
             setupExpenseController()
             setupTagController()
+            setupApiKeyController()
             setupRecurringExpenseController()
             setupSummaryController()
             setupTrendController()

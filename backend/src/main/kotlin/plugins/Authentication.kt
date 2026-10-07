@@ -5,6 +5,7 @@ import com.xavierclavel.enums.UserRole
 import com.xavierclavel.exceptions.BadRequestException
 import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
+import com.xavierclavel.services.ApiKeyService
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.UserService
 import com.xavierclavel.utils.UserSession
@@ -29,6 +30,7 @@ fun Application.configureAuthentication() {
     val userService by inject<UserService>()
     val redisService by inject<RedisService>()
     val authService by inject<AuthService>()
+    val apiKeyService by inject<ApiKeyService>()
     val configuration by inject<Configuration>()
 
     install(Sessions) {
@@ -94,6 +96,14 @@ fun Application.configureAuthentication() {
                 } else {
                     null
                 }
+            }
+        }
+
+        // Personal API keys for external apps. Routes reject them unless they opt in
+        // through getUserIdAllowingApiKey.
+        bearer("api-key") {
+            authenticate { tokenCredential ->
+                apiKeyService.authenticate(tokenCredential.token)
             }
         }
 
