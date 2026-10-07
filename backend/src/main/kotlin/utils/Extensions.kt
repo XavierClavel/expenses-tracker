@@ -11,6 +11,7 @@ import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.plugins.SessionData
 import io.ebean.Paging
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
@@ -56,8 +57,20 @@ suspend fun RoutingContext.getOptionalSessionId(redisService: RedisService): Lon
     return userId
 }
 
+/** Whether the request authenticated with a personal API key rather than a session. */
+fun RoutingContext.isApiKeyRequest(): Boolean = call.principal<ApiKeyPrincipal>() != null
+
+/**
+ * The user a request acts for, accepting personal API keys as well as sessions. Only the
+ * few routes an external app may reach call this; everything else goes through
+ * [getSessionUserId], which rejects API keys.
+ */
+suspend fun RoutingContext.getUserIdAllowingApiKey(redisService: RedisService): Long =
+    call.principal<ApiKeyPrincipal>()?.userId ?: getSessionUserId(redisService)
+
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 suspend fun RoutingContext.getSessionUserId(redisService: RedisService): Long {
+    if (isApiKeyRequest()) throw ForbiddenException(ForbiddenCause.API_KEY_NOT_ALLOWED)
     val sessionId = getSessionId()
     val userId = redisService.getSessionUserId(sessionId)
     if (userId == null) {

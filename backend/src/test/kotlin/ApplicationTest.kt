@@ -7,6 +7,7 @@ import com.xavierclavel.plugins.DatabaseManager
 import com.xavierclavel.plugins.RedisService
 import com.xavierclavel.services.AccountReportService
 import com.xavierclavel.services.AccountService
+import com.xavierclavel.services.ApiKeyService
 import com.xavierclavel.services.AuthService
 import com.xavierclavel.services.CategoryService
 import com.xavierclavel.services.EncryptionService
@@ -65,6 +66,7 @@ abstract class ApplicationTest: KoinTest {
                 single { SubcategoryService() }
                 single { ExpenseService() }
                 single { TagService() }
+                single { ApiKeyService() }
                 single { RecurringExpenseService() }
                 single { SummaryService() }
                 single { TrendService() }

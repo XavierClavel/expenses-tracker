@@ -13,6 +13,7 @@ import com.xavierclavel.exceptions.UnauthorizedCause
 import com.xavierclavel.exceptions.UnauthorizedException
 import com.xavierclavel.models.User
 import com.xavierclavel.models.query.QAccountReport
+import com.xavierclavel.models.query.QApiKey
 import com.xavierclavel.models.query.QCategory
 import com.xavierclavel.models.query.QExpense
 import com.xavierclavel.models.query.QInvestment
@@ -98,6 +99,7 @@ class UserService: KoinComponent {
             QRecurringExpense().user.id.eq(id).delete()
             QSubcategory().user.id.eq(id).delete()
             QCategory().user.id.eq(id).delete()
+            QApiKey().user.id.eq(id).delete()
             val user = getById(id)
             val result = user.delete()
             if (!result) {
