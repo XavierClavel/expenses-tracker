@@ -283,13 +283,13 @@ class ExpensesViewModel : ViewModel() {
         }
     }
 
-    /** Copies every currently selected expense into [month] of [year], then refreshes and exits. */
-    fun batchDuplicateSelection(year: Int, month: Int, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    /** Copies every currently selected expense onto [date] ("yyyy-MM-dd"), then refreshes and exits. */
+    fun batchDuplicateSelection(date: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val ids = selectedExpenseIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             try {
-                apiBatchDuplicateExpenses(ids, year, month)
+                apiBatchDuplicateExpenses(ids, date)
                 reloadLoadedExpenses()
                 clearSelection()
                 onSuccess()

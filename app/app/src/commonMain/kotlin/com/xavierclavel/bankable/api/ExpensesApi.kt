@@ -45,16 +45,15 @@ suspend fun apiBatchTagExpenses(expenseIds: List<Int>, tagId: Int, add: Boolean)
 @Serializable
 private data class ExpenseDuplicateIn(
     val ids: List<Long>,
-    val year: Int,
-    val month: Int,
+    val date: String,
 )
 
-/** Copies every expense in [ids] into [month] (1-12) of [year], keeping each day of month. */
-suspend fun apiBatchDuplicateExpenses(ids: List<Int>, year: Int, month: Int) {
+/** Copies every expense in [ids] onto [date] ("yyyy-MM-dd"). */
+suspend fun apiBatchDuplicateExpenses(ids: List<Int>, date: String) {
     httpClient.post("$BASE_URL/expenses/batch-duplicate") {
         authHeader()
         contentType(ContentType.Application.Json)
-        setBody(ExpenseDuplicateIn(ids.map { it.toLong() }, year, month))
+        setBody(ExpenseDuplicateIn(ids.map { it.toLong() }, date))
     }
 }
 

@@ -194,11 +194,22 @@ class ExpenseService: KoinComponent {
     }
 
     /**
+     * Copy several expenses onto [targetDate]. Every expense must belong to the user; each
+     * copy keeps its title, amount, category and tags.
+     */
+    fun batchDuplicate(userId: Long, ids: List<Long>, targetDate: LocalDate): List<ExpenseOut> =
+        batchDuplicate(userId, ids) { targetDate }
+
+    /**
      * Copy several expenses into [targetMonth]. Every expense must belong to the user; each
      * copy keeps its title, amount, category and tags, and its day of month (clamped to the
      * length of the target month).
      */
-    fun batchDuplicate(userId: Long, ids: List<Long>, targetMonth: YearMonth): List<ExpenseOut> {
+    fun batchDuplicate(userId: Long, ids: List<Long>, targetMonth: YearMonth): List<ExpenseOut> =
+        batchDuplicate(userId, ids) { targetMonth.atDay(minOf(it.dayOfMonth, targetMonth.lengthOfMonth())) }
+
+    /** Copy several expenses, dating each copy with [copyDate] applied to its original's date. */
+    private fun batchDuplicate(userId: Long, ids: List<Long>, copyDate: (LocalDate) -> LocalDate): List<ExpenseOut> {
         if (ids.isEmpty()) return emptyList()
         val expenses = QExpense().id.`in`(ids.distinct()).findList()
         expenses.forEach {
@@ -213,7 +224,7 @@ class ExpenseService: KoinComponent {
                     user = it.user,
                     title = it.title,
                     category = it.category,
-                    date = targetMonth.atDay(minOf(it.date.dayOfMonth, targetMonth.lengthOfMonth())),
+                    date = copyDate(it.date),
                     amount = it.amount,
                     currency = it.currency,
                     type = it.type,

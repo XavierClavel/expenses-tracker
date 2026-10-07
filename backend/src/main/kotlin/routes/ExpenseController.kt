@@ -104,17 +104,24 @@ fun Route.setupExpenseController() = route(EXPENSES_URL) {
         }
 
         /**
-         * Duplicate several expenses into another month.
+         * Duplicate several expenses onto a given date, or into another month.
          */
         post("/batch-duplicate") {
             val userId = getSessionUserId(redisService)
             val dto = call.receive<ExpenseDuplicateIn>()
-            val targetMonth = try {
-                YearMonth.of(dto.year, dto.month)
-            } catch (_: DateTimeException) {
-                throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+            val expenses = if (dto.date != null) {
+                expenseService.batchDuplicate(userId = userId, ids = dto.ids, targetDate = dto.date)
+            } else {
+                val targetMonth = try {
+                    YearMonth.of(
+                        dto.year ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST),
+                        dto.month ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST),
+                    )
+                } catch (_: DateTimeException) {
+                    throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+                }
+                expenseService.batchDuplicate(userId = userId, ids = dto.ids, targetMonth = targetMonth)
             }
-            val expenses = expenseService.batchDuplicate(userId = userId, ids = dto.ids, targetMonth = targetMonth)
             call.respond(expenses)
         }
 

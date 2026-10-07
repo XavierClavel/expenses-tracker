@@ -216,6 +216,39 @@ class ExpenseControllerTest: ApplicationTest() {
     }
 
     @Test
+    fun `batch duplicate expenses onto a given date`() = runTestAsUser {
+        val e1 = client.createExpense(expense.copy(title = "A", date = LocalDate.parse("2020-01-15")))
+        val e2 = client.createExpense(expense.copy(title = "B", date = LocalDate.parse("2020-01-31")))
+
+        val copies = client.post("$EXPENSES_URL/batch-duplicate") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseDuplicateIn(listOf(e1.id, e2.id), date = LocalDate.parse("2020-03-04")))
+        }.run {
+            assertEquals(HttpStatusCode.OK, status)
+            Json.decodeFromString<List<ExpenseOut>>(bodyAsText())
+        }
+
+        assertEquals(2, copies.size)
+        // Every copy lands on the given date, whatever its original day of month.
+        assertTrue(copies.all { it.date == LocalDate.parse("2020-03-04") })
+        assertEquals(setOf("A", "B"), copies.map { it.title }.toSet())
+
+        // Originals are untouched.
+        assertEquals(LocalDate.parse("2020-01-31"), client.getExpense(e2.id).date)
+    }
+
+    @Test
+    fun `batch duplicate requires a date or a month`() = runTestAsUser {
+        val e1 = client.createExpense(expense)
+        client.post("$EXPENSES_URL/batch-duplicate") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(ExpenseDuplicateIn(listOf(e1.id), year = 2020))
+        }.apply { assertEquals(HttpStatusCode.BadRequest, status) }
+    }
+
+    @Test
     fun `batch duplicate rejects an invalid month`() = runTestAsUser {
         val e1 = client.createExpense(expense)
         client.post("$EXPENSES_URL/batch-duplicate") {
