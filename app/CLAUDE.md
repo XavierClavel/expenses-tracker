@@ -23,7 +23,7 @@ app/                              ← this directory (Gradle root, settings.grad
         api/                      ← one *Api.kt per feature + ApiClient.kt
         model/                    ← *In (request) / *Out (response) / *Dto data classes
         platform/                 ← `expect` declarations for everything platform-specific
-        auth/ categories/ expenses/ recurring/ accounts/ summary/ trends/ tags/ settings/  ← feature packages
+        auth/ categories/ expenses/ recurring/ accounts/ summary/ trends/ tags/ apikeys/ settings/  ← feature packages
         constants/                ← AppColors, AppIcons, AccountTypes, Currencies
         storage/                  ← TokenStorage, PersistentCookiesStorage, LocalePreferences
         ui/                       ← shared composables (e.g. SlidingToggle) + ui/theme/
@@ -80,7 +80,7 @@ Targets are `iosArm64` (device) and `iosSimulatorArm64`. There's no `iosX64`: Co
 
 ## Architecture & conventions
 
-**Platform boundary.** Anything a platform does differently lives behind an `expect` in `commonMain/.../platform/`, with `actual`s in `androidMain` / `iosMain`. That's storage (`KeyValueStore` / `SecureStore` — SharedPreferences+EncryptedSharedPreferences vs. NSUserDefaults+Keychain), the Ktor engine (OkHttp vs. Darwin), locale-aware formatting (`java.text` vs. `NSNumberFormatter`/`NSDateFormatter`), toasts, dynamic color, language switching, and Google sign-in. Add to that package rather than reaching for a platform API from a screen. Android `actual`s that need a Context get it from `platform/AppContext.kt`, which `BankableApplication` and `MainActivity` populate.
+**Platform boundary.** Anything a platform does differently lives behind an `expect` in `commonMain/.../platform/`, with `actual`s in `androidMain` / `iosMain`. That's storage (`KeyValueStore` / `SecureStore` — SharedPreferences+EncryptedSharedPreferences vs. NSUserDefaults+Keychain), the Ktor engine (OkHttp vs. Darwin), locale-aware formatting (`java.text` vs. `NSNumberFormatter`/`NSDateFormatter`), toasts, clipboard entries (`plainTextClipEntry` for `LocalClipboard`), dynamic color, language switching, and Google sign-in. Add to that package rather than reaching for a platform API from a screen. Android `actual`s that need a Context get it from `platform/AppContext.kt`, which `BankableApplication` and `MainActivity` populate.
 
 **Resources.** All user-facing text is a Compose Multiplatform resource: `stringResource(Res.string.foo)`, with an entry in **both** `values/strings.xml` (en) and `values-fr/strings.xml` (fr). Write apostrophes and quotes as-is (`l'étiquette`, `"%1$s"`): unlike Android resources, nothing unescapes `\'` or `\"`, so the backslash would show on screen. Accessors are extension properties, so each name needs its own import (`import com.xavierclavel.bankable.resources.foo`) alongside `…resources.Res`. `androidMain/res/` holds only what the Android platform itself needs — launcher icons, the splash theme, and the launcher label; the `values-fr` copy of the label is what tells Android the app supports French, which is what makes `LocalAppLocale` and resource lookup resolve to `fr` on a French device.
 
@@ -92,7 +92,7 @@ Targets are `iosArm64` (device) and `iosSimulatorArm64`. There's no `iosX64`: Co
 - Async work runs in `viewModelScope.launch { ... }` with try/catch; on error, `onError(e.message ?: "...")` is invoked rather than thrown. Loading is tracked with an `isLoading` flag.
 - The "edit" screens are reused for create vs. update: the ViewModel exposes `prepareNewX()` / `prepareEditX(item)` before navigating, then `saveX(...)` branches on whether a `selectedX` is set.
 
-**ViewModel lifecycle (important).** The session-scoped ViewModels (Categories, Expenses, RecurringExpenses, Accounts, Summary, Trends, Tags) are created in `MainNavGraphContent` and hung off a custom `SessionViewModelStoreOwner` that is cleared on logout (`DisposableEffect.onDispose`). This guarantees a fresh login rebuilds them with the new account's data. Don't move these into per-screen `viewModel()` scopes.
+**ViewModel lifecycle (important).** The session-scoped ViewModels (Categories, Expenses, RecurringExpenses, Accounts, Summary, Trends, Tags, ApiKeys) are created in `MainNavGraphContent` and hung off a custom `SessionViewModelStoreOwner` that is cleared on logout (`DisposableEffect.onDispose`). This guarantees a fresh login rebuilds them with the new account's data. Don't move these into per-screen `viewModel()` scopes.
 
 **Navigation.** All routes are registered centrally in `navigation/AppNavigation.kt` as string routes (e.g. `"category/edit"`, `"account/report/edit"`). There are no typed nav args — data is passed between screens via the shared ViewModels' `selected*` state, not route parameters. Top-level tabs are in `TOP_LEVEL_ROUTES`; the bottom bar only shows on those. To add a screen: add a `composable("...")` entry and navigate to it after calling the relevant `prepare*` on the ViewModel.
 

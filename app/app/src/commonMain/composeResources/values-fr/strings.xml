@@ -244,6 +244,31 @@
     <string name="dialog_delete_recurring_expense_message">Supprimer « %1$s » ? Les dépenses déjà ajoutées sont conservées.</string>
     <string name="recurring_expense_added">La dépense de ce mois-ci a été ajoutée</string>
 
+    <!-- ── API keys ───────────────────────────────────────── -->
+    <string name="screen_api_keys">Clés API</string>
+    <string name="settings_api_keys_hint">Autoriser d'autres applications à ajouter des dépenses</string>
+    <string name="api_keys_intro">Permettez à une autre application, comme un outil d'automatisation, un script ou votre propre service, d'ajouter des dépenses à votre compte. Une clé peut uniquement ajouter des dépenses et lire vos catégories et étiquettes.</string>
+    <string name="api_keys_usage">Pour ajouter une dépense, envoyez :</string>
+    <string name="api_keys_usage_header">Authorization: Bearer &lt;clé&gt;</string>
+    <string name="api_keys_empty">Aucune clé API</string>
+    <string name="cd_add_api_key">Nouvelle clé API</string>
+    <string name="screen_new_api_key">Nouvelle clé API</string>
+    <string name="api_key_name_hint">Un nom pour la reconnaître, par exemple celui de l'application qui l'utilisera.</string>
+    <string name="api_key_created_title">Copiez votre clé API</string>
+    <string name="api_key_created_warning">Elle ne sera affichée qu'une seule fois. Conservez-la en lieu sûr : si vous la perdez, révoquez-la et créez-en une nouvelle.</string>
+    <!-- %1$s = date longue, ex. "Créée le 7 octobre 2026" -->
+    <string name="api_key_created_on">Créée le %1$s</string>
+    <string name="api_key_last_used_on">Dernière utilisation le %1$s</string>
+    <string name="api_key_never_used">Jamais utilisée</string>
+    <string name="cd_revoke_api_key">Révoquer la clé</string>
+    <string name="dialog_revoke_api_key_title">Révoquer la clé API ?</string>
+    <string name="dialog_revoke_api_key_message">Les applications qui utilisent « %1$s » perdront l'accès immédiatement. Cette action est irréversible.</string>
+    <string name="action_create">Créer</string>
+    <string name="action_copy">Copier</string>
+    <string name="action_copied">Copiée</string>
+    <string name="action_done">Terminé</string>
+    <string name="action_revoke">Révoquer</string>
+
     <!-- ── Colors ─────────────────────────────────────────── -->
     <string name="color_blue">Bleu</string>
     <string name="color_lightblue">Bleu clair</string>
