@@ -221,7 +221,7 @@
     <string name="cd_exit_selection">Exit selection</string>
     <string name="dialog_batch_delete_message">Delete %1$d selected items? This can't be undone.</string>
     <string name="batch_duplicate">Duplicate</string>
-    <string name="dialog_batch_duplicate_message">Copy %1$d selected expenses into:</string>
+    <string name="dialog_batch_duplicate_message">Copy %1$d selected expenses to:</string>
     <string name="batch_duplicate_done">%1$d expenses duplicated</string>
     <string name="batch_make_recurring">Repeat monthly</string>
     <string name="dialog_batch_make_recurring_message">Create %1$d recurring expenses? Each will be added every month on the same day as its expense, without duplicating the ones selected.</string>

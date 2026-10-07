@@ -4,8 +4,10 @@ import com.xavierclavel.bankable.platform.platformFormatLongDate
 import com.xavierclavel.bankable.platform.platformFormatShortDate
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -65,6 +67,13 @@ fun currentMonth(): Int = nowLocal().month.ordinal + 1
 
 @OptIn(ExperimentalTime::class)
 private fun nowLocal() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+
+/**
+ * The "yyyy-MM-dd" date one month after [isoDate], clamped to the end of the month
+ * (Jan 31 → Feb 28/29). Unparseable input is passed through unchanged.
+ */
+fun plusOneMonthIsoDate(isoDate: String): String =
+    parseIsoDate(isoDate)?.plus(1, DateTimeUnit.MONTH)?.toString() ?: isoDate
 
 /** Number of days in the given month, leap years included. */
 fun lastDayOfMonth(year: Int, month: Int): Int {

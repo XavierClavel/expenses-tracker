@@ -100,9 +100,9 @@ import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
 import com.xavierclavel.bankable.ui.EmptyState
 import com.xavierclavel.bankable.ui.TagPickerDialog
-import com.xavierclavel.bankable.util.currentMonth
-import com.xavierclavel.bankable.util.currentYear
 import com.xavierclavel.bankable.util.formatIsoDateLong
+import com.xavierclavel.bankable.util.plusOneMonthIsoDate
+import com.xavierclavel.bankable.util.todayIsoDate
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -166,22 +166,18 @@ fun ExpenseListScreen(
     }
 
     if (showDuplicatePicker) {
-        // Default to the month after the most recent selected expense: the usual case is
+        // Default to one month after the most recent selected expense: the usual case is
         // carrying recurring expenses over to the next month.
         val latestDate = expenses.filter { selectedIds.contains(it.id) }.maxOfOrNull { it.date }
-        val latestYear = latestDate?.substring(0, 4)?.toIntOrNull() ?: currentYear()
-        val latestMonth = latestDate?.substring(5, 7)?.toIntOrNull() ?: currentMonth()
         val count = selectedIds.size
         val doneMessage = stringResource(Res.string.batch_duplicate_done, count)
         DuplicateExpensesDialog(
             count = count,
-            initialYear = if (latestMonth == 12) latestYear + 1 else latestYear,
-            initialMonth = latestMonth % 12 + 1,
-            onConfirm = { year, month ->
+            initialDate = latestDate?.let { plusOneMonthIsoDate(it) } ?: todayIsoDate(),
+            onConfirm = { date ->
                 showDuplicatePicker = false
                 viewModel.batchDuplicateSelection(
-                    year = year,
-                    month = month,
+                    date = date,
                     onSuccess = { showToast(doneMessage) },
                     onError = { msg -> showToast(msg) },
                 )
