@@ -11,7 +11,7 @@ k8s/
 │   ├── postgres/             # Deployment + Service + PVC (5Gi)
 │   └── redis/                # Deployment + Service + PVC (2Gi)
 └── overlays/
-    └── prod/                 # + moneymind.fyi Ingress & Certificate, pinned tag
+    └── prod/                 # + Ingress & Certificates (bankable.xavier.cl, legacy moneymind.fyi), pinned tag
 ```
 
 The namespace is set by kustomize (`namespace: expenses-tracker`), so no

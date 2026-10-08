@@ -9,11 +9,27 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 spec:
+  # Each host has its own certificate, so a failed renewal on one cannot take
+  # the other down. moneymind.fyi is the legacy host, kept for app builds that
+  # still point at it.
   tls:
+    - hosts:
+        - "bankable.xavier.cl"
+      secretName: bankable-xavier-cl-tls
     - hosts:
         - "moneymind.fyi"
       secretName: bankable-tls
   rules:
+    - host: bankable.xavier.cl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: expenses-tracker-backend
+                port:
+                  number: 9000
     - host: moneymind.fyi
       http:
         paths:
