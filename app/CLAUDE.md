@@ -4,7 +4,7 @@ Guidance for working in this directory (`expenses-tracker/app`) — the **Bankab
 
 ## What this is
 
-A personal expenses/finance tracker, originally migrated **from React Native (Expo Router) to Kotlin + Jetpack Compose**, and now to **Kotlin Multiplatform**. The RN source still lives at `../frontend` and is the reference implementation: when building a screen that doesn't exist yet in Kotlin, read its RN counterpart there first, then improve the UX rather than copying it verbatim. The Ktor backend lives at `../backend` and is served in production at `https://moneymind.fyi`.
+A personal expenses/finance tracker, originally migrated **from React Native (Expo Router) to Kotlin + Jetpack Compose**, and now to **Kotlin Multiplatform**. The RN source still lives at `../frontend` and is the reference implementation: when building a screen that doesn't exist yet in Kotlin, read its RN counterpart there first, then improve the UX rather than copying it verbatim. The Ktor backend lives at `../backend` and is served in production at `https://bankable.xavier.cl` (`https://moneymind.fyi` is a legacy alias, kept routed for older app builds).
 
 This directory is the Gradle project root. The git repo root is one level up (`expenses-tracker/`), which also contains the backend and the RN frontend.
 
