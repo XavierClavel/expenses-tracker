@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <addColumn tableName="categories">
+            <column name="uuid" type="uuid" defaultValue="$RAW:gen_random_uuid()" notnull="true" unique="uq_categories_uuid"/>
+            <column name="revision" type="bigint" defaultValue="0" notnull="true"/>
+        </addColumn>
+        <addColumn tableName="expenses">
+            <column name="uuid" type="uuid" defaultValue="$RAW:gen_random_uuid()" notnull="true" unique="uq_expenses_uuid"/>
+            <column name="revision" type="bigint" defaultValue="0" notnull="true"/>
+        </addColumn>
+        <addColumn tableName="subcategories">
+            <column name="uuid" type="uuid" defaultValue="$RAW:gen_random_uuid()" notnull="true" unique="uq_subcategories_uuid"/>
+            <column name="revision" type="bigint" defaultValue="0" notnull="true"/>
+        </addColumn>
+        <createTable name="sync_tombstones" identityType="external" pkName="pk_sync_tombstones">
+            <column name="uuid" type="uuid" primaryKey="true" identity="true"/>
+            <column name="user_id" type="bigint" notnull="true" references="users.id" foreignKeyName="fk_sync_tombstones_user_id" foreignKeyIndex="ix_sync_tombstones_user_id" foreignKeyOnDelete="CASCADE" foreignKeyOnUpdate="RESTRICT"/>
+            <column name="type" type="varchar(11)" notnull="true" checkConstraint="check ( type in ('CATEGORY','SUBCATEGORY','TAG','EXPENSE'))" checkConstraintName="ck_sync_tombstones_type"/>
+            <column name="revision" type="bigint" defaultValue="0" notnull="true"/>
+        </createTable>
+        <addColumn tableName="tags">
+            <column name="uuid" type="uuid" defaultValue="$RAW:gen_random_uuid()" notnull="true" unique="uq_tags_uuid"/>
+            <column name="revision" type="bigint" defaultValue="0" notnull="true"/>
+        </addColumn>
+        <addColumn tableName="users">
+            <column name="sync_revision" type="bigint" defaultValue="0" notnull="true"/>
+        </addColumn>
+        <createIndex indexName="ix_categories_user_id_revision" tableName="categories" columns="user_id,revision"/>
+        <createIndex indexName="ix_expenses_user_id_revision" tableName="expenses" columns="user_id,revision"/>
+        <createIndex indexName="ix_subcategories_user_id_revision" tableName="subcategories" columns="user_id,revision"/>
+        <createIndex indexName="ix_sync_tombstones_user_id_revision" tableName="sync_tombstones" columns="user_id,revision"/>
+        <createIndex indexName="ix_tags_user_id_revision" tableName="tags" columns="user_id,revision"/>
+    </changeSet>
+</migration>

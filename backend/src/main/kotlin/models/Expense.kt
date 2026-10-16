@@ -1,6 +1,7 @@
 package com.xavierclavel.models
 
 import com.xavierclavel.dtos.ExpenseOut
+import com.xavierclavel.dtos.sync.SyncExpense
 import com.xavierclavel.enums.ExpenseType
 import io.ebean.Model
 import io.ebean.annotation.DbDefault
@@ -19,9 +20,11 @@ import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 @Entity
 @Table(name = "expenses")
+@Index(columnNames = ["user_id", "revision"])
 @Index(name = "idx_expense_user_date", columnNames = ["user_id", "date"])
 class Expense(
 
@@ -58,10 +61,20 @@ class Expense(
     )
     var tags: MutableList<Tag> = mutableListOf(),
 
+    /** Identifies the row to devices, which generate it for the rows they create. */
+    @Column(unique = true)
+    @DbDefault("\$RAW:gen_random_uuid()")
+    val uuid: UUID = UUID.randomUUID(),
+
     ): Model() {
 
     @Id
     var id: Long = 0
+
+    /** Position of the row's last change in its owner's sync history, set by the database. */
+    @Column(insertable = false, updatable = false)
+    @DbDefault("0")
+    var revision: Long = 0
 
 
     fun toOutput() = ExpenseOut(
@@ -73,5 +86,17 @@ class Expense(
         categoryId = this.category?.id,
         type = this.type,
         tagIds = this.tags.map { it.id },
+    )
+
+    fun toSync() = SyncExpense(
+        id = this.uuid,
+        serverId = this.id,
+        subcategoryId = this.category?.uuid,
+        title = this.title,
+        amount = this.amount,
+        currency = this.currency,
+        date = this.date,
+        type = this.type,
+        tagIds = this.tags.map { it.uuid }.sorted(),
     )
 }

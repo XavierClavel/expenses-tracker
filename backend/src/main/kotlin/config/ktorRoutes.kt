@@ -9,6 +9,7 @@ import com.xavierclavel.routes.setupInvestmentController
 import com.xavierclavel.routes.setupRecurringExpenseController
 import com.xavierclavel.routes.setupSubcategoryController
 import com.xavierclavel.routes.setupSummaryController
+import com.xavierclavel.routes.setupSyncController
 import com.xavierclavel.routes.setupTagController
 import com.xavierclavel.routes.setupTrendController
 import com.xavierclavel.routes.setupUserController
@@ -31,6 +32,7 @@ fun Application.serveRoutes() {
             setupAccountController()
             setupAccountReportController()
             setupInvestmentController()
+            setupSyncController()
         }
     }
 }

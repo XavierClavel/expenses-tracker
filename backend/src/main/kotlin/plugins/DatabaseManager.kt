@@ -8,6 +8,7 @@ import com.xavierclavel.models.query.QInvestment
 import com.xavierclavel.models.query.QInvestmentAccount
 import com.xavierclavel.models.query.QRecurringExpense
 import com.xavierclavel.models.query.QSubcategory
+import com.xavierclavel.models.query.QSyncTombstone
 import com.xavierclavel.models.query.QTag
 import com.xavierclavel.models.query.QUser
 import com.xavierclavel.utils.logger
@@ -37,6 +38,7 @@ object DatabaseManager {
         QAccountReport(),
         QInvestment(),
         QInvestmentAccount(),
+        QSyncTombstone(),
         QUser(),
     )
 
