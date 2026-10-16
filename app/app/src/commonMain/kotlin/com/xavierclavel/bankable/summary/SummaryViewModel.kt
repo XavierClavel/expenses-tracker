@@ -8,16 +8,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xavierclavel.bankable.api.apiGetMonthSummary
 import com.xavierclavel.bankable.api.apiGetOldestExpenseDate
+import com.xavierclavel.bankable.api.apiGetYearOutliers
 import com.xavierclavel.bankable.api.apiGetYearSummary
+import com.xavierclavel.bankable.model.SubcategoryOutlierDto
 import com.xavierclavel.bankable.model.SummaryDto
 import com.xavierclavel.bankable.util.currentMonth
 import com.xavierclavel.bankable.util.currentYear
 import kotlin.jvm.JvmName
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+
+// How far above its all-time average a subcategory must run, over a year, to be flagged.
+const val OUTLIER_THRESHOLD = 0.5
 
 class SummaryViewModel : ViewModel() {
 
     var summary by mutableStateOf<SummaryDto?>(null)
+        private set
+    var outliers by mutableStateOf<List<SubcategoryOutlierDto>>(emptyList())
         private set
     var isLoading by mutableStateOf(false)
         private set
@@ -69,17 +77,33 @@ class SummaryViewModel : ViewModel() {
         inFlightPeriod = currentPeriodKey()
         viewModelScope.launch {
             if (showSkeleton) isLoading = true
+            // Outliers only exist for a year. They're fetched alongside the summary, and
+            // as an extra their failure (null) must not take the summary down with them.
+            val outliersRequest = if (timescale == "year") {
+                val year = selectedYear
+                async {
+                    try { apiGetYearOutliers(year, OUTLIER_THRESHOLD) } catch (_: Exception) { null }
+                }
+            } else null
             try {
                 val result = if (timescale == "month") {
                     apiGetMonthSummary(selectedYear, selectedMonth)
                 } else {
                     apiGetYearSummary(selectedYear)
                 }
-                if (requestId == lastRequestId) summary = result
+                val yearOutliers = outliersRequest?.await()
+                if (requestId == lastRequestId) {
+                    summary = result
+                    // Same rule as the summary: a failed background refresh keeps what's drawn.
+                    if (yearOutliers != null || showSkeleton) outliers = yearOutliers.orEmpty()
+                }
             } catch (_: Exception) {
                 // A background refresh keeps the current data — flashing the empty state
                 // for what may be a transient failure is worse than showing stale totals.
-                if (showSkeleton && requestId == lastRequestId) summary = null
+                if (showSkeleton && requestId == lastRequestId) {
+                    summary = null
+                    outliers = emptyList()
+                }
             } finally {
                 if (requestId == lastRequestId) {
                     inFlightPeriod = null

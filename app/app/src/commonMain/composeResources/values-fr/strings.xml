@@ -183,6 +183,10 @@
     <string name="summary_pct_of_spending">% des dépenses</string>
     <string name="summary_no_data">Aucune donnée pour cette période</string>
     <string name="summary_no_expenses">Aucune dépense pour cette période</string>
+    <string name="summary_outliers_title">Au-dessus de la moyenne</string>
+    <!-- %1$s = seuil, ex. "50 %" -->
+    <string name="summary_outliers_caption">Sous-catégories au moins %1$s au-dessus de leur moyenne globale</string>
+    <string name="summary_outlier_mean">Moyenne : %1$s</string>
 
     <!-- ── Trends ─────────────────────────────────────────── -->
     <string name="trends_select_category_hint">Sélectionner une catégorie ou sous-catégorie</string>

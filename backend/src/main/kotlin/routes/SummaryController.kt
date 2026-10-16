@@ -14,6 +14,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
+// How far above its all-time monthly mean a subcategory must run to count as an outlier.
+private const val DEFAULT_OUTLIER_THRESHOLD = 0.5
+
 fun Route.setupSummaryController() = route(SUMMARY_URL) {
     val summaryService: SummaryService by inject()
     val redisService: RedisService by inject()
@@ -23,6 +26,16 @@ fun Route.setupSummaryController() = route(SUMMARY_URL) {
         val sessionUserId = getSessionUserId(redisService)
         val summary = summaryService.summaryOfYear(userId = sessionUserId, year = year)
         call.respond(summary)
+    }
+
+    get("year/{year}/outliers") {
+        val year = call.parameters["year"]?.toIntOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST)
+        val threshold = call.request.queryParameters["threshold"]
+            ?.let { it.toDoubleOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST) }
+            ?: DEFAULT_OUTLIER_THRESHOLD
+        val sessionUserId = getSessionUserId(redisService)
+        val outliers = summaryService.outliersOfYear(userId = sessionUserId, year = year, threshold = threshold)
+        call.respond(outliers)
     }
 
     get("year/{year}/month/{month}") {
