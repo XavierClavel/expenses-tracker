@@ -28,11 +28,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -104,6 +106,9 @@ import com.xavierclavel.bankable.resources.label_total
 import com.xavierclavel.bankable.resources.label_year
 import com.xavierclavel.bankable.resources.summary_no_data
 import com.xavierclavel.bankable.resources.summary_no_expenses
+import com.xavierclavel.bankable.resources.summary_outlier_mean
+import com.xavierclavel.bankable.resources.summary_outliers_caption
+import com.xavierclavel.bankable.resources.summary_outliers_title
 import com.xavierclavel.bankable.resources.summary_pct_of_income
 import com.xavierclavel.bankable.resources.summary_pct_of_spending
 import com.xavierclavel.bankable.resources.summary_saved_income
@@ -144,6 +149,13 @@ data class PieEntry(
     val subcategoryEntries: List<SubcategoryEntry> = emptyList(),
     // The "unspent income" remainder — drawn distinctly so it doesn't read as a category.
     val isResidual: Boolean = false,
+)
+
+data class OutlierEntry(
+    val subcategory: SubcategoryEntry,
+    // What the subcategory totals over the same months at its all-time pace.
+    val mean: Float,
+    val deviation: Double,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -213,6 +225,25 @@ fun SummaryScreen(
                 }
             }
             .sortedByDescending { it.value }
+    }
+
+    val outlierEntries = remember(categories, viewModel.outliers, viewModel.selectedType) {
+        viewModel.outliers
+            .filter { it.type == viewModel.selectedType }
+            .map { outlier ->
+                val subOut = subcategoryMap[outlier.subcategoryId]
+                OutlierEntry(
+                    subcategory = SubcategoryEntry(
+                        subcategoryId = outlier.subcategoryId,
+                        value         = outlier.total.toFloatOrNull() ?: 0f,
+                        label         = subOut?.name ?: outlier.subcategoryName,
+                        color         = subcategoryParentMap[outlier.subcategoryId]?.let { colorHexByName(it.color) } ?: ResidualColor,
+                        icon          = subOut?.icon,
+                    ),
+                    mean      = outlier.mean.toFloatOrNull() ?: 0f,
+                    deviation = outlier.deviation,
+                )
+            }
     }
 
     val periodKey = when (viewModel.timescale) {
@@ -416,6 +447,15 @@ fun SummaryScreen(
                                 onSubcategoryClick = { sub -> bottomSheetEntry = sub },
                             )
                             Spacer(Modifier.height(6.dp))
+                        }
+
+                        if (viewModel.timescale == "year" && outlierEntries.isNotEmpty()) {
+                            Spacer(Modifier.height(10.dp))
+                            OutliersPanel(
+                                entries      = outlierEntries,
+                                selectedType = viewModel.selectedType,
+                                onEntryClick = { sub -> bottomSheetEntry = sub },
+                            )
                         }
                     }
                 }
@@ -793,6 +833,75 @@ private fun SubcategoryLegendRow(
                 if (fraction > 0f) drawRoundRect(color = color, size = Size(size.width * fraction, size.height), cornerRadius = r)
             }
         }
+    }
+}
+
+// ── Outliers panel ─────────────────────────────────────────────────────────────
+
+// Subcategories whose year runs well above their all-time pace. Above average is a
+// warning for spending but good news for income, hence the type-dependent accent.
+@Composable
+private fun OutliersPanel(
+    entries: List<OutlierEntry>,
+    selectedType: String,
+    onEntryClick: (SubcategoryEntry) -> Unit,
+) {
+    val accent = if (selectedType == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
+
+    Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
+        Column(modifier = Modifier.padding(vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = accent, modifier = Modifier.size(22.dp))
+                Text(stringResource(Res.string.summary_outliers_title), style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold)
+            }
+            Text(
+                text     = stringResource(Res.string.summary_outliers_caption, "${formatFixed(OUTLIER_THRESHOLD * 100, 0)}%"),
+                style    = MaterialTheme.typography.labelSmall,
+                color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
+            )
+            entries.forEach { entry ->
+                OutlierRow(entry = entry, accent = accent, onClick = { onEntryClick(entry.subcategory) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun OutlierRow(entry: OutlierEntry, accent: Color, onClick: () -> Unit) {
+    val sub = entry.subcategory
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(iconByName(sub.icon), null, tint = sub.color, modifier = Modifier.size(22.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(sub.label, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(stringResource(Res.string.summary_outlier_mean, formatSummaryAmount(entry.mean.toDouble())),
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(formatSummaryAmount(sub.value.toDouble()), style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End)
+        // Fixed minimum width so the amounts line up whatever the percentage's length.
+        Surface(shape = MaterialTheme.shapes.small, color = accent.copy(alpha = 0.14f), modifier = Modifier.widthIn(min = 56.dp)) {
+            Text(
+                text       = "+${formatFixed(entry.deviation * 100, 0)}%",
+                style      = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color      = accent,
+                textAlign  = TextAlign.Center,
+                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            )
+        }
+        Icon(Icons.Default.ChevronRight, null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
     }
 }
 
