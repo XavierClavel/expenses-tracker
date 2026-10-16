@@ -5,6 +5,7 @@ import com.xavierclavel.bankable.api.SyncCategory
 import com.xavierclavel.bankable.api.SyncChanges
 import com.xavierclavel.bankable.api.SyncDeletion
 import com.xavierclavel.bankable.api.SyncExpense
+import com.xavierclavel.bankable.api.SyncRecurringExpense
 import com.xavierclavel.bankable.api.SyncSubcategory
 import com.xavierclavel.bankable.api.SyncTag
 import com.xavierclavel.bankable.api.apiPullChanges
@@ -13,6 +14,7 @@ import com.xavierclavel.bankable.api.sessionToken
 import com.xavierclavel.bankable.data.db.BankableDatabase
 import com.xavierclavel.bankable.data.db.Category
 import com.xavierclavel.bankable.data.db.Expense
+import com.xavierclavel.bankable.data.db.Recurring_expense
 import com.xavierclavel.bankable.data.db.Subcategory
 import com.xavierclavel.bankable.data.db.Tag
 import com.xavierclavel.bankable.platform.scheduleBackgroundSync
@@ -160,6 +162,10 @@ object Sync {
                 expenseQueries.selectById(id).executeAsOneOrNull()
                     ?.toSync(expenseQueries.selectTagIds(id).executeAsList())
             },
+            recurringExpenses = changed(SyncType.RECURRING_EXPENSE).mapNotNull { id ->
+                recurringExpenseQueries.selectById(id).executeAsOneOrNull()
+                    ?.toSync(recurringExpenseQueries.selectTagIds(id).executeAsList())
+            },
             deletions = pending.filter { it.deleted != 0L }.map { SyncDeletion(type = it.type, id = it.id) },
         )
         return changes to pending.maxOf { it.seq }
@@ -195,6 +201,22 @@ object Sync {
                 tagIds = it.tagIds,
             )
         }
+        changes.recurringExpenses.filterNot { isPending(SyncType.RECURRING_EXPENSE, it.id) }.forEach {
+            upsertRecurringExpense(
+                id = it.id,
+                serverId = it.serverId,
+                subcategoryId = it.subcategoryId,
+                title = it.title,
+                amountCents = parseCents(it.amount) ?: 0,
+                currency = it.currency,
+                type = it.type,
+                dayOfMonth = it.dayOfMonth,
+                // The server always sends it.
+                nextDate = it.nextDate.orEmpty(),
+                lastGeneratedDate = it.lastGeneratedDate,
+                tagIds = it.tagIds,
+            )
+        }
         changes.deletions.forEach { deletion ->
             val type = SyncType.entries.find { it.name == deletion.type } ?: return@forEach
             if (isPending(type, deletion.id)) return@forEach
@@ -203,6 +225,7 @@ object Sync {
                 SyncType.SUBCATEGORY -> subcategoryQueries.deleteById(deletion.id)
                 SyncType.TAG -> deleteTag(deletion.id)
                 SyncType.EXPENSE -> deleteExpense(deletion.id)
+                SyncType.RECURRING_EXPENSE -> deleteRecurringExpense(deletion.id)
             }
         }
     }
@@ -227,6 +250,19 @@ object Sync {
     private fun Tag.toSync() = SyncTag(
         id = id,
         label = label,
+    )
+
+    private fun Recurring_expense.toSync(tagIds: List<String>) = SyncRecurringExpense(
+        id = id,
+        subcategoryId = subcategory_id,
+        title = title,
+        amount = formatCents(amount_cents),
+        currency = currency,
+        type = type,
+        tagIds = tagIds,
+        dayOfMonth = day_of_month.toInt(),
+        nextDate = next_date,
+        lastGeneratedDate = last_generated_date,
     )
 
     private fun Expense.toSync(tagIds: List<String>) = SyncExpense(

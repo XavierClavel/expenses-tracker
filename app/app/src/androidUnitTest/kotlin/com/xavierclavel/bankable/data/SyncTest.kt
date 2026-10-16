@@ -91,10 +91,10 @@ class SyncTest : LocalDataTest() {
 
         assertEquals(listOf(0L, 2L), server.pulledSince)
         val pulledCategory = CategoryStore.observe().first().single()
-        assertEquals(1, pulledCategory.serverId)
+        assertEquals(1L, readLocal { categoryQueries.selectById("c1").executeAsOne().server_id })
         assertEquals("s1", pulledCategory.subcategories.single().id)
         val pulledExpense = ExpenseStore.observe(limit = 10).first().single()
-        assertEquals(4, pulledExpense.serverId)
+        assertEquals(4L, readLocal { expenseQueries.selectById("e1").executeAsOne().server_id })
         assertEquals("8.00", pulledExpense.amount)
         assertEquals("s1", pulledExpense.categoryId)
         assertEquals(listOf("t1"), pulledExpense.tagIds)

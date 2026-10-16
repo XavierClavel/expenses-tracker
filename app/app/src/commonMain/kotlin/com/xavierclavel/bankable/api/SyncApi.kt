@@ -20,6 +20,7 @@ data class SyncChanges(
     val subcategories: List<SyncSubcategory> = emptyList(),
     val tags: List<SyncTag> = emptyList(),
     val expenses: List<SyncExpense> = emptyList(),
+    val recurringExpenses: List<SyncRecurringExpense> = emptyList(),
     val deletions: List<SyncDeletion> = emptyList(),
 )
 
@@ -64,7 +65,28 @@ data class SyncExpense(
     val tagIds: List<String> = emptyList(),
 )
 
-/** [type] is "CATEGORY", "SUBCATEGORY", "TAG" or "EXPENSE". */
+/**
+ * A template the server creates an expense from every month. The server owns [nextDate] and
+ * [lastGeneratedDate], except when the template is created: [nextDate] is then its first
+ * occurrence as the app computed it, and [lastGeneratedDate] the date of the expense it was made
+ * from, if any.
+ */
+@Serializable
+data class SyncRecurringExpense(
+    val id: String,
+    val serverId: Long? = null,
+    val subcategoryId: String?,
+    val title: String,
+    val amount: String,
+    val currency: String,
+    val type: String,
+    val tagIds: List<String> = emptyList(),
+    val dayOfMonth: Int,
+    val nextDate: String? = null,
+    val lastGeneratedDate: String? = null,
+)
+
+/** [type] is "CATEGORY", "SUBCATEGORY", "TAG", "EXPENSE" or "RECURRING_EXPENSE". */
 @Serializable
 data class SyncDeletion(
     val type: String,

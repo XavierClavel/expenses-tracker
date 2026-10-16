@@ -127,7 +127,6 @@ object ExpenseStore {
 
     private fun Search.toOut() = ExpenseOut(
         id = id,
-        serverId = server_id?.toInt(),
         title = title,
         amount = formatCents(amount_cents),
         currency = currency,

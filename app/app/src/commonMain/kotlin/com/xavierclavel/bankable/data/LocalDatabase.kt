@@ -27,7 +27,7 @@ internal fun initDatabase(driver: SqlDriver) {
 }
 
 /** Kinds of synced rows, as named by the sync API and the pending_change table. */
-enum class SyncType { CATEGORY, SUBCATEGORY, TAG, EXPENSE }
+enum class SyncType { CATEGORY, SUBCATEGORY, TAG, EXPENSE, RECURRING_EXPENSE }
 
 private val writeLock = Mutex()
 
@@ -133,6 +133,52 @@ internal fun BankableDatabase.upsertExpense(
     tagIds.forEach { expenseQueries.addTag(id, it) }
 }
 
+internal fun BankableDatabase.upsertRecurringExpense(
+    id: String,
+    serverId: Long?,
+    subcategoryId: String?,
+    title: String,
+    amountCents: Long,
+    currency: String,
+    type: String,
+    dayOfMonth: Int,
+    nextDate: String,
+    lastGeneratedDate: String?,
+    tagIds: Collection<String>,
+) {
+    recurringExpenseQueries.update(
+        server_id = serverId,
+        subcategory_id = subcategoryId,
+        title = title,
+        amount_cents = amountCents,
+        currency = currency,
+        type = type,
+        day_of_month = dayOfMonth.toLong(),
+        next_date = nextDate,
+        last_generated_date = lastGeneratedDate,
+        id = id,
+    )
+    recurringExpenseQueries.insertOrIgnore(
+        id = id,
+        server_id = serverId,
+        subcategory_id = subcategoryId,
+        title = title,
+        amount_cents = amountCents,
+        currency = currency,
+        type = type,
+        day_of_month = dayOfMonth.toLong(),
+        next_date = nextDate,
+        last_generated_date = lastGeneratedDate,
+    )
+    recurringExpenseQueries.removeTags(id)
+    tagIds.forEach { recurringExpenseQueries.addTag(id, it) }
+}
+
+internal fun BankableDatabase.deleteRecurringExpense(id: String) {
+    recurringExpenseQueries.removeTags(id)
+    recurringExpenseQueries.deleteById(id)
+}
+
 internal fun BankableDatabase.deleteExpense(id: String) {
     expenseQueries.removeTags(id)
     expenseQueries.deleteById(id)
@@ -140,11 +186,14 @@ internal fun BankableDatabase.deleteExpense(id: String) {
 
 internal fun BankableDatabase.deleteTag(id: String) {
     expenseQueries.removeTagEverywhere(id)
+    recurringExpenseQueries.removeTagEverywhere(id)
     tagQueries.deleteById(id)
 }
 
 /** Deletes everything stored locally, including changes not pushed yet. */
 internal fun BankableDatabase.deleteAll() {
+    recurringExpenseQueries.deleteAllTags()
+    recurringExpenseQueries.deleteAll()
     expenseQueries.deleteAllTags()
     expenseQueries.deleteAll()
     subcategoryQueries.deleteAll()

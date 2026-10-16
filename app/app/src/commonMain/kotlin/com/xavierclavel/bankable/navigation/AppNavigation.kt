@@ -203,12 +203,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                 RecurringExpenseListScreen(recurringExpensesViewModel, categoriesViewModel, navController)
             }
             composable("recurring/edit") {
-                RecurringExpenseEditScreen(
-                    recurringExpensesViewModel,
-                    tagsViewModel,
-                    navController,
-                    onExpenseCreated = { expensesViewModel.refresh() },
-                )
+                RecurringExpenseEditScreen(recurringExpensesViewModel, tagsViewModel, navController)
             }
             composable("recurring/subcategory-picker") {
                 SubcategoryPickerScreen(

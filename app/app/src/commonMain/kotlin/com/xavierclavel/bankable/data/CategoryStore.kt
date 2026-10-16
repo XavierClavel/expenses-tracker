@@ -109,7 +109,6 @@ object CategoryStore {
     /** A default subcategory takes its category's name and icon; every subcategory takes its color. */
     private fun Category.toOut(subcategories: List<Subcategory>) = CategoryOut(
         id = id,
-        serverId = server_id?.toInt(),
         name = name,
         color = color,
         icon = icon,
@@ -118,7 +117,6 @@ object CategoryStore {
             val isDefault = sub.is_default != 0L
             SubcategoryOut(
                 id = sub.id,
-                serverId = sub.server_id?.toInt(),
                 name = if (isDefault) "$name - Default" else sub.name,
                 type = type,
                 color = color,

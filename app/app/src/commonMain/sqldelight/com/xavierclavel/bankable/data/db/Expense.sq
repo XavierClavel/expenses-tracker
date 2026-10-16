@@ -52,9 +52,6 @@ SELECT * FROM expense WHERE id IN ?;
 selectTagIds:
 SELECT tag_id FROM expense_tag WHERE expense_id = ?;
 
-selectServerIds:
-SELECT id, server_id FROM expense WHERE id IN ?;
-
 insertOrIgnore:
 INSERT OR IGNORE INTO expense (id, server_id, subcategory_id, title, amount_cents, currency, date, type)
 VALUES (:id, :server_id, :subcategory_id, :title, :amount_cents, :currency, :date, :type);

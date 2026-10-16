@@ -95,7 +95,6 @@ fun RecurringExpenseEditScreen(
     viewModel: RecurringExpensesViewModel,
     tagsViewModel: TagsViewModel,
     navController: NavController,
-    onExpenseCreated: () -> Unit,
 ) {
     val recurringExpense = viewModel.selectedRecurringExpense
     val isEditing = recurringExpense != null
@@ -297,11 +296,8 @@ fun RecurringExpenseEditScreen(
                         title = title,
                         amount = ExpressionEvaluator.formatAmount(computedAmount!!),
                         dayOfMonth = dayOfMonth,
-                        onSuccess = { createdExpense ->
-                            if (createdExpense) {
-                                onExpenseCreated()
-                                showToast(expenseAddedMessage)
-                            }
+                        onSuccess = { dueToday ->
+                            if (dueToday) showToast(expenseAddedMessage)
                             navController.popBackStack()
                         },
                         onError = { errorMessage = it },
