@@ -145,6 +145,25 @@ class StoresTest : LocalDataTest() {
         assertTrue(ExpenseStore.observe(limit = 10).first().single().tagIds.isEmpty())
     }
 
+    @Test
+    fun `monthly totals add up each subcategory's expenses of a month`() = runBlocking {
+        val category = newCategory("Food")
+        val food = defaultSubcategoryOf(category)
+        newExpense("Bakery", cents = 1000, subcategoryId = food, date = "2026-09-01")
+        newExpense("Market", cents = 250, subcategoryId = food, date = "2026-09-30")
+        newExpense("Uncategorized", cents = 500, date = "2026-10-01")
+
+        val totals = Reports.observeMonthlyTotals().first().sortedBy { it.month }
+
+        assertEquals(
+            listOf(
+                MonthlyTotal(monthIndex(2026, 9), food, category, "Food", "EXPENSE", 1250),
+                MonthlyTotal(monthIndex(2026, 10), null, null, null, "EXPENSE", 500),
+            ),
+            totals,
+        )
+    }
+
     private suspend fun pending(): Set<String> =
         readLocal { syncQueries.selectPending().executeAsList().map { "${it.type}:${it.id}" }.toSet() }
 }

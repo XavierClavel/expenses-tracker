@@ -1,8 +1,5 @@
 package com.xavierclavel.bankable.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class TrendDto(
     val year: Int,
     val month: Int? = null,

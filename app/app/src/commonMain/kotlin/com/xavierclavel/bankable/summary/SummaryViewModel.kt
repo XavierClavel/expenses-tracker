@@ -6,17 +6,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.bankable.api.apiGetMonthSummary
-import com.xavierclavel.bankable.api.apiGetOldestExpenseDate
-import com.xavierclavel.bankable.api.apiGetYearOutliers
-import com.xavierclavel.bankable.api.apiGetYearSummary
+import com.xavierclavel.bankable.data.MonthlyTotal
+import com.xavierclavel.bankable.data.Reports
 import com.xavierclavel.bankable.data.Sync
+import com.xavierclavel.bankable.data.currentMonthIndex
+import com.xavierclavel.bankable.data.monthIndex
 import com.xavierclavel.bankable.model.SubcategoryOutlierDto
 import com.xavierclavel.bankable.model.SummaryDto
 import com.xavierclavel.bankable.util.currentMonth
 import com.xavierclavel.bankable.util.currentYear
 import kotlin.jvm.JvmName
-import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 // How far above its average a subcategory must run, over a year, to be flagged...
@@ -26,12 +26,14 @@ const val OUTLIER_MIN_TOTAL = 250
 // ...with the average taken over this many years either side of it.
 const val OUTLIER_YEARS_AROUND = 2
 
+/** The summary of a month or a year, computed from the local expenses: it follows every change. */
 class SummaryViewModel : ViewModel() {
 
     var summary by mutableStateOf<SummaryDto?>(null)
         private set
     var outliers by mutableStateOf<List<SubcategoryOutlierDto>>(emptyList())
         private set
+    // True while the first expenses are still being downloaded.
     var isLoading by mutableStateOf(false)
         private set
 
@@ -44,128 +46,86 @@ class SummaryViewModel : ViewModel() {
     var selectedType by mutableStateOf("EXPENSE")
         private set
 
-    private var oldestYear = 2000
-    private var oldestMonth = 1
+    // The first month with an expense: the earliest period that can be shown.
+    private var oldestMonth by mutableIntStateOf(currentMonthIndex())
 
-    // Stamps every load so a slow response can never overwrite a newer one, and tracks
-    // which period is currently being fetched so a refresh can't duplicate it.
-    private var lastRequestId = 0
-    private var inFlightPeriod: String? = null
+    private var totals: List<MonthlyTotal> = emptyList()
 
     init {
         viewModelScope.launch {
-            try {
-                val oldest = apiGetOldestExpenseDate()
-                if (oldest != null) {
-                    val parts = oldest.split("-")
-                    oldestYear = parts.getOrNull(0)?.toIntOrNull() ?: 2000
-                    oldestMonth = parts.getOrNull(1)?.toIntOrNull() ?: 1
+            combine(Reports.observeMonthlyTotals(), Sync.isSyncing) { totals, syncing -> totals to syncing }
+                .collect { (newTotals, syncing) ->
+                    totals = newTotals
+                    oldestMonth = Reports.firstMonth(newTotals) ?: currentMonthIndex()
+                    isLoading = syncing && newTotals.isEmpty()
+                    compute()
                 }
-            } catch (_: Exception) {}
-            loadSummary()
         }
-        // The backend computes the summary: fetch it again once local changes reached it.
-        viewModelScope.launch { Sync.changed.collect { loadSummary(showSkeleton = false) } }
     }
 
-    fun refresh() {
-        // Reopening the screen must not wipe what is already drawn: showing the skeleton
-        // for data we already hold makes the whole page blink on every open. Only the
-        // very first load (nothing on screen yet) is allowed to show it.
-        if (inFlightPeriod == currentPeriodKey()) return
-        loadSummary(showSkeleton = summary == null)
-    }
-
-    private fun currentPeriodKey(): String =
-        if (timescale == "month") "$selectedYear-$selectedMonth" else "$selectedYear"
-
-    private fun loadSummary(showSkeleton: Boolean = true) {
-        val requestId = ++lastRequestId
-        inFlightPeriod = currentPeriodKey()
-        viewModelScope.launch {
-            if (showSkeleton) isLoading = true
-            // Outliers only exist for a year. They're fetched alongside the summary, and
-            // as an extra their failure (null) must not take the summary down with them.
-            val outliersRequest = if (timescale == "year") {
-                val year = selectedYear
-                async {
-                    try {
-                        apiGetYearOutliers(year, OUTLIER_THRESHOLD, OUTLIER_MIN_TOTAL, OUTLIER_YEARS_AROUND)
-                    } catch (_: Exception) { null }
-                }
-            } else null
-            try {
-                val result = if (timescale == "month") {
-                    apiGetMonthSummary(selectedYear, selectedMonth)
-                } else {
-                    apiGetYearSummary(selectedYear)
-                }
-                val yearOutliers = outliersRequest?.await()
-                if (requestId == lastRequestId) {
-                    summary = result
-                    // Same rule as the summary: a failed background refresh keeps what's drawn.
-                    if (yearOutliers != null || showSkeleton) outliers = yearOutliers.orEmpty()
-                }
-            } catch (_: Exception) {
-                // A background refresh keeps the current data — flashing the empty state
-                // for what may be a transient failure is worse than showing stale totals.
-                if (showSkeleton && requestId == lastRequestId) {
-                    summary = null
-                    outliers = emptyList()
-                }
-            } finally {
-                if (requestId == lastRequestId) {
-                    inFlightPeriod = null
-                    if (showSkeleton) isLoading = false
-                }
-            }
+    private fun compute() {
+        val (first, last) = if (timescale == "month") {
+            monthIndex(selectedYear, selectedMonth).let { it to it }
+        } else {
+            monthIndex(selectedYear, 1) to monthIndex(selectedYear, 12)
+        }
+        summary = Reports.summary(totals, first, last).copy(
+            year = selectedYear,
+            month = selectedMonth.takeIf { timescale == "month" },
+        )
+        outliers = if (timescale == "year") {
+            Reports.outliers(
+                totals = totals,
+                year = selectedYear,
+                threshold = OUTLIER_THRESHOLD,
+                minTotalCents = OUTLIER_MIN_TOTAL * 100L,
+                yearsAround = OUTLIER_YEARS_AROUND,
+            )
+        } else {
+            emptyList()
         }
     }
 
     @JvmName("updateTimescale")
     fun setTimescale(value: String) {
         timescale = value
-        loadSummary()
+        compute()
     }
 
     @JvmName("updateSelectedType")
     fun setSelectedType(value: String) { selectedType = value }
 
     fun previousPeriod() {
+        if (!canGoBack()) return
         if (timescale == "month") {
-            if (selectedYear == oldestYear && selectedMonth <= oldestMonth) return
             if (selectedMonth == 1) { selectedMonth = 12; selectedYear-- }
             else selectedMonth--
         } else {
-            if (selectedYear <= oldestYear) return
             selectedYear--
         }
-        loadSummary()
+        compute()
     }
 
     fun nextPeriod() {
-        val curYear = currentYear()
-        val curMonth = currentMonth()
+        if (!canGoForward()) return
         if (timescale == "month") {
-            if (selectedYear == curYear && selectedMonth >= curMonth) return
             if (selectedMonth == 12) { selectedMonth = 1; selectedYear++ }
             else selectedMonth++
         } else {
-            if (selectedYear >= curYear) return
             selectedYear++
         }
-        loadSummary()
+        compute()
     }
 
-    // The years the outliers' average spans: cut short by the first year on record and
-    // by the current one, as the backend does.
+    // The years the outliers' average spans: cut short by the first year on record and by
+    // the current one, as Reports.outliers does.
     fun outlierWindow(): IntRange =
-        maxOf(selectedYear - OUTLIER_YEARS_AROUND, oldestYear)..minOf(selectedYear + OUTLIER_YEARS_AROUND, currentYear())
+        maxOf(selectedYear - OUTLIER_YEARS_AROUND, oldestMonth / 12)..minOf(selectedYear + OUTLIER_YEARS_AROUND, currentYear())
 
     fun canGoBack(): Boolean = if (timescale == "month")
-        !(selectedYear == oldestYear && selectedMonth <= oldestMonth)
+        monthIndex(selectedYear, selectedMonth) > oldestMonth
     else
-        selectedYear > oldestYear
+        selectedYear > oldestMonth / 12
 
     fun canGoForward(): Boolean {
         val curYear = currentYear()

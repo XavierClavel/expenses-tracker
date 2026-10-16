@@ -1,8 +1,5 @@
 package com.xavierclavel.bankable.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class SummaryDto(
     val year: Int? = null,
     val month: Int? = null,

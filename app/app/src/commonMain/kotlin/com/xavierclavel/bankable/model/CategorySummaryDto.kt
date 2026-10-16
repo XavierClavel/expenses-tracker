@@ -1,10 +1,11 @@
 package com.xavierclavel.bankable.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
+/**
+ * @property categoryId The subcategory's local id, or null for uncategorized expenses.
+ * @property categoryName The subcategory's name.
+ */
 data class CategorySummaryDto(
-    val categoryId: Int,
+    val categoryId: String?,
     val categoryName: String,
     val total: String,
 )
