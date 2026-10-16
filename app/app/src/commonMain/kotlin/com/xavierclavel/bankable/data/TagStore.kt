@@ -23,7 +23,6 @@ object TagStore {
                 rows.map {
                     TagOut(
                         id = it.id,
-                        serverId = it.server_id?.toInt(),
                         label = it.label,
                         total = formatCents(it.total_cents),
                         expenseCount = it.expense_count.toInt(),

@@ -7,12 +7,6 @@ CREATE TABLE tag (
 selectById:
 SELECT * FROM tag WHERE id = ?;
 
-selectServerIds:
-SELECT id, server_id FROM tag WHERE id IN ?;
-
-selectIdsByServerIds:
-SELECT id FROM tag WHERE server_id IN ?;
-
 -- Each tag with the net balance of its expenses (incomes minus expenses) and their count.
 selectWithTotals:
 SELECT t.id, t.server_id, t.label,

@@ -1,0 +1,21 @@
+-- Version 2: recurring expenses are synced too.
+CREATE TABLE recurring_expense (
+    id TEXT NOT NULL PRIMARY KEY,
+    server_id INTEGER,
+    subcategory_id TEXT,
+    title TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    type TEXT NOT NULL,
+    day_of_month INTEGER NOT NULL,
+    next_date TEXT NOT NULL,
+    last_generated_date TEXT
+);
+
+CREATE TABLE recurring_expense_tag (
+    recurring_expense_id TEXT NOT NULL,
+    tag_id TEXT NOT NULL,
+    PRIMARY KEY (recurring_expense_id, tag_id)
+);
+
+CREATE INDEX recurring_expense_tag_tag ON recurring_expense_tag(tag_id);

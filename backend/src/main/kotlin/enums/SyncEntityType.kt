@@ -10,4 +10,5 @@ enum class SyncEntityType(val table: String) {
     SUBCATEGORY("subcategories"),
     TAG("tags"),
     EXPENSE("expenses"),
+    RECURRING_EXPENSE("recurring_expenses"),
 }

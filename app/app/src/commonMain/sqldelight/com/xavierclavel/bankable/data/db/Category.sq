@@ -15,9 +15,6 @@ SELECT * FROM category ORDER BY rowid;
 selectById:
 SELECT * FROM category WHERE id = ?;
 
-selectServerIds:
-SELECT id, server_id FROM category WHERE id IN ?;
-
 -- Upserts are an insert-or-ignore followed by an update: Android 7 ships a SQLite without
 -- UPSERT, and INSERT OR REPLACE would move the row to the end of the list.
 insertOrIgnore:

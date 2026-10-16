@@ -28,6 +28,48 @@ internal fun nextOccurrence(dayOfMonth: Int, from: LocalDate): LocalDate {
     return if (candidate.isBefore(from)) occurrenceIn(month.plusMonths(1), dayOfMonth) else candidate
 }
 
+/**
+ * The first occurrence of a new recurring expense: the next [dayOfMonth] on or after [today].
+ * One made from an expense dated [madeFrom] counts that expense as its month's occurrence, so it
+ * never adds a second expense in that month.
+ */
+internal fun firstOccurrence(dayOfMonth: Int, today: LocalDate, madeFrom: LocalDate? = null): LocalDate {
+    val monthAfter = madeFrom?.let { YearMonth.from(it).plusMonths(1).atDay(1) }
+    return nextOccurrence(dayOfMonth, if (monthAfter != null) maxOf(today, monthAfter) else today)
+}
+
+/**
+ * Moves the next occurrence to [dayOfMonth], without ever creating a second expense in a month
+ * that already got one.
+ */
+internal fun RecurringExpense.moveToDay(dayOfMonth: Int, today: LocalDate) {
+    if (dayOfMonth == this.dayOfMonth) return
+    val firstAllowed = lastGeneratedDate
+        ?.let { YearMonth.from(it).plusMonths(1).atDay(1) }
+        ?.takeIf { it.isAfter(today) }
+        ?: today
+    nextDate = nextOccurrence(dayOfMonth, firstAllowed)
+    this.dayOfMonth = dayOfMonth
+}
+
+/**
+ * Create an expense for every occurrence up to [today], advancing [RecurringExpense.nextDate]
+ * past it. Several occurrences are created at once when some were missed (e.g. downtime).
+ * Must run inside a transaction holding a lock on this row, so that two concurrent runs
+ * cannot both create the same occurrence.
+ */
+internal fun RecurringExpense.generateUntil(today: LocalDate): Int {
+    var created = 0
+    while (!nextDate.isAfter(today)) {
+        toExpense(nextDate).insert()
+        lastGeneratedDate = nextDate
+        nextDate = occurrenceIn(YearMonth.from(nextDate).plusMonths(1), dayOfMonth)
+        created++
+    }
+    if (created > 0) update()
+    return created
+}
+
 class RecurringExpenseService: KoinComponent {
 
     private fun getById(id: Long): RecurringExpense =
@@ -48,24 +90,6 @@ class RecurringExpenseService: KoinComponent {
         if (dto.dayOfMonth !in 1..31) {
             throw BadRequestException(BadRequestCause.INVALID_DAY_OF_MONTH)
         }
-    }
-
-    /**
-     * Create an expense for every occurrence up to [today], advancing [RecurringExpense.nextDate]
-     * past it. Several occurrences are created at once when some were missed (e.g. downtime).
-     * Must run inside a transaction holding a lock on this row, so that two concurrent runs
-     * cannot both create the same occurrence.
-     */
-    private fun RecurringExpense.generateUntil(today: LocalDate): Int {
-        var created = 0
-        while (!nextDate.isAfter(today)) {
-            toExpense(nextDate).insert()
-            lastGeneratedDate = nextDate
-            nextDate = occurrenceIn(YearMonth.from(nextDate).plusMonths(1), dayOfMonth)
-            created++
-        }
-        if (created > 0) update()
-        return created
     }
 
     /**
@@ -117,7 +141,7 @@ class RecurringExpenseService: KoinComponent {
             currency = dto.currency,
             type = dto.type,
             dayOfMonth = dto.dayOfMonth,
-            nextDate = nextOccurrence(dto.dayOfMonth, today),
+            nextDate = firstOccurrence(dto.dayOfMonth, today),
             tags = tags,
         )
         DB.beginTransaction().use { tx ->
@@ -149,7 +173,6 @@ class RecurringExpenseService: KoinComponent {
                 .sortedBy { it.date }
                 .map { expense ->
                     val dayOfMonth = expense.date.dayOfMonth
-                    val monthAfter = YearMonth.from(expense.date).plusMonths(1).atDay(1)
                     RecurringExpense(
                         user = expense.user,
                         category = expense.category,
@@ -158,7 +181,7 @@ class RecurringExpenseService: KoinComponent {
                         currency = expense.currency,
                         type = expense.type,
                         dayOfMonth = dayOfMonth,
-                        nextDate = nextOccurrence(dayOfMonth, maxOf(today, monthAfter)),
+                        nextDate = firstOccurrence(dayOfMonth, today, madeFrom = expense.date),
                         lastGeneratedDate = expense.date,
                         tags = expense.tags.toMutableList(),
                     ).apply {
@@ -194,19 +217,12 @@ class RecurringExpenseService: KoinComponent {
                 ?.checkRights(userId)
                 ?: throw NotFoundException(NotFoundCause.RECURRING_EXPENSE_NOT_FOUND)
             recurringExpense.apply {
-                if (dto.dayOfMonth != dayOfMonth) {
-                    val firstAllowed = lastGeneratedDate
-                        ?.let { YearMonth.from(it).plusMonths(1).atDay(1) }
-                        ?.takeIf { it.isAfter(today) }
-                        ?: today
-                    nextDate = nextOccurrence(dto.dayOfMonth, firstAllowed)
-                }
+                moveToDay(dto.dayOfMonth, today)
                 title = dto.title
                 this.category = category
                 amount = dto.amount
                 currency = dto.currency
                 type = dto.type
-                dayOfMonth = dto.dayOfMonth
                 this.tags = tags
                 update()
                 generateUntil(today)

@@ -5,26 +5,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.bankable.api.apiCreateRecurringExpense
-import com.xavierclavel.bankable.api.apiDeleteRecurringExpense
-import com.xavierclavel.bankable.api.apiListRecurringExpenses
-import com.xavierclavel.bankable.api.apiUpdateRecurringExpense
-import com.xavierclavel.bankable.data.SyncType
-import com.xavierclavel.bankable.data.localTagIds
-import com.xavierclavel.bankable.data.requireServerIds
-import com.xavierclavel.bankable.model.RecurringExpenseIn
+import com.xavierclavel.bankable.data.RecurringExpenseStore
+import com.xavierclavel.bankable.data.Sync
 import com.xavierclavel.bankable.model.RecurringExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
+import com.xavierclavel.bankable.resources.Res
+import com.xavierclavel.bankable.resources.error_invalid_amount
+import com.xavierclavel.bankable.util.parseCents
 import com.xavierclavel.bankable.util.userMessage
 import kotlin.jvm.JvmName
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 class RecurringExpensesViewModel : ViewModel() {
 
-    private val _recurringExpenses = MutableStateFlow<List<RecurringExpenseOut>>(emptyList())
-    val recurringExpenses: StateFlow<List<RecurringExpenseOut>> = _recurringExpenses
+    val recurringExpenses: StateFlow<List<RecurringExpenseOut>> = RecurringExpenseStore.observe()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     var selectedRecurringExpense by mutableStateOf<RecurringExpenseOut?>(null)
         private set
@@ -32,26 +32,23 @@ class RecurringExpensesViewModel : ViewModel() {
         private set
     var selectedType by mutableStateOf("EXPENSE")
         private set
-    // Tags (local ids) copied onto every expense the recurring expense being edited creates.
+    // Tags copied onto every expense the recurring expense being edited creates.
     var selectedTagIds by mutableStateOf<Set<String>>(emptySet())
         private set
+    // True while the first recurring expenses are still being downloaded.
     var isLoading by mutableStateOf(false)
         private set
 
-    private suspend fun fetchRecurringExpenses() {
-        _recurringExpenses.value = apiListRecurringExpenses()
+    init {
+        viewModelScope.launch {
+            combine(Sync.isSyncing, recurringExpenses) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoading = it }
+        }
     }
 
+    /** Fetches the changes made elsewhere, such as the next dates moving as expenses get created. */
     fun loadRecurringExpenses() {
-        viewModelScope.launch {
-            isLoading = true
-            try {
-                fetchRecurringExpenses()
-            } catch (_: Exception) {
-            } finally {
-                isLoading = false
-            }
-        }
+        Sync.requestSync()
     }
 
     fun prepareNewRecurringExpense() {
@@ -65,8 +62,7 @@ class RecurringExpensesViewModel : ViewModel() {
         selectedRecurringExpense = recurringExpense
         selectedSubcategory = subcategory
         selectedType = recurringExpense.type
-        selectedTagIds = emptySet()
-        viewModelScope.launch { selectedTagIds = localTagIds(recurringExpense.tagIds) }
+        selectedTagIds = recurringExpense.tagIds.toSet()
     }
 
     @JvmName("updateSelectedSubcategory")
@@ -88,40 +84,34 @@ class RecurringExpensesViewModel : ViewModel() {
     }
 
     /**
-     * Creates or updates the selected recurring expense. [onSuccess] receives true when the
-     * backend created an expense on save, which happens when [dayOfMonth] is today: callers
-     * use it to refresh the expense list.
-     *
-     * Recurring expenses live on the server only, and reference the subcategory and tags by
-     * their server ids: ones created offline must have been synced first.
+     * Creates or updates the selected recurring expense. [onSuccess] receives true when a new
+     * one is due today: the server creates its expense once the app syncs.
      */
     fun saveRecurringExpense(
         title: String,
         amount: String,
         dayOfMonth: Int,
-        onSuccess: (createdExpense: Boolean) -> Unit,
+        onSuccess: (dueToday: Boolean) -> Unit,
         onError: (String) -> Unit,
     ) {
         viewModelScope.launch {
             try {
-                val recurringExpenseIn = RecurringExpenseIn(
+                val cents = parseCents(amount)
+                if (cents == null) {
+                    onError(getString(Res.string.error_invalid_amount))
+                    return@launch
+                }
+                val dueToday = RecurringExpenseStore.save(
+                    id = selectedRecurringExpense?.id,
                     title = title,
-                    amount = amount,
+                    amountCents = cents,
                     currency = "EUR",
-                    categoryId = selectedSubcategory
-                        ?.let { requireServerIds(SyncType.SUBCATEGORY, listOf(it.id)).single() },
                     type = selectedType,
-                    tagIds = requireServerIds(SyncType.TAG, selectedTagIds.toList()),
+                    subcategoryId = selectedSubcategory?.id,
+                    tagIds = selectedTagIds,
                     dayOfMonth = dayOfMonth,
                 )
-                val previous = selectedRecurringExpense
-                val saved = if (previous != null) {
-                    apiUpdateRecurringExpense(previous.id, recurringExpenseIn)
-                } else {
-                    apiCreateRecurringExpense(recurringExpenseIn)
-                }
-                fetchRecurringExpenses()
-                onSuccess(saved.lastGeneratedDate != previous?.lastGeneratedDate)
+                onSuccess(dueToday)
             } catch (e: Exception) {
                 onError(userMessage(e, "Save failed"))
             }
@@ -131,11 +121,10 @@ class RecurringExpensesViewModel : ViewModel() {
     fun deleteRecurringExpense(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiDeleteRecurringExpense(selectedRecurringExpense!!.id)
-                fetchRecurringExpenses()
+                RecurringExpenseStore.delete(selectedRecurringExpense!!.id)
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }

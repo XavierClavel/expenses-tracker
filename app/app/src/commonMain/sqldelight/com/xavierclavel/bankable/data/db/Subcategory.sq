@@ -16,14 +16,13 @@ SELECT * FROM subcategory ORDER BY rowid;
 selectById:
 SELECT * FROM subcategory WHERE id = ?;
 
-selectServerIds:
-SELECT id, server_id FROM subcategory WHERE id IN ?;
-
 selectByCategory:
 SELECT * FROM subcategory WHERE category_id = ? ORDER BY rowid;
 
+-- Expenses or recurring expenses still use it.
 isUsed:
-SELECT EXISTS (SELECT 1 FROM expense WHERE subcategory_id = ?);
+SELECT EXISTS (SELECT 1 FROM expense WHERE subcategory_id = :id)
+    OR EXISTS (SELECT 1 FROM recurring_expense WHERE subcategory_id = :id);
 
 insertOrIgnore:
 INSERT OR IGNORE INTO subcategory (id, server_id, category_id, name, icon, type, is_default)

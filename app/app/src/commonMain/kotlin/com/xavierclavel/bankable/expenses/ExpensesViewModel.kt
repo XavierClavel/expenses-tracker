@@ -5,11 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.bankable.api.apiCreateRecurringExpensesFromExpenses
 import com.xavierclavel.bankable.data.ExpenseStore
+import com.xavierclavel.bankable.data.RecurringExpenseStore
 import com.xavierclavel.bankable.data.Sync
-import com.xavierclavel.bankable.data.SyncType
-import com.xavierclavel.bankable.data.requireServerIds
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
 import com.xavierclavel.bankable.resources.Res
@@ -265,18 +263,13 @@ class ExpensesViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Creates a recurring expense from every currently selected expense, then exits selection.
-     * Recurring expenses live on the server only, so this needs a connection. A sync follows,
-     * since one coming due today adds this month's expense right away.
-     */
+    /** Creates a recurring expense from every currently selected expense, then exits selection. */
     fun batchMakeRecurringSelection(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val ids = selectedExpenseIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             try {
-                apiCreateRecurringExpensesFromExpenses(requireServerIds(SyncType.EXPENSE, ids))
-                Sync.requestSync()
+                RecurringExpenseStore.createFromExpenses(ids)
                 clearSelection()
                 onSuccess()
             } catch (e: Exception) {

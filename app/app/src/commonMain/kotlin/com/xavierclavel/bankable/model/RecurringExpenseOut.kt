@@ -1,16 +1,17 @@
 package com.xavierclavel.bankable.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
+/**
+ * @property id The recurring expense's uuid, shared with the backend.
+ * @property categoryId The uuid of its subcategory, or null when uncategorized.
+ */
 data class RecurringExpenseOut(
-    val id: Int,
+    val id: String,
     val title: String,
     val amount: String,
     val currency: String,
-    val categoryId: Int?,
+    val categoryId: String?,
     val type: String,
-    val tagIds: List<Int> = emptyList(),
+    val tagIds: List<String> = emptyList(),
     val dayOfMonth: Int,
     // "yyyy-MM-dd" of the next expense the backend will create.
     val nextDate: String,

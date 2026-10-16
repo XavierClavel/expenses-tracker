@@ -1,0 +1,70 @@
+-- Templates the server creates an expense from every month, on day_of_month (the last day of
+-- shorter months). next_date and last_generated_date ("yyyy-MM-dd") are the server's: the app
+-- only computes them for a template it creates, until the server's come back with a pull.
+CREATE TABLE recurring_expense (
+    id TEXT NOT NULL PRIMARY KEY,
+    server_id INTEGER,
+    subcategory_id TEXT,
+    title TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    type TEXT NOT NULL,
+    day_of_month INTEGER NOT NULL,
+    next_date TEXT NOT NULL,
+    last_generated_date TEXT
+);
+
+CREATE TABLE recurring_expense_tag (
+    recurring_expense_id TEXT NOT NULL,
+    tag_id TEXT NOT NULL,
+    PRIMARY KEY (recurring_expense_id, tag_id)
+);
+
+CREATE INDEX recurring_expense_tag_tag ON recurring_expense_tag(tag_id);
+
+-- Every template with its comma-separated tag ids, by day of month.
+selectWithTags:
+SELECT r.*, group_concat(rt.tag_id) AS tag_ids
+FROM recurring_expense r
+LEFT JOIN recurring_expense_tag rt ON rt.recurring_expense_id = r.id
+GROUP BY r.id
+ORDER BY r.day_of_month, r.title;
+
+selectById:
+SELECT * FROM recurring_expense WHERE id = ?;
+
+selectTagIds:
+SELECT tag_id FROM recurring_expense_tag WHERE recurring_expense_id = ?;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO recurring_expense (
+    id, server_id, subcategory_id, title, amount_cents, currency, type, day_of_month, next_date, last_generated_date
+)
+VALUES (
+    :id, :server_id, :subcategory_id, :title, :amount_cents, :currency, :type, :day_of_month, :next_date, :last_generated_date
+);
+
+update:
+UPDATE recurring_expense
+SET server_id = coalesce(:server_id, server_id), subcategory_id = :subcategory_id, title = :title,
+    amount_cents = :amount_cents, currency = :currency, type = :type, day_of_month = :day_of_month,
+    next_date = :next_date, last_generated_date = :last_generated_date
+WHERE id = :id;
+
+deleteById:
+DELETE FROM recurring_expense WHERE id = ?;
+
+deleteAll:
+DELETE FROM recurring_expense;
+
+addTag:
+INSERT OR IGNORE INTO recurring_expense_tag (recurring_expense_id, tag_id) VALUES (?, ?);
+
+removeTags:
+DELETE FROM recurring_expense_tag WHERE recurring_expense_id = ?;
+
+removeTagEverywhere:
+DELETE FROM recurring_expense_tag WHERE tag_id = ?;
+
+deleteAllTags:
+DELETE FROM recurring_expense_tag;
