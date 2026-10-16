@@ -41,6 +41,9 @@
     <string name="error_password_mismatch">Les mots de passe ne correspondent pas</string>
     <string name="error_google_signin">Échec de la connexion Google. Veuillez réessayer.</string>
     <string name="error_google_reauth">Connexion Google impossible. Ajoutez de nouveau votre compte Google dans Paramètres → Mots de passe et comptes, puis réessayez.</string>
+    <string name="error_needs_connection">Cette action nécessite une connexion au serveur. Réessayez une fois en ligne.</string>
+    <string name="error_category_in_use">Des dépenses utilisent encore cette catégorie. Déplacez-les ou supprimez-les d'abord.</string>
+    <string name="error_invalid_amount">Saisissez un montant valide.</string>
     <string name="label_expense">Dépense</string>
     <string name="label_income">Revenus</string>
     <string name="label_expenses">Dépenses</string>

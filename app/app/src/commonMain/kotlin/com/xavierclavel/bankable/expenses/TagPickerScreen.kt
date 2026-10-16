@@ -40,8 +40,8 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagPickerScreen(
-    selectedIds: Set<Int>,
-    onToggle: (Int) -> Unit,
+    selectedIds: Set<String>,
+    onToggle: (String) -> Unit,
     tagsViewModel: TagsViewModel,
     navController: NavController,
 ) {

@@ -9,10 +9,15 @@ import com.xavierclavel.bankable.api.apiSignup
 import com.xavierclavel.bankable.api.clearSessionCookies
 import com.xavierclavel.bankable.api.sessionToken
 import com.xavierclavel.bankable.api.unauthorizedFlow
+import com.xavierclavel.bankable.data.Sync
 import com.xavierclavel.bankable.storage.TokenStorage
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+
+private const val LOGOUT_SYNC_TIMEOUT_MS = 5_000L
 
 sealed class AuthState {
     object Loading : AuthState()
@@ -29,7 +34,8 @@ class AuthViewModel : ViewModel() {
     init {
         checkAuth()
         viewModelScope.launch {
-            unauthorizedFlow.collect { logout() }
+            // The session is gone: changes not pushed yet can't be anymore.
+            unauthorizedFlow.collect { endSession() }
         }
     }
 
@@ -85,10 +91,32 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Logs out. The local data goes with the session, so the changes not pushed yet get a few
+     * seconds to reach the server first.
+     */
     fun logout() {
+        _authState.value = AuthState.Loading
+        viewModelScope.launch {
+            withTimeoutOrNull(LOGOUT_SYNC_TIMEOUT_MS) {
+                try {
+                    Sync.syncNow()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Offline: the pending changes are lost with the session.
+                }
+            }
+            endSession()
+        }
+    }
+
+    /** Forgets the session and deletes the local data, so that the next account starts empty. */
+    private suspend fun endSession() {
         sessionToken = null
         tokenStorage.clearToken()
-        viewModelScope.launch { clearSessionCookies() }
+        clearSessionCookies()
+        Sync.clear()
         _authState.value = AuthState.Unauthenticated()
     }
 
@@ -99,10 +127,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 apiDeleteAccount()
-                sessionToken = null
-                tokenStorage.clearToken()
-                clearSessionCookies()
-                _authState.value = AuthState.Unauthenticated()
+                endSession()
             } catch (e: Exception) {
                 onError(e.message ?: "Account deletion failed")
             }

@@ -257,7 +257,7 @@ private fun CategoryPickerSheet(
     onSelectSubcategory: (SubcategoryOut) -> Unit,
 ) {
     var selectedType       by remember { mutableStateOf("EXPENSE") }
-    var expandedCategories by remember { mutableStateOf(setOf<Int>()) }
+    var expandedCategories by remember { mutableStateOf(setOf<String>()) }
 
     val filtered = categories.filter { it.type == selectedType }
 

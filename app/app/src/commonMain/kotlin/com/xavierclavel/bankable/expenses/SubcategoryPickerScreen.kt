@@ -52,7 +52,7 @@ fun SubcategoryPickerScreen(
     val categories by categoriesViewModel.categories.collectAsState()
     val filtered = categories.filter { it.type == selectedType }
 
-    var expandedIds by remember { mutableStateOf(setOf<Int>()) }
+    var expandedIds by remember { mutableStateOf(setOf<String>()) }
 
     Scaffold(
         topBar = {

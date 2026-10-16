@@ -1,0 +1,41 @@
+-- Rows changed on this device and not pushed yet, one entry per row: a push sends the row's
+-- current state, or its deletion. seq orders the entries, so that a push only clears the ones
+-- it sent, not one written while it was in flight.
+CREATE TABLE pending_change (
+    type TEXT NOT NULL,
+    id TEXT NOT NULL,
+    deleted INTEGER NOT NULL,
+    seq INTEGER NOT NULL,
+    PRIMARY KEY (type, id)
+);
+
+-- The last revision pulled from the server: the next pull asks for the changes after it.
+CREATE TABLE sync_state (
+    singleton INTEGER NOT NULL PRIMARY KEY CHECK (singleton = 0),
+    revision INTEGER NOT NULL
+);
+
+markPending:
+INSERT OR REPLACE INTO pending_change (type, id, deleted, seq)
+VALUES (?, ?, ?, (SELECT coalesce(max(seq), 0) + 1 FROM pending_change));
+
+selectPending:
+SELECT * FROM pending_change ORDER BY seq;
+
+countPending:
+SELECT count(*) FROM pending_change;
+
+clearPendingUpTo:
+DELETE FROM pending_change WHERE seq <= ?;
+
+deleteAllPending:
+DELETE FROM pending_change;
+
+selectRevision:
+SELECT revision FROM sync_state WHERE singleton = 0;
+
+setRevision:
+INSERT OR REPLACE INTO sync_state (singleton, revision) VALUES (0, ?);
+
+deleteSyncState:
+DELETE FROM sync_state;

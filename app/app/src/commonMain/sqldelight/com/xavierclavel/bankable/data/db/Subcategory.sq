@@ -1,0 +1,42 @@
+CREATE TABLE subcategory (
+    id TEXT NOT NULL PRIMARY KEY,
+    server_id INTEGER,
+    category_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    type TEXT NOT NULL,
+    is_default INTEGER NOT NULL
+);
+
+CREATE INDEX subcategory_category ON subcategory(category_id);
+
+selectAll:
+SELECT * FROM subcategory ORDER BY rowid;
+
+selectById:
+SELECT * FROM subcategory WHERE id = ?;
+
+selectServerIds:
+SELECT id, server_id FROM subcategory WHERE id IN ?;
+
+selectByCategory:
+SELECT * FROM subcategory WHERE category_id = ? ORDER BY rowid;
+
+isUsed:
+SELECT EXISTS (SELECT 1 FROM expense WHERE subcategory_id = ?);
+
+insertOrIgnore:
+INSERT OR IGNORE INTO subcategory (id, server_id, category_id, name, icon, type, is_default)
+VALUES (:id, :server_id, :category_id, :name, :icon, :type, :is_default);
+
+update:
+UPDATE subcategory
+SET server_id = coalesce(:server_id, server_id), category_id = :category_id, name = :name,
+    icon = :icon, type = :type, is_default = :is_default
+WHERE id = :id;
+
+deleteById:
+DELETE FROM subcategory WHERE id = ?;
+
+deleteAll:
+DELETE FROM subcategory;

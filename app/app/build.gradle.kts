@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqldelight)
 }
 
 // Release signing. In CI the values come from environment variables; locally they
@@ -78,6 +79,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             // Lottie animations (empty states).
             implementation(libs.compottie)
+            // Local database the expenses, categories and tags are synced into.
+            implementation(libs.sqldelight.coroutines)
         }
 
         androidMain.dependencies {
@@ -91,10 +94,12 @@ kotlin {
             implementation(libs.googleid)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.sqldelight.android.driver)
         }
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.native.driver)
         }
 
         commonTest.dependencies {
@@ -103,6 +108,8 @@ kotlin {
 
         androidUnitTest.dependencies {
             implementation(libs.junit)
+            implementation(libs.sqldelight.sqlite.driver)
+            implementation(libs.ktor.client.mock)
         }
 
         androidInstrumentedTest.dependencies {
@@ -124,8 +131,8 @@ android {
         applicationId = "com.xavierclavel.bankable"
         minSdk = 24
         targetSdk = 36
-        versionCode = 21
-        versionName = "1.12.0"
+        versionCode = 22
+        versionName = "1.13.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -160,6 +167,14 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+sqldelight {
+    databases {
+        create("BankableDatabase") {
+            packageName.set("com.xavierclavel.bankable.data.db")
+        }
     }
 }
 

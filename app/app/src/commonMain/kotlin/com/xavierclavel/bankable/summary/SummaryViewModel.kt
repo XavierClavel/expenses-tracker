@@ -10,6 +10,7 @@ import com.xavierclavel.bankable.api.apiGetMonthSummary
 import com.xavierclavel.bankable.api.apiGetOldestExpenseDate
 import com.xavierclavel.bankable.api.apiGetYearOutliers
 import com.xavierclavel.bankable.api.apiGetYearSummary
+import com.xavierclavel.bankable.data.Sync
 import com.xavierclavel.bankable.model.SubcategoryOutlierDto
 import com.xavierclavel.bankable.model.SummaryDto
 import com.xavierclavel.bankable.util.currentMonth
@@ -63,6 +64,8 @@ class SummaryViewModel : ViewModel() {
             } catch (_: Exception) {}
             loadSummary()
         }
+        // The backend computes the summary: fetch it again once local changes reached it.
+        viewModelScope.launch { Sync.changed.collect { loadSummary(showSkeleton = false) } }
     }
 
     fun refresh() {

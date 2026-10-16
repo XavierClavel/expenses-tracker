@@ -1,0 +1,87 @@
+-- Amounts are in cents, so that sums are exact. date is "yyyy-MM-dd".
+CREATE TABLE expense (
+    id TEXT NOT NULL PRIMARY KEY,
+    server_id INTEGER,
+    subcategory_id TEXT,
+    title TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    date TEXT NOT NULL,
+    type TEXT NOT NULL
+);
+
+CREATE INDEX expense_date ON expense(date);
+CREATE INDEX expense_subcategory ON expense(subcategory_id);
+
+CREATE TABLE expense_tag (
+    expense_id TEXT NOT NULL,
+    tag_id TEXT NOT NULL,
+    PRIMARY KEY (expense_id, tag_id)
+);
+
+CREATE INDEX expense_tag_tag ON expense_tag(tag_id);
+
+-- The expenses matching every non-null filter, newest first, each with its comma-separated tag
+-- ids. title_pattern is a LIKE pattern escaped with '\'.
+search:
+SELECT e.*, group_concat(et.tag_id) AS tag_ids
+FROM expense e
+LEFT JOIN subcategory s ON s.id = e.subcategory_id
+LEFT JOIN expense_tag et ON et.expense_id = e.id
+WHERE (:category_id IS NULL OR s.category_id = :category_id)
+  AND (:subcategory_id IS NULL OR e.subcategory_id = :subcategory_id)
+  AND (:type IS NULL OR e.type = :type)
+  AND (:from_date IS NULL OR e.date >= :from_date)
+  AND (:to_date IS NULL OR e.date <= :to_date)
+  AND (:title_pattern IS NULL OR e.title LIKE :title_pattern ESCAPE '\')
+  AND (:min_cents IS NULL OR e.amount_cents >= :min_cents)
+  AND (:max_cents IS NULL OR e.amount_cents <= :max_cents)
+  AND (:tag_id IS NULL OR EXISTS (
+      SELECT 1 FROM expense_tag ft WHERE ft.expense_id = e.id AND ft.tag_id = :tag_id
+  ))
+GROUP BY e.id
+ORDER BY e.date DESC, e.rowid DESC
+LIMIT :limit;
+
+selectById:
+SELECT * FROM expense WHERE id = ?;
+
+selectByIds:
+SELECT * FROM expense WHERE id IN ?;
+
+selectTagIds:
+SELECT tag_id FROM expense_tag WHERE expense_id = ?;
+
+selectServerIds:
+SELECT id, server_id FROM expense WHERE id IN ?;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO expense (id, server_id, subcategory_id, title, amount_cents, currency, date, type)
+VALUES (:id, :server_id, :subcategory_id, :title, :amount_cents, :currency, :date, :type);
+
+update:
+UPDATE expense
+SET server_id = coalesce(:server_id, server_id), subcategory_id = :subcategory_id, title = :title,
+    amount_cents = :amount_cents, currency = :currency, date = :date, type = :type
+WHERE id = :id;
+
+deleteById:
+DELETE FROM expense WHERE id = ?;
+
+deleteAll:
+DELETE FROM expense;
+
+addTag:
+INSERT OR IGNORE INTO expense_tag (expense_id, tag_id) VALUES (?, ?);
+
+removeTag:
+DELETE FROM expense_tag WHERE expense_id = ? AND tag_id = ?;
+
+removeTags:
+DELETE FROM expense_tag WHERE expense_id = ?;
+
+removeTagEverywhere:
+DELETE FROM expense_tag WHERE tag_id = ?;
+
+deleteAllTags:
+DELETE FROM expense_tag;

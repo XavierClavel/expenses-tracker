@@ -13,6 +13,9 @@ import com.xavierclavel.bankable.api.apiGetYearCategoryTrends
 import com.xavierclavel.bankable.api.apiGetYearFlowTrends
 import com.xavierclavel.bankable.api.apiGetYearSubcategoryTrends
 import com.xavierclavel.bankable.api.apiGetYearTrends
+import com.xavierclavel.bankable.data.Sync
+import com.xavierclavel.bankable.data.SyncType
+import com.xavierclavel.bankable.data.requireServerIds
 import com.xavierclavel.bankable.model.CategoryOut
 import com.xavierclavel.bankable.model.SubcategoryOut
 import com.xavierclavel.bankable.platform.platformDefaultLocaleTag
@@ -56,6 +59,11 @@ class TrendsViewModel : ViewModel() {
 
     private var categories: List<CategoryOut> = emptyList()
     private var locale: String = platformDefaultLocaleTag()
+
+    init {
+        // The backend computes trends: fetch them again once local changes reached it.
+        viewModelScope.launch { Sync.changed.collect { load() } }
+    }
 
     fun updateLocale(newLocale: String) {
         if (locale == newLocale) return
@@ -152,22 +160,23 @@ class TrendsViewModel : ViewModel() {
     }
 
     private suspend fun loadCategoryMode() {
-        val sub = selectedSubcategory
-        val cat = selectedCategory
+        // The trends API knows categories by their server ids.
+        val sub = selectedSubcategory?.let { requireServerIds(SyncType.SUBCATEGORY, listOf(it.id)).single() }
+        val cat = selectedCategory?.let { requireServerIds(SyncType.CATEGORY, listOf(it.id)).single() }
         // Category mode always shows positive (unsigned) values, colored by the
         // category accent — no income/expense sign.
         when {
             sub != null -> {
                 _bars.value = if (timescale == "month")
-                    apiGetMonthSubcategoryTrends(sub.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
+                    apiGetMonthSubcategoryTrends(sub).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
                 else
-                    apiGetYearSubcategoryTrends(sub.id).map { t -> BarEntry(aggCat(t), t.year.toString()) }
+                    apiGetYearSubcategoryTrends(sub).map { t -> BarEntry(aggCat(t), t.year.toString()) }
             }
             cat != null -> {
                 _bars.value = if (timescale == "month")
-                    apiGetMonthCategoryTrends(cat.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
+                    apiGetMonthCategoryTrends(cat).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
                 else
-                    apiGetYearCategoryTrends(cat.id).map { t -> BarEntry(aggCat(t), t.year.toString()) }
+                    apiGetYearCategoryTrends(cat).map { t -> BarEntry(aggCat(t), t.year.toString()) }
             }
             else -> _bars.value = emptyList()
         }

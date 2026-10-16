@@ -63,7 +63,7 @@ fun CategoryListScreen(
 ) {
     val categories by viewModel.categories.collectAsState()
     val typeFilter = viewModel.typeFilter
-    var expandedIds by remember { mutableStateOf(setOf<Int>()) }
+    var expandedIds by remember { mutableStateOf(setOf<String>()) }
 
     Scaffold(
         floatingActionButton = {

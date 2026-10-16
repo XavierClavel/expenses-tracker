@@ -1,0 +1,36 @@
+-- Rows are keyed by the uuid shared with the backend. server_id is the id the REST API knows
+-- the row by: null until the row has been pushed and pulled back.
+CREATE TABLE category (
+    id TEXT NOT NULL PRIMARY KEY,
+    server_id INTEGER,
+    name TEXT NOT NULL,
+    color TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    type TEXT NOT NULL
+);
+
+selectAll:
+SELECT * FROM category ORDER BY rowid;
+
+selectById:
+SELECT * FROM category WHERE id = ?;
+
+selectServerIds:
+SELECT id, server_id FROM category WHERE id IN ?;
+
+-- Upserts are an insert-or-ignore followed by an update: Android 7 ships a SQLite without
+-- UPSERT, and INSERT OR REPLACE would move the row to the end of the list.
+insertOrIgnore:
+INSERT OR IGNORE INTO category (id, server_id, name, color, icon, type)
+VALUES (:id, :server_id, :name, :color, :icon, :type);
+
+update:
+UPDATE category
+SET server_id = coalesce(:server_id, server_id), name = :name, color = :color, icon = :icon, type = :type
+WHERE id = :id;
+
+deleteById:
+DELETE FROM category WHERE id = ?;
+
+deleteAll:
+DELETE FROM category;

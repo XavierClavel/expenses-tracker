@@ -5,38 +5,52 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
-import com.xavierclavel.bankable.api.apiBatchTagExpenses
-import com.xavierclavel.bankable.api.apiCreateCategory
-import com.xavierclavel.bankable.api.apiCreateSubcategory
-import com.xavierclavel.bankable.api.apiDeleteCategory
-import com.xavierclavel.bankable.api.apiDeleteSubcategory
-import com.xavierclavel.bankable.api.apiListCategories
-import com.xavierclavel.bankable.api.apiListExpenses
-import com.xavierclavel.bankable.api.apiUpdateCategory
-import com.xavierclavel.bankable.api.apiUpdateSubcategory
-import com.xavierclavel.bankable.model.CategoryIn
+import com.xavierclavel.bankable.data.CategoryStore
+import com.xavierclavel.bankable.data.ExpenseStore
+import com.xavierclavel.bankable.data.Sync
 import com.xavierclavel.bankable.model.CategoryOut
 import com.xavierclavel.bankable.model.ExpenseOut
-import com.xavierclavel.bankable.model.SubcategoryIn
 import com.xavierclavel.bankable.model.SubcategoryOut
+import com.xavierclavel.bankable.util.userMessage
 import kotlin.jvm.JvmName
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val EXPENSE_PAGE_SIZE = 50
+
+/** Which expenses a detail view lists: those of [id] (a category or a subcategory), the first [limit]. */
+private data class ExpensePage(val id: String, val limit: Int)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class CategoriesViewModel : ViewModel() {
 
-    private val _categories = MutableStateFlow<List<CategoryOut>>(emptyList())
-    val categories: StateFlow<List<CategoryOut>> = _categories
+    val categories: StateFlow<List<CategoryOut>> = CategoryStore.observe()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val categoryExpensePage = MutableStateFlow<ExpensePage?>(null)
+    private val subcategoryExpensePage = MutableStateFlow<ExpensePage?>(null)
 
     // Expenses belonging to the category currently being viewed (paginated).
-    private val _categoryExpenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
-    val categoryExpenses: StateFlow<List<ExpenseOut>> = _categoryExpenses
+    val categoryExpenses: StateFlow<List<ExpenseOut>> = categoryExpensePage
+        .flatMapLatest { page ->
+            if (page == null) flowOf(emptyList()) else ExpenseStore.observe(categoryId = page.id, limit = page.limit)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     // Expenses belonging to the subcategory currently being viewed (paginated).
-    private val _subcategoryExpenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
-    val subcategoryExpenses: StateFlow<List<ExpenseOut>> = _subcategoryExpenses
+    val subcategoryExpenses: StateFlow<List<ExpenseOut>> = subcategoryExpensePage
+        .flatMapLatest { page ->
+            if (page == null) flowOf(emptyList()) else ExpenseStore.observe(subcategoryId = page.id, limit = page.limit)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     var selectedCategory by mutableStateOf<CategoryOut?>(null)
         private set
@@ -50,6 +64,7 @@ class CategoriesViewModel : ViewModel() {
         private set
     var typeFilter by mutableStateOf("EXPENSE")
         private set
+    // True while the first categories / expenses are still being downloaded.
     var isLoading by mutableStateOf(false)
         private set
     var isLoadingExpenses by mutableStateOf(false)
@@ -57,29 +72,18 @@ class CategoriesViewModel : ViewModel() {
     var isLoadingSubcategoryExpenses by mutableStateOf(false)
         private set
 
-    private var expensePage = 0
-    private var expenseHasMore = true
-    private var subExpensePage = 0
-    private var subExpenseHasMore = true
-    private val expensePageSize = 50
-
     init {
-        loadCategories()
-    }
-
-    private suspend fun fetchCategories() {
-        _categories.value = apiListCategories()
-    }
-
-    fun loadCategories() {
         viewModelScope.launch {
-            isLoading = true
-            try {
-                fetchCategories()
-            } catch (_: Exception) {
-            } finally {
-                isLoading = false
-            }
+            combine(Sync.isSyncing, categories) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoading = it }
+        }
+        viewModelScope.launch {
+            combine(Sync.isSyncing, categoryExpenses) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoadingExpenses = it }
+        }
+        viewModelScope.launch {
+            combine(Sync.isSyncing, subcategoryExpenses) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoadingSubcategoryExpenses = it }
         }
     }
 
@@ -106,123 +110,53 @@ class CategoriesViewModel : ViewModel() {
         selectedIcon = category.icon
     }
 
-    /** Opens the category detail view and (re)loads its expense history from the first page. */
+    /** Opens the category detail view, listing its expenses from the first page. */
     fun prepareViewCategory(category: CategoryOut) {
         selectedCategory = category
-        _categoryExpenses.value = emptyList()
-        expensePage = 0
-        expenseHasMore = true
-        loadCategoryExpenses()
-    }
-
-    private fun loadCategoryExpenses() {
-        val categoryId = selectedCategory?.id ?: return
-        if (isLoadingExpenses || !expenseHasMore) return
-        viewModelScope.launch {
-            isLoadingExpenses = true
-            try {
-                val newExpenses = apiListExpenses(expensePage, expensePageSize, categoryId = categoryId)
-                _categoryExpenses.value =
-                    if (expensePage == 0) newExpenses else _categoryExpenses.value + newExpenses
-                expenseHasMore = newExpenses.size == expensePageSize
-                expensePage++
-            } catch (_: Exception) {
-            } finally {
-                isLoadingExpenses = false
-            }
-        }
+        categoryExpensePage.value = ExpensePage(category.id, EXPENSE_PAGE_SIZE)
     }
 
     fun loadMoreCategoryExpenses() {
-        if (!isLoadingExpenses && expenseHasMore) loadCategoryExpenses()
-    }
-
-    /** Refetches the currently-loaded category expenses in one request (stable count). */
-    private suspend fun reloadCategoryExpenses() {
-        val categoryId = selectedCategory?.id ?: return
-        val count = _categoryExpenses.value.size.coerceAtLeast(expensePageSize)
-        val refreshed = apiListExpenses(0, count, categoryId = categoryId)
-        _categoryExpenses.value = refreshed
-        expenseHasMore = refreshed.size == count
-        expensePage = count / expensePageSize
-    }
-
-    fun batchTagCategoryExpenses(ids: List<Int>, tagId: Int, add: Boolean) {
-        viewModelScope.launch {
-            try {
-                apiBatchTagExpenses(ids, tagId, add)
-                reloadCategoryExpenses()
-            } catch (_: Exception) {}
+        val page = categoryExpensePage.value ?: return
+        if (categoryExpenses.value.size >= page.limit) {
+            categoryExpensePage.update { it?.copy(limit = it.limit + EXPENSE_PAGE_SIZE) }
         }
     }
 
-    fun batchDeleteCategoryExpenses(ids: List<Int>) {
+    fun batchTagCategoryExpenses(ids: List<String>, tagId: String, add: Boolean) {
         viewModelScope.launch {
-            try {
-                apiBatchDeleteExpenses(ids)
-                reloadCategoryExpenses()
-                fetchCategories()
-            } catch (_: Exception) {}
+            try { ExpenseStore.setTag(ids, tagId, add) } catch (_: Exception) {}
         }
     }
 
-    /** Opens the subcategory detail view and (re)loads its expense history from the first page. */
+    fun batchDeleteCategoryExpenses(ids: List<String>) {
+        viewModelScope.launch {
+            try { ExpenseStore.delete(ids) } catch (_: Exception) {}
+        }
+    }
+
+    /** Opens the subcategory detail view, listing its expenses from the first page. */
     fun prepareViewSubcategory(subcategory: SubcategoryOut) {
         selectedSubcategory = subcategory
-        _subcategoryExpenses.value = emptyList()
-        subExpensePage = 0
-        subExpenseHasMore = true
-        loadSubcategoryExpenses()
-    }
-
-    private fun loadSubcategoryExpenses() {
-        val subcategoryId = selectedSubcategory?.id ?: return
-        if (isLoadingSubcategoryExpenses || !subExpenseHasMore) return
-        viewModelScope.launch {
-            isLoadingSubcategoryExpenses = true
-            try {
-                val newExpenses = apiListExpenses(subExpensePage, expensePageSize, subcategoryId = subcategoryId)
-                _subcategoryExpenses.value =
-                    if (subExpensePage == 0) newExpenses else _subcategoryExpenses.value + newExpenses
-                subExpenseHasMore = newExpenses.size == expensePageSize
-                subExpensePage++
-            } catch (_: Exception) {
-            } finally {
-                isLoadingSubcategoryExpenses = false
-            }
-        }
+        subcategoryExpensePage.value = ExpensePage(subcategory.id, EXPENSE_PAGE_SIZE)
     }
 
     fun loadMoreSubcategoryExpenses() {
-        if (!isLoadingSubcategoryExpenses && subExpenseHasMore) loadSubcategoryExpenses()
-    }
-
-    /** Refetches the currently-loaded subcategory expenses in one request (stable count). */
-    private suspend fun reloadSubcategoryExpenses() {
-        val subcategoryId = selectedSubcategory?.id ?: return
-        val count = _subcategoryExpenses.value.size.coerceAtLeast(expensePageSize)
-        val refreshed = apiListExpenses(0, count, subcategoryId = subcategoryId)
-        _subcategoryExpenses.value = refreshed
-        subExpenseHasMore = refreshed.size == count
-        subExpensePage = count / expensePageSize
-    }
-
-    fun batchTagSubcategoryExpenses(ids: List<Int>, tagId: Int, add: Boolean) {
-        viewModelScope.launch {
-            try {
-                apiBatchTagExpenses(ids, tagId, add)
-                reloadSubcategoryExpenses()
-            } catch (_: Exception) {}
+        val page = subcategoryExpensePage.value ?: return
+        if (subcategoryExpenses.value.size >= page.limit) {
+            subcategoryExpensePage.update { it?.copy(limit = it.limit + EXPENSE_PAGE_SIZE) }
         }
     }
 
-    fun batchDeleteSubcategoryExpenses(ids: List<Int>) {
+    fun batchTagSubcategoryExpenses(ids: List<String>, tagId: String, add: Boolean) {
         viewModelScope.launch {
-            try {
-                apiBatchDeleteExpenses(ids)
-                reloadSubcategoryExpenses()
-                fetchCategories()
-            } catch (_: Exception) {}
+            try { ExpenseStore.setTag(ids, tagId, add) } catch (_: Exception) {}
+        }
+    }
+
+    fun batchDeleteSubcategoryExpenses(ids: List<String>) {
+        viewModelScope.launch {
+            try { ExpenseStore.delete(ids) } catch (_: Exception) {}
         }
     }
 
@@ -235,7 +169,7 @@ class CategoriesViewModel : ViewModel() {
     fun prepareEditSubcategory(subcategory: SubcategoryOut) {
         selectedSubcategory = subcategory
         selectedIcon = subcategory.icon
-        pickerCategory = _categories.value.find { cat ->
+        pickerCategory = categories.value.find { cat ->
             cat.subcategories.any { it.id == subcategory.id }
         }
     }
@@ -248,21 +182,16 @@ class CategoriesViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val categoryIn = CategoryIn(
+                CategoryStore.saveCategory(
+                    id = selectedCategory?.id,
                     name = name,
                     type = selectedCategory?.type ?: type,
                     color = selectedColor ?: "",
                     icon = selectedIcon ?: "unknown",
                 )
-                if (selectedCategory != null) {
-                    apiUpdateCategory(selectedCategory!!.id, categoryIn)
-                } else {
-                    apiCreateCategory(categoryIn)
-                }
-                fetchCategories()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Save failed")
+                onError(userMessage(e, "Save failed"))
             }
         }
     }
@@ -270,11 +199,10 @@ class CategoriesViewModel : ViewModel() {
     fun deleteCategory(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiDeleteCategory(selectedCategory!!.id)
-                fetchCategories()
+                CategoryStore.deleteCategory(selectedCategory!!.id)
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }
@@ -286,21 +214,16 @@ class CategoriesViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val subcategoryIn = SubcategoryIn(
+                CategoryStore.saveSubcategory(
+                    id = selectedSubcategory?.id,
+                    categoryId = pickerCategory!!.id,
                     name = name,
-                    type = pickerCategory?.type ?: "EXPENSE",
                     icon = selectedIcon ?: "unknown",
-                    parentCategory = pickerCategory!!.id,
+                    type = pickerCategory?.type ?: "EXPENSE",
                 )
-                if (selectedSubcategory != null) {
-                    apiUpdateSubcategory(selectedSubcategory!!.id, subcategoryIn)
-                } else {
-                    apiCreateSubcategory(subcategoryIn)
-                }
-                fetchCategories()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Save failed")
+                onError(userMessage(e, "Save failed"))
             }
         }
     }
@@ -308,11 +231,10 @@ class CategoriesViewModel : ViewModel() {
     fun deleteSubcategory(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiDeleteSubcategory(selectedSubcategory!!.id)
-                fetchCategories()
+                CategoryStore.deleteSubcategory(selectedSubcategory!!.id)
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }
