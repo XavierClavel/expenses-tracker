@@ -1,8 +1,11 @@
 package com.xavierclavel.models
 
 import com.xavierclavel.dtos.RecurringExpenseOut
+import com.xavierclavel.dtos.sync.SyncRecurringExpense
 import com.xavierclavel.enums.ExpenseType
 import io.ebean.Model
+import io.ebean.annotation.DbDefault
+import io.ebean.annotation.Index
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -15,6 +18,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * Template for an expense that repeats every month on [dayOfMonth]. On each occurrence a
@@ -28,6 +32,7 @@ import java.time.LocalDate
  */
 @Entity
 @Table(name = "recurring_expenses")
+@Index(columnNames = ["user_id", "revision"])
 class RecurringExpense(
 
     @ManyToOne
@@ -60,10 +65,20 @@ class RecurringExpense(
     )
     var tags: MutableList<Tag> = mutableListOf(),
 
+    /** Identifies the row to devices, which generate it for the rows they create. */
+    @Column(unique = true)
+    @DbDefault("\$RAW:gen_random_uuid()")
+    val uuid: UUID = UUID.randomUUID(),
+
     ): Model() {
 
     @Id
     var id: Long = 0
+
+    /** Position of the row's last change in its owner's sync history, set by the database. */
+    @Column(insertable = false, updatable = false)
+    @DbDefault("0")
+    var revision: Long = 0
 
     /** Build the expense this template produces on [date]. */
     fun toExpense(date: LocalDate) = Expense(
@@ -85,6 +100,20 @@ class RecurringExpense(
         categoryId = this.category?.id,
         type = this.type,
         tagIds = this.tags.map { it.id },
+        dayOfMonth = this.dayOfMonth,
+        nextDate = this.nextDate,
+        lastGeneratedDate = this.lastGeneratedDate,
+    )
+
+    fun toSync() = SyncRecurringExpense(
+        id = this.uuid,
+        serverId = this.id,
+        subcategoryId = this.category?.uuid,
+        title = this.title,
+        amount = this.amount,
+        currency = this.currency,
+        type = this.type,
+        tagIds = this.tags.map { it.uuid }.sorted(),
         dayOfMonth = this.dayOfMonth,
         nextDate = this.nextDate,
         lastGeneratedDate = this.lastGeneratedDate,

@@ -24,6 +24,7 @@ data class SyncChanges(
     val subcategories: List<SyncSubcategory> = emptyList(),
     val tags: List<SyncTag> = emptyList(),
     val expenses: List<SyncExpense> = emptyList(),
+    val recurringExpenses: List<SyncRecurringExpense> = emptyList(),
     val deletions: List<SyncDeletion> = emptyList(),
 )
 
@@ -89,6 +90,37 @@ data class SyncExpense(
     val date: LocalDate,
     val type: ExpenseType,
     val tagIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
+)
+
+/**
+ * A template the server creates an expense from every month, on [dayOfMonth] (the last day of
+ * shorter months). The expenses it creates are synced like any other.
+ *
+ * @property nextDate The date of the next expense it creates. Set by the server, except in the
+ * push creating it: the first occurrence as the device computed it, possibly offline days before,
+ * so that it isn't skipped. When missing, the server computes it from today.
+ * @property lastGeneratedDate The date of the last expense it created. Set by the server, except
+ * in the push creating it from an expense: that expense's date, which then counts as its month's
+ * occurrence.
+ */
+@Serializable
+data class SyncRecurringExpense(
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID,
+    val serverId: Long? = null,
+    @Serializable(with = UUIDSerializer::class)
+    val subcategoryId: UUID?,
+    val title: String,
+    @Serializable(with = BigDecimalSerializer::class)
+    val amount: BigDecimal,
+    val currency: String,
+    val type: ExpenseType,
+    val tagIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
+    val dayOfMonth: Int,
+    @Serializable(with = LocalDateSerializer::class)
+    val nextDate: LocalDate? = null,
+    @Serializable(with = LocalDateSerializer::class)
+    val lastGeneratedDate: LocalDate? = null,
 )
 
 @Serializable

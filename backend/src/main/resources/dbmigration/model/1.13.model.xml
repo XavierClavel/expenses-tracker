@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <addColumn tableName="recurring_expenses">
+            <column name="uuid" type="uuid" defaultValue="$RAW:gen_random_uuid()" notnull="true" unique="uq_recurring_expenses_uuid"/>
+            <column name="revision" type="bigint" defaultValue="0" notnull="true"/>
+        </addColumn>
+        <alterColumn columnName="type" tableName="sync_tombstones" type="varchar(17)" currentType="varchar(11)" currentNotnull="true" checkConstraint="check ( type in ('CATEGORY','SUBCATEGORY','TAG','EXPENSE','RECURRING_EXPENSE'))" checkConstraintName="ck_sync_tombstones_type"/>
+        <createIndex indexName="ix_recurring_expenses_user_id_revision" tableName="recurring_expenses" columns="user_id,revision"/>
+    </changeSet>
+</migration>
