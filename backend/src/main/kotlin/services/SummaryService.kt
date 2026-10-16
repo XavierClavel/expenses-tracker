@@ -118,12 +118,19 @@ class SummaryService: KoinComponent {
 
     /**
      * The subcategories whose monthly pace over [year] is at least [threshold] above their
-     * all-time monthly mean, most deviating first.
+     * monthly mean over the [yearsAround] years either side of it, most deviating first.
+     * Those whose total over [year] stays under [minTotal] are left out.
      *
      * Paces are compared per month rather than per year, so a year the history only
      * partly covers (the first one, or the one in progress) is judged fairly.
      */
-    fun outliersOfYear(userId: Long, year: Int, threshold: Double): List<SubcategoryOutlier> {
+    fun outliersOfYear(
+        userId: Long,
+        year: Int,
+        threshold: Double,
+        minTotal: BigDecimal,
+        yearsAround: Int,
+    ): List<SubcategoryOutlier> {
         val firstDate: LocalDate = QExpense().select("min(date)").user.id.eq(userId).findSingleAttribute()
             ?: return emptyList()
         val lastDate: LocalDate = QExpense().select("max(date)").user.id.eq(userId).findSingleAttribute()
@@ -137,7 +144,12 @@ class SummaryService: KoinComponent {
         val yearLast = minOf(historyLast, YearMonth.of(year, 12))
         if (yearFirst > yearLast) return emptyList()
 
-        val historyMonths = ChronoUnit.MONTHS.between(historyFirst, historyLast) + 1
+        // The window is cut short by the history's ends: for the current year, it runs
+        // from [yearsAround] years back up to now.
+        val windowFirst = maxOf(historyFirst, YearMonth.of(year - yearsAround, 1))
+        val windowLast = minOf(historyLast, YearMonth.of(year + yearsAround, 12))
+
+        val windowMonths = ChronoUnit.MONTHS.between(windowFirst, windowLast) + 1
         val yearMonths = ChronoUnit.MONTHS.between(yearFirst, yearLast) + 1
 
         val rows = DB.findDto(
@@ -148,33 +160,34 @@ class SummaryService: KoinComponent {
               s.name as subcategoryName,
               e.type as type,
               sum(e.amount) filter (where e.date >= :yearStart and e.date < :yearEnd) as yearTotal,
-              sum(e.amount) as total
+              sum(e.amount) as windowTotal
             from expenses e
             join subcategories s on s.id = e.category_id
             where e.user_id = :userId
-              and e.date >= :historyStart
-              and e.date < :historyEnd
+              and e.date >= :windowStart
+              and e.date < :windowEnd
             group by s.id, s.name, e.type
-            having sum(e.amount) filter (where e.date >= :yearStart and e.date < :yearEnd) > 0
+            having sum(e.amount) filter (where e.date >= :yearStart and e.date < :yearEnd) >= :minTotal
             """
         )
             .setParameter("userId", userId)
-            .setParameter("historyStart", historyFirst.atDay(1))
-            .setParameter("historyEnd", historyLast.plusMonths(1).atDay(1))
+            .setParameter("windowStart", windowFirst.atDay(1))
+            .setParameter("windowEnd", windowLast.plusMonths(1).atDay(1))
             .setParameter("yearStart", yearFirst.atDay(1))
             .setParameter("yearEnd", yearLast.plusMonths(1).atDay(1))
+            .setParameter("minTotal", minTotal)
             .findList()
 
         return rows
-            .filter { it.total.signum() > 0 }
+            .filter { it.yearTotal.signum() > 0 && it.windowTotal.signum() > 0 }
             .map { row ->
                 SubcategoryOutlier(
                     subcategoryId = row.subcategoryId,
                     subcategoryName = row.subcategoryName,
                     type = ExpenseType.valueOf(row.type),
                     total = row.yearTotal,
-                    mean = (row.total * BigDecimal(yearMonths)).divide(BigDecimal(historyMonths), 2, RoundingMode.HALF_UP),
-                    deviation = (row.yearTotal.toDouble() * historyMonths) / (row.total.toDouble() * yearMonths) - 1,
+                    mean = (row.windowTotal * BigDecimal(yearMonths)).divide(BigDecimal(windowMonths), 2, RoundingMode.HALF_UP),
+                    deviation = (row.yearTotal.toDouble() * windowMonths) / (row.windowTotal.toDouble() * yearMonths) - 1,
                 )
             }
             .filter { it.deviation >= threshold }
@@ -182,11 +195,11 @@ class SummaryService: KoinComponent {
     }
 }
 
-/** A subcategory's total over a year and over the user's whole history. */
+/** A subcategory's total over a year and over the window of years around it. */
 data class SubcategoryTotals(
     val subcategoryId: Long,
     val subcategoryName: String,
     val type: String,
     val yearTotal: BigDecimal,
-    val total: BigDecimal,
+    val windowTotal: BigDecimal,
 )

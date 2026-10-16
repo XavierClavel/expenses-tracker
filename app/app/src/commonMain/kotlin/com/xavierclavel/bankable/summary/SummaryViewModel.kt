@@ -18,8 +18,12 @@ import kotlin.jvm.JvmName
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-// How far above its all-time average a subcategory must run, over a year, to be flagged.
+// How far above its average a subcategory must run, over a year, to be flagged...
 const val OUTLIER_THRESHOLD = 0.5
+// ...provided its year totals at least this much...
+const val OUTLIER_MIN_TOTAL = 250
+// ...with the average taken over this many years either side of it.
+const val OUTLIER_YEARS_AROUND = 2
 
 class SummaryViewModel : ViewModel() {
 
@@ -82,7 +86,9 @@ class SummaryViewModel : ViewModel() {
             val outliersRequest = if (timescale == "year") {
                 val year = selectedYear
                 async {
-                    try { apiGetYearOutliers(year, OUTLIER_THRESHOLD) } catch (_: Exception) { null }
+                    try {
+                        apiGetYearOutliers(year, OUTLIER_THRESHOLD, OUTLIER_MIN_TOTAL, OUTLIER_YEARS_AROUND)
+                    } catch (_: Exception) { null }
                 }
             } else null
             try {
@@ -147,6 +153,11 @@ class SummaryViewModel : ViewModel() {
         }
         loadSummary()
     }
+
+    // The years the outliers' average spans: cut short by the first year on record and
+    // by the current one, as the backend does.
+    fun outlierWindow(): IntRange =
+        maxOf(selectedYear - OUTLIER_YEARS_AROUND, oldestYear)..minOf(selectedYear + OUTLIER_YEARS_AROUND, currentYear())
 
     fun canGoBack(): Boolean = if (timescale == "month")
         !(selectedYear == oldestYear && selectedMonth <= oldestMonth)

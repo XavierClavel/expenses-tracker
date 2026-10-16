@@ -12,10 +12,15 @@ import com.xavierclavel.utils.getSessionUserId
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.math.BigDecimal
 import org.koin.ktor.ext.inject
 
-// How far above its all-time monthly mean a subcategory must run to count as an outlier.
+// How far above its monthly mean a subcategory must run to count as an outlier.
 private const val DEFAULT_OUTLIER_THRESHOLD = 0.5
+// The smallest yearly total worth flagging.
+private val DEFAULT_OUTLIER_MIN_TOTAL = BigDecimal(250)
+// The mean spans this many years either side of the year looked at.
+private const val DEFAULT_OUTLIER_YEARS_AROUND = 2
 
 fun Route.setupSummaryController() = route(SUMMARY_URL) {
     val summaryService: SummaryService by inject()
@@ -33,8 +38,20 @@ fun Route.setupSummaryController() = route(SUMMARY_URL) {
         val threshold = call.request.queryParameters["threshold"]
             ?.let { it.toDoubleOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST) }
             ?: DEFAULT_OUTLIER_THRESHOLD
+        val minTotal = call.request.queryParameters["minTotal"]
+            ?.let { it.toBigDecimalOrNull() ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST) }
+            ?: DEFAULT_OUTLIER_MIN_TOTAL
+        val yearsAround = call.request.queryParameters["yearsAround"]
+            ?.let { it.toIntOrNull()?.takeIf { years -> years >= 0 } ?: throw BadRequestException(BadRequestCause.INVALID_REQUEST) }
+            ?: DEFAULT_OUTLIER_YEARS_AROUND
         val sessionUserId = getSessionUserId(redisService)
-        val outliers = summaryService.outliersOfYear(userId = sessionUserId, year = year, threshold = threshold)
+        val outliers = summaryService.outliersOfYear(
+            userId = sessionUserId,
+            year = year,
+            threshold = threshold,
+            minTotal = minTotal,
+            yearsAround = yearsAround,
+        )
         call.respond(outliers)
     }
 

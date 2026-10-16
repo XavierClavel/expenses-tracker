@@ -12,8 +12,15 @@ suspend fun apiGetMonthSummary(year: Int, month: Int): SummaryDto =
 suspend fun apiGetYearSummary(year: Int): SummaryDto =
     httpClient.get("$BASE_URL/summary/year/$year") { authHeader() }.body()
 
-suspend fun apiGetYearOutliers(year: Int, threshold: Double): List<SubcategoryOutlierDto> =
+suspend fun apiGetYearOutliers(
+    year: Int,
+    threshold: Double,
+    minTotal: Int,
+    yearsAround: Int,
+): List<SubcategoryOutlierDto> =
     httpClient.get("$BASE_URL/summary/year/$year/outliers") {
         authHeader()
         parameter("threshold", threshold)
+        parameter("minTotal", minTotal)
+        parameter("yearsAround", yearsAround)
     }.body()
