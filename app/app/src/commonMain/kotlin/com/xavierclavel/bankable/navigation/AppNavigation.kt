@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -149,6 +150,7 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
             Sync.requestSync()
         }
     }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { Sync.onAppBackgrounded() }
     CompositionLocalProvider(LocalViewModelStoreOwner provides sessionOwner) {
         MainNavGraphContent(authViewModel)
     }

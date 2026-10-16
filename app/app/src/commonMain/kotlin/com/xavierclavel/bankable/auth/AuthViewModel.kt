@@ -10,6 +10,7 @@ import com.xavierclavel.bankable.api.clearSessionCookies
 import com.xavierclavel.bankable.api.sessionToken
 import com.xavierclavel.bankable.api.unauthorizedFlow
 import com.xavierclavel.bankable.data.Sync
+import com.xavierclavel.bankable.platform.cancelBackgroundSync
 import com.xavierclavel.bankable.storage.TokenStorage
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,6 +117,7 @@ class AuthViewModel : ViewModel() {
         sessionToken = null
         tokenStorage.clearToken()
         clearSessionCookies()
+        cancelBackgroundSync()
         Sync.clear()
         _authState.value = AuthState.Unauthenticated()
     }
