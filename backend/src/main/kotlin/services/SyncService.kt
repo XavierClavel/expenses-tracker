@@ -194,7 +194,7 @@ class SyncService: KoinComponent {
             icon = pushed.icon
             update()
         }
-        touchIfNot(pushed, category.toSync(), SyncEntityType.CATEGORY, category.id)
+        touchIfNot(pushed.copy(serverId = category.id), category.toSync(), SyncEntityType.CATEGORY, category.id)
     }
 
     /**
@@ -230,7 +230,7 @@ class SyncService: KoinComponent {
             if (parent != null) parentCategory = parent
             update()
         }
-        touchIfNot(pushed, subcategory.toSync(), SyncEntityType.SUBCATEGORY, subcategory.id)
+        touchIfNot(pushed.copy(serverId = subcategory.id), subcategory.toSync(), SyncEntityType.SUBCATEGORY, subcategory.id)
     }
 
     private fun upsertTag(user: User, pushed: SyncTag) {
@@ -245,7 +245,7 @@ class SyncService: KoinComponent {
             label = pushed.label
             update()
         }
-        touchIfNot(pushed, tag.toSync(), SyncEntityType.TAG, tag.id)
+        touchIfNot(pushed.copy(serverId = tag.id), tag.toSync(), SyncEntityType.TAG, tag.id)
     }
 
     /**
@@ -377,10 +377,11 @@ class SyncService: KoinComponent {
     }
 
     /**
-     * The pushed expense as [Expense.toSync] describes it when stored unchanged: tags listed once
-     * and sorted, the amount at the [stored] scale.
+     * The pushed expense as [Expense.toSync] describes it when stored unchanged: with its server
+     * id, tags listed once and sorted, the amount at the [stored] scale.
      */
     private fun SyncExpense.comparableTo(stored: SyncExpense) = copy(
+        serverId = stored.serverId,
         amount = if (amount.compareTo(stored.amount) == 0) stored.amount else amount,
         tagIds = tagIds.distinct().sorted(),
     )

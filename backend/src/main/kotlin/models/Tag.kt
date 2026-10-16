@@ -48,6 +48,7 @@ class Tag(
 
     fun toSync() = SyncTag(
         id = this.uuid,
+        serverId = this.id,
         label = this.label,
     )
 }

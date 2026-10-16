@@ -63,6 +63,7 @@ class Category(
 
     fun toSync() = SyncCategory(
         id = this.uuid,
+        serverId = this.id,
         name = this.name,
         color = this.color,
         icon = this.icon,

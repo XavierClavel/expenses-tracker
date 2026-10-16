@@ -90,6 +90,7 @@ class Expense(
 
     fun toSync() = SyncExpense(
         id = this.uuid,
+        serverId = this.id,
         subcategoryId = this.category?.uuid,
         title = this.title,
         amount = this.amount,

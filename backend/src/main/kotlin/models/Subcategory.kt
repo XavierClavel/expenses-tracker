@@ -66,6 +66,7 @@ class Subcategory(
 
     fun toSync() = SyncSubcategory(
         id = this.uuid,
+        serverId = this.id,
         categoryId = this.parentCategory.uuid,
         name = this.name,
         icon = this.icon,

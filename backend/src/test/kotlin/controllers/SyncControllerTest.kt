@@ -85,11 +85,19 @@ class SyncControllerTest: ApplicationTest() {
         tagIds = tagIds,
     )
 
+    /** The changes as pushed: the server adds each row's REST id when pulled. */
+    fun SyncChanges.withoutServerIds() = copy(
+        categories = categories.map { it.copy(serverId = null) },
+        subcategories = subcategories.map { it.copy(serverId = null) },
+        tags = tags.map { it.copy(serverId = null) },
+        expenses = expenses.map { it.copy(serverId = null) },
+    )
+
     @Test
     fun `first pull returns everything created through the REST API`() = runTestAsUser {
         val category = client.createCategory(CategoryIn(name = "Groceries", type = ExpenseType.EXPENSE, color = "", icon = ""))
         val tag = client.createTag(TagIn(label = "Holidays"))
-        client.createExpense(expenseIn.copy(categoryId = category.subcategories.single().id, tagIds = listOf(tag.id)))
+        val expense = client.createExpense(expenseIn.copy(categoryId = category.subcategories.single().id, tagIds = listOf(tag.id)))
 
         val result = client.pull()
         assertFalse(result.hasMore)
@@ -105,6 +113,10 @@ class SyncControllerTest: ApplicationTest() {
         assertEquals(BigDecimal("25.00"), pulledExpense.amount)
         assertEquals(pulledSubcategory.id, pulledExpense.subcategoryId)
         assertEquals(listOf(pulledTag.id), pulledExpense.tagIds)
+        assertEquals(category.id, pulledCategory.serverId)
+        assertEquals(category.subcategories.single().id, pulledSubcategory.serverId)
+        assertEquals(tag.id, pulledTag.serverId)
+        assertEquals(expense.id, pulledExpense.serverId)
 
         val next = client.pull(since = result.revision)
         assertEquals(SyncChanges(), next.changes)
@@ -191,7 +203,7 @@ class SyncControllerTest: ApplicationTest() {
         assertEquals(restCategory.subcategories.single { !it.isDefault }.id, restExpense.categoryId)
         assertEquals(1, restExpense.tagIds.size)
 
-        val pulled = client.pull().changes
+        val pulled = client.pull().changes.withoutServerIds()
         assertEquals(listOf(category), pulled.categories)
         assertEquals(setOf(default, supermarket), pulled.subcategories.toSet())
         assertEquals(listOf(tag), pulled.tags)
@@ -274,10 +286,10 @@ class SyncControllerTest: ApplicationTest() {
         )
 
         assertEquals(1, client.listCategoriesByUser().size)
-        val result = client.pull(since = cursor)
-        assertEquals(listOf(category), result.changes.categories)
-        assertEquals(listOf(default), result.changes.subcategories)
-        assertTrue(result.changes.deletions.isEmpty())
+        val result = client.pull(since = cursor).changes.withoutServerIds()
+        assertEquals(listOf(category), result.categories)
+        assertEquals(listOf(default), result.subcategories)
+        assertTrue(result.deletions.isEmpty())
     }
 
     @Test
@@ -292,7 +304,7 @@ class SyncControllerTest: ApplicationTest() {
         client.push(SyncChanges(expenses = listOf(expense)))
 
         assertNull(client.listExpenses().single().categoryId)
-        val pulled = client.pull(since = cursor).changes.expenses.single()
+        val pulled = client.pull(since = cursor).changes.withoutServerIds().expenses.single()
         assertEquals(expense.copy(subcategoryId = null, tagIds = emptyList()), pulled)
     }
 
@@ -315,7 +327,7 @@ class SyncControllerTest: ApplicationTest() {
 
         client.push(SyncChanges(expenses = listOf(expense.copy(type = ExpenseType.INCOME))))
 
-        assertEquals(listOf(expense), client.pull(since = cursor).changes.expenses)
+        assertEquals(listOf(expense), client.pull(since = cursor).changes.withoutServerIds().expenses)
     }
 
     @Test
@@ -333,7 +345,7 @@ class SyncControllerTest: ApplicationTest() {
             )
         }
         runAsUser1 {
-            assertEquals(listOf(expense), client.pull().changes.expenses)
+            assertEquals(listOf(expense), client.pull().changes.withoutServerIds().expenses)
         }
     }
 
