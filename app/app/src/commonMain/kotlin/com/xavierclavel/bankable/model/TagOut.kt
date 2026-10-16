@@ -1,12 +1,14 @@
 package com.xavierclavel.bankable.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
+/**
+ * @property id The tag's uuid, shared with the backend.
+ * @property serverId The id the REST API knows the tag by: null until it has been synced.
+ */
 data class TagOut(
-    val id: Int,
+    val id: String,
+    val serverId: Int?,
     val label: String,
-    // Sum of the amounts of the expenses linked to this tag, as a plain decimal string.
+    // Net balance of the expenses linked to this tag (incomes minus expenses), as a plain decimal string.
     val total: String,
     val expenseCount: Int,
 )

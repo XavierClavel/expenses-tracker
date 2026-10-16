@@ -191,13 +191,13 @@ internal fun ExpenseHistoryList(
     subcategoryFor: (ExpenseOut) -> SubcategoryOut?,
     onExpenseClick: (ExpenseOut) -> Unit,
     tags: List<TagOut> = emptyList(),
-    onBatchTag: ((ids: List<Int>, tagId: Int, add: Boolean) -> Unit)? = null,
-    onBatchDelete: ((ids: List<Int>) -> Unit)? = null,
+    onBatchTag: ((ids: List<String>, tagId: String, add: Boolean) -> Unit)? = null,
+    onBatchDelete: ((ids: List<String>) -> Unit)? = null,
 ) {
     val locale = LocalAppLocale.current
     val grouped = remember(expenses) { expenses.groupBy { it.date } }
     val selectionEnabled = onBatchDelete != null
-    val selection = rememberSelectionController<Int>()
+    val selection = rememberSelectionController<String>()
     var tagPickerAdd by remember { mutableStateOf<Boolean?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 

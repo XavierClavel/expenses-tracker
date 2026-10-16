@@ -5,37 +5,44 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
-import com.xavierclavel.bankable.api.apiBatchDuplicateExpenses
-import com.xavierclavel.bankable.api.apiBatchTagExpenses
-import com.xavierclavel.bankable.api.apiCreateExpense
 import com.xavierclavel.bankable.api.apiCreateRecurringExpensesFromExpenses
-import com.xavierclavel.bankable.api.apiDeleteExpense
-import com.xavierclavel.bankable.api.apiListExpenses
-import com.xavierclavel.bankable.api.apiUpdateExpense
-import com.xavierclavel.bankable.model.ExpenseIn
+import com.xavierclavel.bankable.data.ExpenseStore
+import com.xavierclavel.bankable.data.Sync
+import com.xavierclavel.bankable.data.SyncType
+import com.xavierclavel.bankable.data.requireServerIds
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
+import com.xavierclavel.bankable.resources.Res
+import com.xavierclavel.bankable.resources.error_invalid_amount
+import com.xavierclavel.bankable.util.parseCents
+import com.xavierclavel.bankable.util.userMessage
 import kotlin.jvm.JvmName
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 /**
  * Structured filters applied to the expense list, in addition to the free-text [ExpensesViewModel.searchQuery].
  * A null field means "no constraint". [type] is "EXPENSE", "INCOME", or null for both.
  */
 data class ExpenseFilter(
-    val categoryId: Int? = null,
-    val subcategoryId: Int? = null,
+    val categoryId: String? = null,
+    val subcategoryId: String? = null,
     val type: String? = null,
     val from: String? = null,
     val to: String? = null,
     val minAmount: String? = null,
     val maxAmount: String? = null,
-    val tagId: Int? = null,
+    val tagId: String? = null,
 ) {
     val isActive: Boolean
         get() = categoryId != null || subcategoryId != null || type != null ||
@@ -43,10 +50,32 @@ data class ExpenseFilter(
             tagId != null
 }
 
+private const val PAGE_SIZE = 50
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class ExpensesViewModel : ViewModel() {
 
-    private val _expenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
-    val expenses: StateFlow<List<ExpenseOut>> = _expenses
+    /** What the list shows: the filters, the search text, and how many expenses are loaded. */
+    private data class ListQuery(val filter: ExpenseFilter, val search: String, val limit: Int)
+
+    private val listQuery = MutableStateFlow(ListQuery(ExpenseFilter(), "", PAGE_SIZE))
+
+    val expenses: StateFlow<List<ExpenseOut>> = listQuery
+        .flatMapLatest { query ->
+            ExpenseStore.observe(
+                categoryId = query.filter.categoryId,
+                subcategoryId = query.filter.subcategoryId,
+                type = query.filter.type,
+                from = query.filter.from,
+                to = query.filter.to,
+                query = query.search,
+                minCents = query.filter.minAmount?.let { parseCents(it) },
+                maxCents = query.filter.maxAmount?.let { parseCents(it) },
+                tagId = query.filter.tagId,
+                limit = query.limit,
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     var selectedExpense by mutableStateOf<ExpenseOut?>(null)
         private set
@@ -55,15 +84,16 @@ class ExpensesViewModel : ViewModel() {
     var selectedType by mutableStateOf("EXPENSE")
         private set
     // Tag ids assigned to the expense currently being created/edited.
-    var selectedTagIds by mutableStateOf<Set<Int>>(emptySet())
+    var selectedTagIds by mutableStateOf<Set<String>>(emptySet())
         private set
+    // True while the first expenses are still being downloaded.
     var isLoading by mutableStateOf(false)
         private set
 
     // --- Multi-select / batch mode (expense list) ---
     var selectionMode by mutableStateOf(false)
         private set
-    var selectedExpenseIds by mutableStateOf<Set<Int>>(emptySet())
+    var selectedExpenseIds by mutableStateOf<Set<String>>(emptySet())
         private set
 
     // --- Search / filter state ---
@@ -78,110 +108,48 @@ class ExpensesViewModel : ViewModel() {
 
     private var searchDebounceJob: Job? = null
 
-    private var currentPage = 0
-    private var hasMore = true
-    private val pageSize = 50
-
     init {
+        viewModelScope.launch {
+            combine(Sync.isSyncing, expenses) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoading = it }
+        }
         refresh()
     }
 
-    private suspend fun fetchExpenses() {
-        currentPage = 0
-        hasMore = true
-        isLoading = true
-        try {
-            val newExpenses = fetchPage(0)
-            _expenses.value = newExpenses
-            hasMore = newExpenses.size == pageSize
-            currentPage = 1
-        } finally {
-            isLoading = false
-        }
-    }
-
-    /**
-     * Re-fetches all expenses currently loaded (every page fetched so far) in a single request,
-     * instead of collapsing back to the first page. Keeps the list length stable after an
-     * edit/delete so the LazyColumn restores the user's scroll position.
-     */
-    private suspend fun reloadLoadedExpenses() {
-        val loadedCount = _expenses.value.size.coerceAtLeast(pageSize)
-        isLoading = true
-        try {
-            val refreshed = fetchPage(page = 0, size = loadedCount)
-            _expenses.value = refreshed
-            hasMore = refreshed.size == loadedCount
-            currentPage = loadedCount / pageSize
-        } finally {
-            isLoading = false
-        }
-    }
-
-    private suspend fun fetchPage(page: Int, size: Int = pageSize): List<ExpenseOut> =
-        apiListExpenses(
-            page = page,
-            size = size,
-            categoryId = filter.categoryId,
-            subcategoryId = filter.subcategoryId,
-            type = filter.type,
-            from = filter.from,
-            to = filter.to,
-            query = searchQuery.takeIf { it.isNotBlank() },
-            minAmount = filter.minAmount,
-            maxAmount = filter.maxAmount,
-            tagId = filter.tagId,
-        )
-
-    private fun loadExpenses() {
-        if (isLoading || !hasMore) return
-        viewModelScope.launch {
-            isLoading = true
-            try {
-                val newExpenses = fetchPage(currentPage)
-                _expenses.value = _expenses.value + newExpenses
-                hasMore = newExpenses.size == pageSize
-                currentPage++
-            } catch (_: Exception) {
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
+    /** Loads the next page, when the list holds all it was asked for. */
     fun loadMore() {
-        if (!isLoading && hasMore) loadExpenses()
+        val query = listQuery.value
+        if (expenses.value.size >= query.limit) listQuery.update { it.copy(limit = it.limit + PAGE_SIZE) }
     }
 
+    /** Fetches the changes made on other devices. */
     fun refresh() {
-        viewModelScope.launch {
-            try { fetchExpenses() } catch (_: Exception) {}
-        }
+        Sync.requestSync()
     }
 
-    /** Updates the live search text and refetches after a short debounce. */
+    /** Updates the live search text and filters the list after a short debounce. */
     @JvmName("updateSearchQuery")
     fun setSearchQuery(query: String) {
         searchQuery = query
         searchDebounceJob?.cancel()
         searchDebounceJob = viewModelScope.launch {
             delay(300)
-            try { fetchExpenses() } catch (_: Exception) {}
+            listQuery.update { it.copy(search = query, limit = PAGE_SIZE) }
         }
     }
 
-    /** Replaces the structured filters and refetches immediately. */
+    /** Replaces the structured filters. */
     fun applyFilter(newFilter: ExpenseFilter) {
         filter = newFilter
-        refresh()
+        listQuery.update { it.copy(filter = newFilter, limit = PAGE_SIZE) }
     }
 
-    /** Clears the search query and all filters, then refetches. */
+    /** Clears the search query and all filters. */
     fun clearFilters() {
         searchDebounceJob?.cancel()
         searchQuery = ""
         filter = ExpenseFilter()
-        refresh()
+        listQuery.value = ListQuery(ExpenseFilter(), "", PAGE_SIZE)
     }
 
     fun prepareNewExpense() {
@@ -202,7 +170,7 @@ class ExpensesViewModel : ViewModel() {
     fun setSelectedSubcategory(sub: SubcategoryOut?) { selectedSubcategory = sub }
 
     /** Adds or removes [tagId] from the set assigned to the expense being edited. */
-    fun toggleTag(tagId: Int) {
+    fun toggleTag(tagId: String) {
         selectedTagIds = if (selectedTagIds.contains(tagId)) {
             selectedTagIds - tagId
         } else {
@@ -225,36 +193,36 @@ class ExpensesViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val expenseIn = ExpenseIn(
+                val cents = parseCents(amount)
+                if (cents == null) {
+                    onError(getString(Res.string.error_invalid_amount))
+                    return@launch
+                }
+                ExpenseStore.save(
+                    id = selectedExpense?.id,
                     title = title,
-                    amount = amount,
+                    amountCents = cents,
                     currency = "EUR",
                     date = date,
-                    categoryId = selectedSubcategory?.id,
+                    subcategoryId = selectedSubcategory?.id,
                     type = selectedType,
-                    tagIds = selectedTagIds.toList(),
+                    tagIds = selectedTagIds,
                 )
-                if (selectedExpense != null) {
-                    apiUpdateExpense(selectedExpense!!.id, expenseIn)
-                } else {
-                    apiCreateExpense(expenseIn)
-                }
-                reloadLoadedExpenses()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Save failed")
+                onError(userMessage(e, "Save failed"))
             }
         }
     }
 
     /** Enters batch-selection mode with [expenseId] as the first selected item. */
-    fun enterSelectionMode(expenseId: Int) {
+    fun enterSelectionMode(expenseId: String) {
         selectionMode = true
         selectedExpenseIds = setOf(expenseId)
     }
 
     /** Toggles an expense in the selection; leaving the selection empty exits the mode. */
-    fun toggleSelection(expenseId: Int) {
+    fun toggleSelection(expenseId: String) {
         selectedExpenseIds = if (selectedExpenseIds.contains(expenseId)) {
             selectedExpenseIds - expenseId
         } else {
@@ -268,67 +236,65 @@ class ExpensesViewModel : ViewModel() {
         selectedExpenseIds = emptySet()
     }
 
-    /** Adds or removes [tagId] on every currently selected expense, then refreshes and exits. */
-    fun batchTagSelection(tagId: Int, add: Boolean, onError: (String) -> Unit) {
+    /** Adds or removes [tagId] on every currently selected expense, then exits selection. */
+    fun batchTagSelection(tagId: String, add: Boolean, onError: (String) -> Unit) {
         val ids = selectedExpenseIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             try {
-                apiBatchTagExpenses(ids, tagId, add)
-                reloadLoadedExpenses()
+                ExpenseStore.setTag(ids, tagId, add)
                 clearSelection()
             } catch (e: Exception) {
-                onError(e.message ?: "Operation failed")
+                onError(userMessage(e, "Operation failed"))
             }
         }
     }
 
-    /** Copies every currently selected expense onto [date] ("yyyy-MM-dd"), then refreshes and exits. */
+    /** Copies every currently selected expense onto [date] ("yyyy-MM-dd"), then exits selection. */
     fun batchDuplicateSelection(date: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val ids = selectedExpenseIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             try {
-                apiBatchDuplicateExpenses(ids, date)
-                reloadLoadedExpenses()
+                ExpenseStore.duplicate(ids, date)
                 clearSelection()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Duplicate failed")
+                onError(userMessage(e, "Duplicate failed"))
             }
         }
     }
 
     /**
-     * Creates a recurring expense from every currently selected expense, then refreshes and exits.
-     * The list is refreshed because one coming due today adds this month's expense right away.
+     * Creates a recurring expense from every currently selected expense, then exits selection.
+     * Recurring expenses live on the server only, so this needs a connection. A sync follows,
+     * since one coming due today adds this month's expense right away.
      */
     fun batchMakeRecurringSelection(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val ids = selectedExpenseIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             try {
-                apiCreateRecurringExpensesFromExpenses(ids)
-                reloadLoadedExpenses()
+                apiCreateRecurringExpensesFromExpenses(requireServerIds(SyncType.EXPENSE, ids))
+                Sync.requestSync()
                 clearSelection()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Operation failed")
+                onError(userMessage(e, "Operation failed"))
             }
         }
     }
 
-    /** Deletes every currently selected expense, then refreshes and exits selection. */
+    /** Deletes every currently selected expense, then exits selection. */
     fun batchDeleteSelection(onError: (String) -> Unit) {
         val ids = selectedExpenseIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             try {
-                apiBatchDeleteExpenses(ids)
-                reloadLoadedExpenses()
+                ExpenseStore.delete(ids)
                 clearSelection()
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }
@@ -336,11 +302,10 @@ class ExpensesViewModel : ViewModel() {
     fun deleteExpense(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiDeleteExpense(selectedExpense!!.id)
-                reloadLoadedExpenses()
+                ExpenseStore.delete(listOf(selectedExpense!!.id))
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }

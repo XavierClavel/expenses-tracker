@@ -9,9 +9,13 @@ import com.xavierclavel.bankable.api.apiCreateRecurringExpense
 import com.xavierclavel.bankable.api.apiDeleteRecurringExpense
 import com.xavierclavel.bankable.api.apiListRecurringExpenses
 import com.xavierclavel.bankable.api.apiUpdateRecurringExpense
+import com.xavierclavel.bankable.data.SyncType
+import com.xavierclavel.bankable.data.localTagIds
+import com.xavierclavel.bankable.data.requireServerIds
 import com.xavierclavel.bankable.model.RecurringExpenseIn
 import com.xavierclavel.bankable.model.RecurringExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
+import com.xavierclavel.bankable.util.userMessage
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,8 +32,8 @@ class RecurringExpensesViewModel : ViewModel() {
         private set
     var selectedType by mutableStateOf("EXPENSE")
         private set
-    // Tag ids copied onto every expense the recurring expense being edited creates.
-    var selectedTagIds by mutableStateOf<Set<Int>>(emptySet())
+    // Tags (local ids) copied onto every expense the recurring expense being edited creates.
+    var selectedTagIds by mutableStateOf<Set<String>>(emptySet())
         private set
     var isLoading by mutableStateOf(false)
         private set
@@ -61,7 +65,8 @@ class RecurringExpensesViewModel : ViewModel() {
         selectedRecurringExpense = recurringExpense
         selectedSubcategory = subcategory
         selectedType = recurringExpense.type
-        selectedTagIds = recurringExpense.tagIds.toSet()
+        selectedTagIds = emptySet()
+        viewModelScope.launch { selectedTagIds = localTagIds(recurringExpense.tagIds) }
     }
 
     @JvmName("updateSelectedSubcategory")
@@ -74,7 +79,7 @@ class RecurringExpensesViewModel : ViewModel() {
     }
 
     /** Adds or removes [tagId] from the set assigned to the recurring expense being edited. */
-    fun toggleTag(tagId: Int) {
+    fun toggleTag(tagId: String) {
         selectedTagIds = if (selectedTagIds.contains(tagId)) {
             selectedTagIds - tagId
         } else {
@@ -86,6 +91,9 @@ class RecurringExpensesViewModel : ViewModel() {
      * Creates or updates the selected recurring expense. [onSuccess] receives true when the
      * backend created an expense on save, which happens when [dayOfMonth] is today: callers
      * use it to refresh the expense list.
+     *
+     * Recurring expenses live on the server only, and reference the subcategory and tags by
+     * their server ids: ones created offline must have been synced first.
      */
     fun saveRecurringExpense(
         title: String,
@@ -100,9 +108,10 @@ class RecurringExpensesViewModel : ViewModel() {
                     title = title,
                     amount = amount,
                     currency = "EUR",
-                    categoryId = selectedSubcategory?.id,
+                    categoryId = selectedSubcategory
+                        ?.let { requireServerIds(SyncType.SUBCATEGORY, listOf(it.id)).single() },
                     type = selectedType,
-                    tagIds = selectedTagIds.toList(),
+                    tagIds = requireServerIds(SyncType.TAG, selectedTagIds.toList()),
                     dayOfMonth = dayOfMonth,
                 )
                 val previous = selectedRecurringExpense
@@ -114,7 +123,7 @@ class RecurringExpensesViewModel : ViewModel() {
                 fetchRecurringExpenses()
                 onSuccess(saved.lastGeneratedDate != previous?.lastGeneratedDate)
             } catch (e: Exception) {
-                onError(e.message ?: "Save failed")
+                onError(userMessage(e, "Save failed"))
             }
         }
     }

@@ -1,0 +1,37 @@
+CREATE TABLE tag (
+    id TEXT NOT NULL PRIMARY KEY,
+    server_id INTEGER,
+    label TEXT NOT NULL
+);
+
+selectById:
+SELECT * FROM tag WHERE id = ?;
+
+selectServerIds:
+SELECT id, server_id FROM tag WHERE id IN ?;
+
+selectIdsByServerIds:
+SELECT id FROM tag WHERE server_id IN ?;
+
+-- Each tag with the net balance of its expenses (incomes minus expenses) and their count.
+selectWithTotals:
+SELECT t.id, t.server_id, t.label,
+       CAST(coalesce(sum(CASE e.type WHEN 'INCOME' THEN e.amount_cents ELSE -e.amount_cents END), 0) AS INTEGER) AS total_cents,
+       count(e.id) AS expense_count
+FROM tag t
+LEFT JOIN expense_tag et ON et.tag_id = t.id
+LEFT JOIN expense e ON e.id = et.expense_id
+GROUP BY t.id
+ORDER BY t.label COLLATE NOCASE;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO tag (id, server_id, label) VALUES (:id, :server_id, :label);
+
+update:
+UPDATE tag SET server_id = coalesce(:server_id, server_id), label = :label WHERE id = :id;
+
+deleteById:
+DELETE FROM tag WHERE id = ?;
+
+deleteAll:
+DELETE FROM tag;

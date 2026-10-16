@@ -82,7 +82,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.xavierclavel.bankable.api.apiListExpenses
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
 import com.xavierclavel.bankable.constants.currencySymbol
@@ -90,6 +89,7 @@ import com.xavierclavel.bankable.constants.formatAmountDisplay
 import com.xavierclavel.bankable.constants.formatRoundedAmount
 import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.constants.shadePalette
+import com.xavierclavel.bankable.data.ExpenseStore
 import com.xavierclavel.bankable.expenses.ExpensesViewModel
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.platform.LocalAppLocale
@@ -121,6 +121,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 
 private fun localizedMonthYear(year: Int, month: Int, locale: String): String =
@@ -133,7 +134,8 @@ private fun localizedMonthYear(year: Int, month: Int, locale: String): String =
 private val ResidualColor = Color(0xFF9E9E9E)
 
 data class SubcategoryEntry(
-    val subcategoryId: Int,
+    // Local id, or null when the subcategory isn't on this device (yet).
+    val subcategoryId: String?,
     val value: Float,
     val label: String,
     val color: Color,
@@ -141,7 +143,7 @@ data class SubcategoryEntry(
 )
 
 data class PieEntry(
-    val categoryId: Int,
+    val categoryId: String,
     val value: Float,
     val label: String,
     val color: Color,
@@ -178,11 +180,15 @@ fun SummaryScreen(
     val summary    = viewModel.summary
     val isLoading  = viewModel.isLoading
 
+    // The summary comes from the REST API, which knows subcategories by their server ids.
     val subcategoryParentMap = remember(categories) {
-        categories.flatMap { cat -> cat.subcategories.map { sub -> sub.id to cat } }.toMap()
+        categories.flatMap { cat -> cat.subcategories.mapNotNull { sub -> sub.serverId?.let { it to cat } } }.toMap()
     }
     val subcategoryMap = remember(categories) {
-        categories.flatMap { cat -> cat.subcategories.map { sub -> sub.id to sub } }.toMap()
+        categories.flatMap { cat -> cat.subcategories.mapNotNull { sub -> sub.serverId?.let { it to sub } } }.toMap()
+    }
+    val subcategoryById = remember(categories) {
+        categories.flatMap { it.subcategories }.associateBy { it.id }
     }
 
     val subcatSummaries = if (viewModel.selectedType == "EXPENSE")
@@ -200,7 +206,7 @@ fun SummaryScreen(
                 else {
                     val rawSubs = catSubs.mapNotNull { sub ->
                         val subOut = subcategoryMap[sub.categoryId] ?: return@mapNotNull null
-                        Triple(sub.categoryId, sub.total.toFloatOrNull() ?: 0f, subOut)
+                        Triple(subOut.id, sub.total.toFloatOrNull() ?: 0f, subOut)
                     }.filter { it.second > 0f }.sortedByDescending { it.second }
                     // Color-code subcategories as shades of the parent category's color,
                     // spread light→dark by their rank within the category.
@@ -234,7 +240,7 @@ fun SummaryScreen(
                 val subOut = subcategoryMap[outlier.subcategoryId]
                 OutlierEntry(
                     subcategory = SubcategoryEntry(
-                        subcategoryId = outlier.subcategoryId,
+                        subcategoryId = subOut?.id,
                         value         = outlier.total.toFloatOrNull() ?: 0f,
                         label         = subOut?.name ?: outlier.subcategoryName,
                         color         = subcategoryParentMap[outlier.subcategoryId]?.let { colorHexByName(it.color) } ?: ResidualColor,
@@ -340,7 +346,7 @@ fun SummaryScreen(
         ) { _ ->
             // Both selectedSlice and expandedCategories reset per period
             var selectedSlice        by remember { mutableIntStateOf(-1) }
-            var expandedCategories   by remember { mutableStateOf(setOf<Int>()) }
+            var expandedCategories   by remember { mutableStateOf(setOf<String>()) }
 
             val totalExpenses = summary?.totalExpenses?.toDoubleOrNull() ?: 0.0
             val totalIncome   = summary?.totalIncome?.toDoubleOrNull()   ?: 0.0
@@ -381,7 +387,7 @@ fun SummaryScreen(
 
                         val donutEntries = if (showSavings) {
                             pieEntries + PieEntry(
-                                categoryId = -1,
+                                categoryId = "",
                                 value      = savingsValue,
                                 label      = stringResource(Res.string.summary_saved_income),
                                 color      = ResidualColor,
@@ -478,7 +484,7 @@ fun SummaryScreen(
                 dateFrom = dateFrom,
                 dateTo   = dateTo,
                 onExpenseClick = { expense ->
-                    val sub = subcategoryMap[expense.categoryId]
+                    val sub = subcategoryById[expense.categoryId]
                     expensesViewModel.prepareEditExpense(expense, sub)
                     bottomSheetEntry = null
                     navController.navigate("expense/edit")
@@ -922,19 +928,15 @@ private fun ExpenseListSheetContent(
     dateTo: String,
     onExpenseClick: (ExpenseOut) -> Unit,
 ) {
-    var expenses  by remember { mutableStateOf<List<ExpenseOut>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    // Read locally, so that the list also holds the changes not synced yet.
+    val loaded by remember(entry.subcategoryId, dateFrom, dateTo) {
+        val subcategoryId = entry.subcategoryId
+        if (subcategoryId == null) flowOf(emptyList())
+        else ExpenseStore.observe(subcategoryId = subcategoryId, from = dateFrom, to = dateTo, limit = 100)
+    }.collectAsState(initial = null)
+    val expenses = loaded.orEmpty()
+    val isLoading = loaded == null
     val color = entry.color
-
-    LaunchedEffect(entry.subcategoryId) {
-        isLoading = true
-        try {
-            expenses = apiListExpenses(0, 100, subcategoryId = entry.subcategoryId, from = dateFrom, to = dateTo)
-        } catch (_: Exception) {
-            expenses = emptyList()
-        }
-        isLoading = false
-    }
 
     Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
         // Header

@@ -316,10 +316,7 @@ fun ExpenseEditScreen(
                         title = title,
                         amount = ExpressionEvaluator.formatAmount(computedAmount!!),
                         date = date,
-                        onSuccess = {
-                            tagsViewModel.refreshTagExpenses()
-                            navController.popBackStack()
-                        },
+                        onSuccess = { navController.popBackStack() },
                         onError = { errorMessage = it },
                     )
                 },
@@ -360,10 +357,7 @@ fun ExpenseEditScreen(
                     onClick = {
                         showDeleteDialog = false
                         viewModel.deleteExpense(
-                            onSuccess = {
-                                tagsViewModel.refreshTagExpenses()
-                                navController.popBackStack()
-                            },
+                            onSuccess = { navController.popBackStack() },
                             onError = { errorMessage = it },
                         )
                     },

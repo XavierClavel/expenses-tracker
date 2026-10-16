@@ -19,13 +19,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -52,6 +56,7 @@ import com.xavierclavel.bankable.categories.ColorPickerScreen
 import com.xavierclavel.bankable.categories.IconPickerScreen
 import com.xavierclavel.bankable.categories.SubcategoryEditScreen
 import com.xavierclavel.bankable.categories.SubcategoryViewScreen
+import com.xavierclavel.bankable.data.Sync
 import com.xavierclavel.bankable.expenses.ExpenseEditScreen
 import com.xavierclavel.bankable.expenses.ExpenseFilterScreen
 import com.xavierclavel.bankable.expenses.ExpenseListScreen
@@ -136,6 +141,14 @@ private fun MainNavGraph(authViewModel: AuthViewModel) {
     DisposableEffect(sessionOwner) {
         onDispose { sessionOwner.clear() }
     }
+    // Brings the local data up to date at login, at app start, and each time the app comes
+    // back to the foreground.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            Sync.requestSync()
+        }
+    }
     CompositionLocalProvider(LocalViewModelStoreOwner provides sessionOwner) {
         MainNavGraphContent(authViewModel)
     }
@@ -192,10 +205,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                     recurringExpensesViewModel,
                     tagsViewModel,
                     navController,
-                    onExpenseCreated = {
-                        expensesViewModel.refresh()
-                        tagsViewModel.loadTags()
-                    },
+                    onExpenseCreated = { expensesViewModel.refresh() },
                 )
             }
             composable("recurring/subcategory-picker") {

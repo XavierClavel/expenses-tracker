@@ -69,8 +69,9 @@ fun RecurringExpenseListScreen(
 ) {
     val recurringExpenses by viewModel.recurringExpenses.collectAsState()
     val categories by categoriesViewModel.categories.collectAsState()
+    // Recurring expenses come from the REST API, which knows subcategories by their server ids.
     val subcategoryMap = remember(categories) {
-        categories.flatMap { it.subcategories }.associateBy { it.id }
+        categories.flatMap { it.subcategories }.filter { it.serverId != null }.associateBy { it.serverId }
     }
 
     // Next dates move forward as the backend creates expenses; refresh on each visit.

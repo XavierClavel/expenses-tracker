@@ -5,58 +5,65 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.xavierclavel.bankable.api.apiBatchDeleteExpenses
-import com.xavierclavel.bankable.api.apiBatchTagExpenses
-import com.xavierclavel.bankable.api.apiCreateTag
-import com.xavierclavel.bankable.api.apiDeleteTag
-import com.xavierclavel.bankable.api.apiListExpenses
-import com.xavierclavel.bankable.api.apiListTags
-import com.xavierclavel.bankable.api.apiUpdateTag
+import com.xavierclavel.bankable.data.ExpenseStore
+import com.xavierclavel.bankable.data.Sync
+import com.xavierclavel.bankable.data.TagStore
 import com.xavierclavel.bankable.model.ExpenseOut
-import com.xavierclavel.bankable.model.TagIn
 import com.xavierclavel.bankable.model.TagOut
+import com.xavierclavel.bankable.util.userMessage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val TAG_EXPENSE_PAGE_SIZE = 50
+
+/** Which expenses the tag detail view lists: those linked to [tagId], the first [limit]. */
+private data class TagExpensePage(val tagId: String, val limit: Int)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class TagsViewModel : ViewModel() {
 
-    private val _tags = MutableStateFlow<List<TagOut>>(emptyList())
-    val tags: StateFlow<List<TagOut>> = _tags
+    val tags: StateFlow<List<TagOut>> = TagStore.observe()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val tagExpensePage = MutableStateFlow<TagExpensePage?>(null)
 
     // Expenses linked to the tag currently being viewed (paginated).
-    private val _tagExpenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
-    val tagExpenses: StateFlow<List<ExpenseOut>> = _tagExpenses
+    val tagExpenses: StateFlow<List<ExpenseOut>> = tagExpensePage
+        .flatMapLatest { page ->
+            if (page == null) flowOf(emptyList()) else ExpenseStore.observe(tagId = page.tagId, limit = page.limit)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     var selectedTag by mutableStateOf<TagOut?>(null)
         private set
+    // True while the first tags / expenses are still being downloaded.
     var isLoading by mutableStateOf(false)
         private set
     var isLoadingExpenses by mutableStateOf(false)
         private set
 
-    private var tagExpensePage = 0
-    private var tagExpenseHasMore = true
-    private val tagExpensePageSize = 50
-
     init {
-        loadTags()
-    }
-
-    private suspend fun fetchTags() {
-        _tags.value = apiListTags()
-    }
-
-    fun loadTags() {
         viewModelScope.launch {
-            isLoading = true
-            try {
-                fetchTags()
-            } catch (_: Exception) {
-            } finally {
-                isLoading = false
-            }
+            combine(Sync.isSyncing, tags) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoading = it }
         }
+        viewModelScope.launch {
+            combine(Sync.isSyncing, tagExpenses) { syncing, list -> syncing && list.isEmpty() }
+                .collect { isLoadingExpenses = it }
+        }
+    }
+
+    /** Fetches the changes made on other devices. */
+    fun loadTags() {
+        Sync.requestSync()
     }
 
     fun prepareNewTag() {
@@ -67,80 +74,37 @@ class TagsViewModel : ViewModel() {
         selectedTag = tag
     }
 
-    /** Opens the tag detail view and (re)loads its linked expenses from the first page. */
+    /** Opens the tag detail view, listing its expenses from the first page. */
     fun prepareViewTag(tag: TagOut) {
         selectedTag = tag
-        _tagExpenses.value = emptyList()
-        tagExpensePage = 0
-        tagExpenseHasMore = true
-        loadTagExpenses()
-    }
-
-    private fun loadTagExpenses() {
-        val tagId = selectedTag?.id ?: return
-        if (isLoadingExpenses || !tagExpenseHasMore) return
-        viewModelScope.launch {
-            isLoadingExpenses = true
-            try {
-                val newExpenses = apiListExpenses(tagExpensePage, tagExpensePageSize, tagId = tagId)
-                _tagExpenses.value =
-                    if (tagExpensePage == 0) newExpenses else _tagExpenses.value + newExpenses
-                tagExpenseHasMore = newExpenses.size == tagExpensePageSize
-                tagExpensePage++
-            } catch (_: Exception) {
-            } finally {
-                isLoadingExpenses = false
-            }
-        }
+        tagExpensePage.value = TagExpensePage(tag.id, TAG_EXPENSE_PAGE_SIZE)
     }
 
     fun loadMoreTagExpenses() {
-        if (!isLoadingExpenses && tagExpenseHasMore) loadTagExpenses()
+        val page = tagExpensePage.value ?: return
+        if (tagExpenses.value.size >= page.limit) {
+            tagExpensePage.update { it?.copy(limit = it.limit + TAG_EXPENSE_PAGE_SIZE) }
+        }
     }
 
-    /** Adds or removes [tagId] on the selected expenses of the viewed tag, then refreshes. */
-    fun batchTagTagExpenses(ids: List<Int>, tagId: Int, add: Boolean, onError: (String) -> Unit) {
+    /** Adds or removes [tagId] on the selected expenses of the viewed tag. */
+    fun batchTagTagExpenses(ids: List<String>, tagId: String, add: Boolean, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiBatchTagExpenses(ids, tagId, add)
-                refreshTagExpenses()
+                ExpenseStore.setTag(ids, tagId, add)
             } catch (e: Exception) {
-                onError(e.message ?: "Operation failed")
+                onError(userMessage(e, "Operation failed"))
             }
         }
     }
 
-    /** Deletes the selected expenses of the viewed tag, then refreshes the list and totals. */
-    fun batchDeleteTagExpenses(ids: List<Int>, onError: (String) -> Unit) {
+    /** Deletes the selected expenses of the viewed tag. */
+    fun batchDeleteTagExpenses(ids: List<String>, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiBatchDeleteExpenses(ids)
-                refreshTagExpenses()
+                ExpenseStore.delete(ids)
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
-            }
-        }
-    }
-
-    /**
-     * Reloads the currently-viewed tag's expenses in a single request (keeping the loaded count
-     * stable so scroll position is preserved) and refreshes the tag totals. Call after an expense
-     * linked to the viewed tag is created/edited/deleted so the tag detail view stays in sync.
-     */
-    fun refreshTagExpenses() {
-        val tagId = selectedTag?.id ?: return
-        viewModelScope.launch {
-            isLoadingExpenses = true
-            try {
-                val loadedCount = _tagExpenses.value.size.coerceAtLeast(tagExpensePageSize)
-                val refreshed = apiListExpenses(0, loadedCount, tagId = tagId)
-                _tagExpenses.value = refreshed
-                tagExpenseHasMore = refreshed.size == loadedCount
-                tagExpensePage = loadedCount / tagExpensePageSize
-                fetchTags()
-            } catch (_: Exception) {
-            } finally {
-                isLoadingExpenses = false
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }
@@ -152,16 +116,10 @@ class TagsViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val tagIn = TagIn(label = label.trim())
-                if (selectedTag != null) {
-                    apiUpdateTag(selectedTag!!.id, tagIn)
-                } else {
-                    apiCreateTag(tagIn)
-                }
-                fetchTags()
+                TagStore.save(id = selectedTag?.id, label = label.trim())
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Save failed")
+                onError(userMessage(e, "Save failed"))
             }
         }
     }
@@ -169,11 +127,10 @@ class TagsViewModel : ViewModel() {
     fun deleteTag(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                apiDeleteTag(selectedTag!!.id)
-                fetchTags()
+                TagStore.delete(selectedTag!!.id)
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Delete failed")
+                onError(userMessage(e, "Delete failed"))
             }
         }
     }

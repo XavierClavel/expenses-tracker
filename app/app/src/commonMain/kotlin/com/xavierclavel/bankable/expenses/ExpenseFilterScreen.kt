@@ -374,13 +374,13 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun CategoryFilterList(
     categories: List<CategoryOut>,
-    selectedCategoryId: Int?,
-    selectedSubcategoryId: Int?,
+    selectedCategoryId: String?,
+    selectedSubcategoryId: String?,
     onSelectAll: () -> Unit,
-    onSelectCategory: (Int) -> Unit,
-    onSelectSubcategory: (Int) -> Unit,
+    onSelectCategory: (String) -> Unit,
+    onSelectSubcategory: (String) -> Unit,
 ) {
-    var expandedIds by remember { mutableStateOf(setOf<Int>()) }
+    var expandedIds by remember { mutableStateOf(setOf<String>()) }
 
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         SelectableRow(
@@ -433,9 +433,9 @@ private fun CategoryFilterList(
 @Composable
 private fun TagFilterList(
     tags: List<TagOut>,
-    selectedTagId: Int?,
+    selectedTagId: String?,
     onSelectAll: () -> Unit,
-    onSelectTag: (Int) -> Unit,
+    onSelectTag: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         SelectableRow(

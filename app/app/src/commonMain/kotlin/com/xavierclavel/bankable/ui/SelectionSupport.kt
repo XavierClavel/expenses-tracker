@@ -130,7 +130,7 @@ fun TagPickerDialog(
     add: Boolean,
     tags: List<TagOut>,
     onDismiss: () -> Unit,
-    onPick: (Int) -> Unit,
+    onPick: (String) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
