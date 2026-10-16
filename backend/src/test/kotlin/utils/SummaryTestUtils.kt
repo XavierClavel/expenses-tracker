@@ -19,9 +19,16 @@ suspend fun HttpClient.getSummary(year: Int, month: Int): SummaryDto {
     }
 }
 
-suspend fun HttpClient.getYearOutliers(year: Int, threshold: Double? = null): List<SubcategoryOutlier> {
+suspend fun HttpClient.getYearOutliers(
+    year: Int,
+    threshold: Double? = null,
+    minTotal: Int? = null,
+    yearsAround: Int? = null,
+): List<SubcategoryOutlier> {
     this.get("$SUMMARY_URL/year/$year/outliers") {
         threshold?.let { parameter("threshold", it) }
+        minTotal?.let { parameter("minTotal", it) }
+        yearsAround?.let { parameter("yearsAround", it) }
     }.apply {
         assertEquals(HttpStatusCode.OK, status)
         return Json.decodeFromString<List<SubcategoryOutlier>>(bodyAsText())

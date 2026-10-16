@@ -153,7 +153,7 @@ data class PieEntry(
 
 data class OutlierEntry(
     val subcategory: SubcategoryEntry,
-    // What the subcategory totals over the same months at its all-time pace.
+    // What the subcategory totals over the same months at its usual pace.
     val mean: Float,
     val deviation: Double,
 )
@@ -453,6 +453,7 @@ fun SummaryScreen(
                             Spacer(Modifier.height(10.dp))
                             OutliersPanel(
                                 entries      = outlierEntries,
+                                window       = viewModel.outlierWindow(),
                                 selectedType = viewModel.selectedType,
                                 onEntryClick = { sub -> bottomSheetEntry = sub },
                             )
@@ -838,15 +839,17 @@ private fun SubcategoryLegendRow(
 
 // ── Outliers panel ─────────────────────────────────────────────────────────────
 
-// Subcategories whose year runs well above their all-time pace. Above average is a
+// Subcategories whose year runs well above their usual pace. Above average is a
 // warning for spending but good news for income, hence the type-dependent accent.
 @Composable
 private fun OutliersPanel(
     entries: List<OutlierEntry>,
+    window: IntRange,
     selectedType: String,
     onEntryClick: (SubcategoryEntry) -> Unit,
 ) {
-    val accent = if (selectedType == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
+    val accent     = if (selectedType == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
+    val windowText = if (window.first == window.last) "${window.first}" else "${window.first}–${window.last}"
 
     Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
         Column(modifier = Modifier.padding(vertical = 12.dp)) {
@@ -860,7 +863,12 @@ private fun OutliersPanel(
                     fontWeight = FontWeight.SemiBold)
             }
             Text(
-                text     = stringResource(Res.string.summary_outliers_caption, "${formatFixed(OUTLIER_THRESHOLD * 100, 0)}%"),
+                text     = stringResource(
+                    Res.string.summary_outliers_caption,
+                    formatSummaryAmount(OUTLIER_MIN_TOTAL.toDouble()),
+                    "${formatFixed(OUTLIER_THRESHOLD * 100, 0)}%",
+                    windowText,
+                ),
                 style    = MaterialTheme.typography.labelSmall,
                 color    = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),

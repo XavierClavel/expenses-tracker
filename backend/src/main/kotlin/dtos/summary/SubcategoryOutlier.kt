@@ -6,11 +6,11 @@ import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 
 /**
- * A subcategory whose amounts over a year run well above its all-time pace.
+ * A subcategory whose amounts over a year run well above their usual pace.
  *
  * @property total What the subcategory amounted to over the year.
- * @property mean What it would have amounted to over the same months at its all-time
- *   monthly mean, so it reads directly against [total].
+ * @property mean What it would have amounted to over the same months at its monthly mean
+ *   over the years around it, so it reads directly against [total].
  * @property deviation How far [total] sits above [mean], as a fraction (0.5 = +50%).
  */
 @Serializable
