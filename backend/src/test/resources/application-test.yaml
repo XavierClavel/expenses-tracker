@@ -1,7 +1,7 @@
 ebean:
   test:
     platform: postgres
-    ddlMode: dropCreate
+    ddlMode: migrations
     dbName: my_app
     postgres:
       version: 17.2

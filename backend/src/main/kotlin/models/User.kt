@@ -3,6 +3,7 @@ package com.xavierclavel.models
 import com.xavierclavel.dtos.UserOut
 import com.xavierclavel.enums.UserRole
 import io.ebean.Model
+import io.ebean.annotation.DbDefault
 import io.ebean.annotation.Index
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -43,6 +44,14 @@ class User(
 
     @Id
     var id: Long = 0
+
+    /**
+     * Revision of the user's latest change to synced data. The database increments it on every
+     * change and stamps the changed row with the new value.
+     */
+    @Column(insertable = false, updatable = false)
+    @DbDefault("0")
+    var syncRevision: Long = 0
 
 
     fun toOutput() = UserOut(
