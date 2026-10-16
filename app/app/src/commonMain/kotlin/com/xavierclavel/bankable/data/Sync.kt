@@ -1,5 +1,6 @@
 package com.xavierclavel.bankable.data
 
+import com.xavierclavel.bankable.api.ApiException
 import com.xavierclavel.bankable.api.SyncCategory
 import com.xavierclavel.bankable.api.SyncChanges
 import com.xavierclavel.bankable.api.SyncDeletion
@@ -8,13 +9,17 @@ import com.xavierclavel.bankable.api.SyncSubcategory
 import com.xavierclavel.bankable.api.SyncTag
 import com.xavierclavel.bankable.api.apiPullChanges
 import com.xavierclavel.bankable.api.apiPushChanges
+import com.xavierclavel.bankable.api.sessionToken
 import com.xavierclavel.bankable.data.db.BankableDatabase
 import com.xavierclavel.bankable.data.db.Category
 import com.xavierclavel.bankable.data.db.Expense
 import com.xavierclavel.bankable.data.db.Subcategory
 import com.xavierclavel.bankable.data.db.Tag
+import com.xavierclavel.bankable.platform.scheduleBackgroundSync
+import com.xavierclavel.bankable.storage.TokenStorage
 import com.xavierclavel.bankable.util.formatCents
 import com.xavierclavel.bankable.util.parseCents
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,14 +49,59 @@ object Sync {
     /** Off in tests, which sync explicitly. */
     internal var autoSync = true
 
-    /** Syncs shortly, in the background. Calls in quick succession sync once; failures wait for the next call. */
+    /**
+     * Syncs shortly, in the background. Calls in quick succession sync once. When it fails with
+     * changes still pending (e.g. offline), the system's background scheduler delivers them.
+     */
     fun requestSync() {
         if (!autoSync) return
         scheduled?.cancel()
         scheduled = scope.launch {
             delay(DEBOUNCE_MS)
             // Launched apart from [scheduled], so that a new request can't cancel a sync midway.
-            scope.launch { runCatching { syncNow() } }
+            scope.launch {
+                try {
+                    syncNow()
+                } catch (_: Exception) {
+                    handOffPendingChanges()
+                }
+            }
+        }
+    }
+
+    /**
+     * The app left the foreground: the system's background scheduler delivers the changes still
+     * pending, even if the app gets closed before it syncs.
+     */
+    fun onAppBackgrounded() {
+        if (!autoSync) return
+        scope.launch { handOffPendingChanges() }
+    }
+
+    suspend fun hasPendingChanges(): Boolean = readLocal { syncQueries.countPending().executeAsOne() > 0 }
+
+    private suspend fun handOffPendingChanges() {
+        if (hasPendingChanges()) scheduleBackgroundSync()
+    }
+
+    /**
+     * Syncs on behalf of the system's background scheduler, which may have started the app for
+     * it: the session token is loaded with [loadToken] if the UI hasn't done it.
+     *
+     * @return false when the sync should be retried later (no connection, server error), true
+     * when it's done, or when retrying can't help (logged out, rejected request).
+     */
+    suspend fun runInBackground(loadToken: () -> String? = { TokenStorage().loadToken() }): Boolean {
+        if (sessionToken == null) sessionToken = loadToken() ?: return true
+        return try {
+            syncNow()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ApiException) {
+            e.status !in 500..599
+        } catch (_: Exception) {
+            false
         }
     }
 

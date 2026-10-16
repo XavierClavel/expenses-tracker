@@ -13,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import kotlinx.serialization.json.Json
+import java.io.IOException
 
 /**
  * Stands in for the backend's /sync endpoints: records what the app pushes and the cursors it
@@ -26,10 +27,27 @@ class FakeSyncServer {
     /** Runs while a push is in flight, before it is recorded. */
     var duringPush: suspend () -> Unit = {}
 
+    /** When set, every request fails with this status. */
+    var failWith: HttpStatusCode? = null
+
+    /** When true, every request fails as if the server couldn't be reached. */
+    var unreachable = false
+
+    val requestCount get() = pushes.size + pulledSince.size + failedRequests
+    private var failedRequests = 0
+
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun MockRequestHandleScope.handle(request: HttpRequestData): HttpResponseData =
-        when {
+    suspend fun MockRequestHandleScope.handle(request: HttpRequestData): HttpResponseData {
+        if (unreachable) {
+            failedRequests++
+            throw IOException("Unable to resolve host")
+        }
+        failWith?.let {
+            failedRequests++
+            return respond("", it)
+        }
+        return when {
             request.method == HttpMethod.Post && request.url.encodedPath == "/sync/push" -> {
                 duringPush()
                 pushes += json.decodeFromString<SyncChanges>((request.body as TextContent).text)
@@ -47,4 +65,5 @@ class FakeSyncServer {
             }
             else -> respond("", HttpStatusCode.NotFound)
         }
+    }
 }
