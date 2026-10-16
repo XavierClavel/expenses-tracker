@@ -19,11 +19,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -47,14 +44,6 @@ object Sync {
     /** Off in tests, which sync explicitly. */
     internal var autoSync = true
 
-    private val _changed = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-
-    /**
-     * Emits after a sync that changed data, on this device or on the server, so that the
-     * figures the backend computes (summary, trends) can be fetched again.
-     */
-    val changed: SharedFlow<Unit> = _changed
-
     /** Syncs shortly, in the background. Calls in quick succession sync once; failures wait for the next call. */
     fun requestSync() {
         if (!autoSync) return
@@ -70,9 +59,8 @@ object Sync {
     suspend fun syncNow() = syncLock.withLock {
         _isSyncing.value = true
         try {
-            val pushed = push()
-            val pulled = pull()
-            if (pushed || pulled) _changed.tryEmit(Unit)
+            push()
+            pull()
         } finally {
             _isSyncing.value = false
         }
@@ -84,27 +72,23 @@ object Sync {
         syncLock.withLock { writeLocal { deleteAll() } }
     }
 
-    private suspend fun push(): Boolean {
-        val (changes, lastSeq) = writeLocal { pendingChanges() } ?: return false
+    private suspend fun push() {
+        val (changes, lastSeq) = writeLocal { pendingChanges() } ?: return
         apiPushChanges(changes)
         // Changes made while the push was in flight got a higher seq: they stay pending.
         writeLocal { syncQueries.clearPendingUpTo(lastSeq) }
-        return true
     }
 
-    private suspend fun pull(): Boolean {
+    private suspend fun pull() {
         var since = readLocal { syncQueries.selectRevision().executeAsOneOrNull() } ?: 0L
-        var changed = false
         do {
             val page = apiPullChanges(since)
             writeLocal {
                 applyPulled(page.changes)
                 syncQueries.setRevision(page.revision)
             }
-            changed = changed || page.changes != SyncChanges()
             since = page.revision
         } while (page.hasMore)
-        return changed
     }
 
     /** The current state of every row changed on this device, and the seq of the last change. */

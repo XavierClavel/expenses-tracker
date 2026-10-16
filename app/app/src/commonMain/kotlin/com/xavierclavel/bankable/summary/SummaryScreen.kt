@@ -50,7 +50,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -78,9 +77,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
@@ -121,7 +117,6 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
-import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 
 private fun localizedMonthYear(year: Int, month: Int, locale: String): String =
@@ -134,8 +129,7 @@ private fun localizedMonthYear(year: Int, month: Int, locale: String): String =
 private val ResidualColor = Color(0xFF9E9E9E)
 
 data class SubcategoryEntry(
-    // Local id, or null when the subcategory isn't on this device (yet).
-    val subcategoryId: String?,
+    val subcategoryId: String,
     val value: Float,
     val label: String,
     val color: Color,
@@ -168,27 +162,15 @@ fun SummaryScreen(
     expensesViewModel: ExpensesViewModel,
     navController: NavController,
 ) {
-    // Refresh summary every time this screen is resumed (e.g. returning from expense edit)
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.refresh()
-        }
-    }
-
     val categories by categoriesViewModel.categories.collectAsState()
     val summary    = viewModel.summary
     val isLoading  = viewModel.isLoading
 
-    // The summary comes from the REST API, which knows subcategories by their server ids.
     val subcategoryParentMap = remember(categories) {
-        categories.flatMap { cat -> cat.subcategories.mapNotNull { sub -> sub.serverId?.let { it to cat } } }.toMap()
+        categories.flatMap { cat -> cat.subcategories.map { sub -> sub.id to cat } }.toMap()
     }
     val subcategoryMap = remember(categories) {
-        categories.flatMap { cat -> cat.subcategories.mapNotNull { sub -> sub.serverId?.let { it to sub } } }.toMap()
-    }
-    val subcategoryById = remember(categories) {
-        categories.flatMap { it.subcategories }.associateBy { it.id }
+        categories.flatMap { cat -> cat.subcategories.map { sub -> sub.id to sub } }.toMap()
     }
 
     val subcatSummaries = if (viewModel.selectedType == "EXPENSE")
@@ -240,7 +222,7 @@ fun SummaryScreen(
                 val subOut = subcategoryMap[outlier.subcategoryId]
                 OutlierEntry(
                     subcategory = SubcategoryEntry(
-                        subcategoryId = subOut?.id,
+                        subcategoryId = outlier.subcategoryId,
                         value         = outlier.total.toFloatOrNull() ?: 0f,
                         label         = subOut?.name ?: outlier.subcategoryName,
                         color         = subcategoryParentMap[outlier.subcategoryId]?.let { colorHexByName(it.color) } ?: ResidualColor,
@@ -484,7 +466,7 @@ fun SummaryScreen(
                 dateFrom = dateFrom,
                 dateTo   = dateTo,
                 onExpenseClick = { expense ->
-                    val sub = subcategoryById[expense.categoryId]
+                    val sub = subcategoryMap[expense.categoryId]
                     expensesViewModel.prepareEditExpense(expense, sub)
                     bottomSheetEntry = null
                     navController.navigate("expense/edit")
@@ -928,11 +910,8 @@ private fun ExpenseListSheetContent(
     dateTo: String,
     onExpenseClick: (ExpenseOut) -> Unit,
 ) {
-    // Read locally, so that the list also holds the changes not synced yet.
     val loaded by remember(entry.subcategoryId, dateFrom, dateTo) {
-        val subcategoryId = entry.subcategoryId
-        if (subcategoryId == null) flowOf(emptyList())
-        else ExpenseStore.observe(subcategoryId = subcategoryId, from = dateFrom, to = dateTo, limit = 100)
+        ExpenseStore.observe(subcategoryId = entry.subcategoryId, from = dateFrom, to = dateTo, limit = 100)
     }.collectAsState(initial = null)
     val expenses = loaded.orEmpty()
     val isLoading = loaded == null

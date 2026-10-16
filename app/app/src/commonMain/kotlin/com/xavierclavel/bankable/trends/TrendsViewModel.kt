@@ -6,17 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xavierclavel.bankable.accounts.BarEntry
-import com.xavierclavel.bankable.api.apiGetMonthCategoryTrends
-import com.xavierclavel.bankable.api.apiGetMonthSubcategoryTrends
-import com.xavierclavel.bankable.api.apiGetMonthTrends
-import com.xavierclavel.bankable.api.apiGetYearCategoryTrends
-import com.xavierclavel.bankable.api.apiGetYearFlowTrends
-import com.xavierclavel.bankable.api.apiGetYearSubcategoryTrends
-import com.xavierclavel.bankable.api.apiGetYearTrends
+import com.xavierclavel.bankable.data.MonthlyTotal
+import com.xavierclavel.bankable.data.Reports
 import com.xavierclavel.bankable.data.Sync
-import com.xavierclavel.bankable.data.SyncType
-import com.xavierclavel.bankable.data.requireServerIds
 import com.xavierclavel.bankable.model.CategoryOut
+import com.xavierclavel.bankable.model.CategoryTrendDto
 import com.xavierclavel.bankable.model.SubcategoryOut
 import com.xavierclavel.bankable.platform.platformDefaultLocaleTag
 import com.xavierclavel.bankable.platform.platformShortMonthName
@@ -24,6 +18,7 @@ import com.xavierclavel.bankable.util.currentYear
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 data class BarGroup(
@@ -59,10 +54,18 @@ class TrendsViewModel : ViewModel() {
 
     private var categories: List<CategoryOut> = emptyList()
     private var locale: String = platformDefaultLocaleTag()
+    private var totals: List<MonthlyTotal> = emptyList()
 
     init {
-        // The backend computes trends: fetch them again once local changes reached it.
-        viewModelScope.launch { Sync.changed.collect { load() } }
+        // Trends are computed from the local expenses: they follow every change.
+        viewModelScope.launch {
+            combine(Reports.observeMonthlyTotals(), Sync.isSyncing) { totals, syncing -> totals to syncing }
+                .collect { (newTotals, syncing) ->
+                    totals = newTotals
+                    isLoading = syncing && newTotals.isEmpty()
+                    load()
+                }
+        }
     }
 
     fun updateLocale(newLocale: String) {
@@ -113,72 +116,57 @@ class TrendsViewModel : ViewModel() {
     }
 
     fun load() {
-        viewModelScope.launch {
-            isLoading = true
-            try {
-                when (dataMode) {
-                    "income_expense" -> loadIncomeExpense()
-                    "flow"           -> loadFlow()
-                    "category"       -> loadCategoryMode()
-                }
-            } catch (_: Exception) {
-                _bars.value   = emptyList()
-                _groups.value = emptyList()
-            } finally {
-                isLoading = false
-            }
+        when (dataMode) {
+            "income_expense" -> loadIncomeExpense()
+            "flow"           -> loadFlow()
+            "category"       -> loadCategoryMode()
         }
     }
 
     // ── Private loaders ───────────────────────────────────────────────────────
 
-    private suspend fun loadIncomeExpense() {
+    private fun loadIncomeExpense() {
         if (timescale == "month") {
-            _groups.value = apiGetMonthTrends().map { t ->
+            _groups.value = Reports.incomeExpenseByMonth(totals).map { t ->
                 BarGroup(monthLabel(t.year, t.month ?: 1), t.totalIncome.toFloatOrNull() ?: 0f, t.totalExpenses.toFloatOrNull() ?: 0f)
             }
         } else {
-            _groups.value = apiGetYearTrends().map { t ->
+            _groups.value = Reports.incomeExpenseByYear(totals).map { t ->
                 BarGroup(t.year.toString(), agg(t.totalIncome, t.meanIncome, t.medianIncome), agg(t.totalExpenses, t.meanExpenses, t.medianExpenses))
             }
         }
         _bars.value = emptyList()
     }
 
-    private suspend fun loadFlow() {
+    private fun loadFlow() {
         if (timescale == "month") {
-            _bars.value = apiGetMonthTrends().map { t ->
+            _bars.value = Reports.incomeExpenseByMonth(totals).map { t ->
                 val v = (t.totalIncome.toFloatOrNull() ?: 0f) - (t.totalExpenses.toFloatOrNull() ?: 0f)
                 BarEntry(v, monthLabel(t.year, t.month ?: 1))
             }
         } else {
-            _bars.value = apiGetYearFlowTrends().map { t ->
+            _bars.value = Reports.flowByYear(totals).map { t ->
                 BarEntry(aggCat(t), t.year.toString())
             }
         }
         _groups.value = emptyList()
     }
 
-    private suspend fun loadCategoryMode() {
-        // The trends API knows categories by their server ids.
-        val sub = selectedSubcategory?.let { requireServerIds(SyncType.SUBCATEGORY, listOf(it.id)).single() }
-        val cat = selectedCategory?.let { requireServerIds(SyncType.CATEGORY, listOf(it.id)).single() }
+    private fun loadCategoryMode() {
+        val sub = selectedSubcategory
+        val cat = selectedCategory
+        val matching: ((MonthlyTotal) -> Boolean)? = when {
+            sub != null -> { row -> row.subcategoryId == sub.id }
+            cat != null -> { row -> row.categoryId == cat.id }
+            else -> null
+        }
         // Category mode always shows positive (unsigned) values, colored by the
         // category accent — no income/expense sign.
-        when {
-            sub != null -> {
-                _bars.value = if (timescale == "month")
-                    apiGetMonthSubcategoryTrends(sub).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
-                else
-                    apiGetYearSubcategoryTrends(sub).map { t -> BarEntry(aggCat(t), t.year.toString()) }
-            }
-            cat != null -> {
-                _bars.value = if (timescale == "month")
-                    apiGetMonthCategoryTrends(cat).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
-                else
-                    apiGetYearCategoryTrends(cat).map { t -> BarEntry(aggCat(t), t.year.toString()) }
-            }
-            else -> _bars.value = emptyList()
+        _bars.value = when {
+            matching == null -> emptyList()
+            timescale == "month" -> Reports.trendByMonth(totals, matching)
+                .map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
+            else -> Reports.trendByYear(totals, matching).map { t -> BarEntry(aggCat(t), t.year.toString()) }
         }
         _groups.value = emptyList()
     }
@@ -191,7 +179,7 @@ class TrendsViewModel : ViewModel() {
         else      -> total.toFloatOrNull()   ?: 0f
     }
 
-    private fun aggCat(t: com.xavierclavel.bankable.model.CategoryTrendDto) = when (aggregation) {
+    private fun aggCat(t: CategoryTrendDto) = when (aggregation) {
         "average" -> t.average?.toFloatOrNull() ?: 0f
         "median"  -> t.median?.toFloatOrNull()  ?: 0f
         else      -> t.total.toFloatOrNull()   ?: 0f

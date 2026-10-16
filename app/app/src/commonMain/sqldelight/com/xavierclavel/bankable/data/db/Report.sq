@@ -1,0 +1,13 @@
+-- The total of each subcategory's expenses of each type in each month ("yyyy-MM"), in cents:
+-- the summary, the outliers and the trends are all computed from these rows. Uncategorized
+-- expenses have a null subcategory.
+monthlyTotals:
+SELECT substr(e.date, 1, 7) AS month,
+       e.subcategory_id,
+       s.category_id,
+       s.name AS subcategory_name,
+       e.type,
+       CAST(sum(e.amount_cents) AS INTEGER) AS total_cents
+FROM expense e
+LEFT JOIN subcategory s ON s.id = e.subcategory_id
+GROUP BY month, e.subcategory_id, e.type;
