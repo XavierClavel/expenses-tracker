@@ -1,8 +1,8 @@
 package com.xavierclavel.bankable.expenses
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,35 +20,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Label
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,12 +48,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.backhandler.BackHandler
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.categories.CategoriesViewModel
 import com.xavierclavel.bankable.constants.colorHexByName
@@ -73,13 +65,16 @@ import com.xavierclavel.bankable.constants.iconByName
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryOut
 import com.xavierclavel.bankable.platform.LocalAppLocale
+import com.xavierclavel.bankable.platform.platformFormatDecimal
+import com.xavierclavel.bankable.platform.platformFormatMonthYear
 import com.xavierclavel.bankable.platform.showToast
+import com.xavierclavel.bankable.resources.batch_make_recurring
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.action_delete
+import com.xavierclavel.bankable.resources.app_name
 import com.xavierclavel.bankable.resources.batch_assign_tag
 import com.xavierclavel.bankable.resources.batch_duplicate
 import com.xavierclavel.bankable.resources.batch_duplicate_done
-import com.xavierclavel.bankable.resources.batch_make_recurring
 import com.xavierclavel.bankable.resources.batch_make_recurring_done
 import com.xavierclavel.bankable.resources.batch_remove_tag
 import com.xavierclavel.bankable.resources.batch_selected_count
@@ -88,31 +83,53 @@ import com.xavierclavel.bankable.resources.cd_clear_search
 import com.xavierclavel.bankable.resources.cd_exit_selection
 import com.xavierclavel.bankable.resources.cd_filter
 import com.xavierclavel.bankable.resources.cd_has_tags
-import com.xavierclavel.bankable.resources.cd_logout
 import com.xavierclavel.bankable.resources.cd_settings
 import com.xavierclavel.bankable.resources.expenses_empty_cta
 import com.xavierclavel.bankable.resources.expenses_empty_description
 import com.xavierclavel.bankable.resources.expenses_empty_title
+import com.xavierclavel.bankable.resources.expenses_balance_so_far
+import com.xavierclavel.bankable.resources.expenses_today_prefix
 import com.xavierclavel.bankable.resources.no_matching_expenses
 import com.xavierclavel.bankable.resources.screen_recurring_expenses
 import com.xavierclavel.bankable.resources.search_expenses_hint
 import com.xavierclavel.bankable.tags.TagsViewModel
+import com.xavierclavel.bankable.ui.CircleIconButton
 import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
 import com.xavierclavel.bankable.ui.EmptyState
+import com.xavierclavel.bankable.ui.CheckDot
+import com.xavierclavel.bankable.ui.IconTile
+import com.xavierclavel.bankable.ui.NightCard
+import com.xavierclavel.bankable.ui.NightFab
+import com.xavierclavel.bankable.ui.ScreenGutter
+import com.xavierclavel.bankable.ui.ScreenHeader
+import com.xavierclavel.bankable.ui.SectionLabel
 import com.xavierclavel.bankable.ui.TagPickerDialog
+import com.xavierclavel.bankable.ui.amountColor
+import com.xavierclavel.bankable.ui.theme.Danger
+import com.xavierclavel.bankable.ui.theme.DangerBorder
+import com.xavierclavel.bankable.ui.theme.Mint
+import com.xavierclavel.bankable.ui.theme.MintBorder
+import com.xavierclavel.bankable.ui.theme.MintContainer
+import com.xavierclavel.bankable.ui.theme.NightBackground
+import com.xavierclavel.bankable.ui.theme.NightBorder
+import com.xavierclavel.bankable.ui.theme.NightCard
+import com.xavierclavel.bankable.ui.theme.NightTextPrimary
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
+import com.xavierclavel.bankable.ui.theme.NightTextTertiary
+import com.xavierclavel.bankable.util.currentMonth
+import com.xavierclavel.bankable.util.currentYear
 import com.xavierclavel.bankable.util.formatIsoDateLong
 import com.xavierclavel.bankable.util.plusOneMonthIsoDate
+import com.xavierclavel.bankable.util.formatIsoDateShort
 import com.xavierclavel.bankable.util.todayIsoDate
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseListScreen(
     viewModel: ExpensesViewModel,
     categoriesViewModel: CategoriesViewModel,
     tagsViewModel: TagsViewModel,
     navController: NavController,
-    onLogout: () -> Unit,
 ) {
     val expenses by viewModel.expenses.collectAsState()
     val isLoading = viewModel.isLoading
@@ -123,6 +140,7 @@ fun ExpenseListScreen(
         categories.flatMap { it.subcategories }.associateBy { it.id }
     }
     val locale = LocalAppLocale.current
+    val currency = currencySymbol(expenses.firstOrNull()?.currency ?: "EUR")
 
     val selectionMode = viewModel.selectionMode
     val selectedIds = viewModel.selectedExpenseIds
@@ -206,9 +224,21 @@ fun ExpenseListScreen(
         expenses.groupBy { it.date }
     }
 
-    // Start scrolled just past the search header (item 0) so expenses fill from the
-    // top on open; the search bar sits above and is revealed by scrolling up.
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = 1)
+    // "Balance so far" (income minus expenses) for the current month, shown only when it is exact: no search or
+    // filter narrows the list, and every expense of the month has been loaded (the list
+    // is sorted newest first, so an older expense proves the month is complete).
+    val year = currentYear()
+    val month = currentMonth()
+    val monthPrefix = "$year-${month.toString().padStart(2, '0')}"
+    val monthBalance: Double? = remember(expenses, viewModel.hasActiveFilters, viewModel.allLoaded, monthPrefix) {
+        val complete = viewModel.allLoaded || expenses.any { it.date < "$monthPrefix-01" }
+        if (viewModel.hasActiveFilters || !complete) null
+        else expenses
+            .filter { it.date.startsWith(monthPrefix) }
+            .sumOf { signedValue(it) }
+    }
+
+    val listState = rememberLazyListState()
     val nearEnd by remember {
         derivedStateOf {
             val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -221,77 +251,95 @@ fun ExpenseListScreen(
     }
 
     Scaffold(
+        containerColor = NightBackground,
         topBar = {
             if (selectionMode) {
-                TopAppBar(
-                    title = { Text(stringResource(Res.string.batch_selected_count, selectedIds.size)) },
-                    navigationIcon = {
-                        IconButton(onClick = { viewModel.clearSelection() }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.cd_exit_selection))
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = { showDuplicatePicker = true },
-                            enabled = selectedIds.isNotEmpty(),
-                        ) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = stringResource(Res.string.batch_duplicate))
-                        }
-                        IconButton(
+                val selectedTotal = expenses
+                    .filter { selectedIds.contains(it.id) }
+                    .sumOf { signedValue(it) }
+                Column(Modifier.background(NightBackground)) {
+                    ScreenHeader(
+                        title = stringResource(Res.string.batch_selected_count, selectedIds.size),
+                        subtitle = formatSignedTotal(selectedTotal, locale, currency),
+                        navigationIcon = Icons.Default.Close,
+                        navigationContentDescription = stringResource(Res.string.cd_exit_selection),
+                        onNavigate = { viewModel.clearSelection() },
+                        large = false,
+                    ) {
+                        CircleIconButton(
+                            icon = Icons.Outlined.Repeat,
+                            contentDescription = stringResource(Res.string.batch_make_recurring),
                             onClick = { showMakeRecurringConfirm = true },
                             enabled = selectedIds.isNotEmpty(),
-                        ) {
-                            Icon(Icons.Default.EventRepeat, contentDescription = stringResource(Res.string.batch_make_recurring))
-                        }
-                        IconButton(
+                        )
+                        CircleIconButton(
+                            icon = Icons.Outlined.ContentCopy,
+                            contentDescription = stringResource(Res.string.batch_duplicate),
+                            onClick = { showDuplicatePicker = true },
+                            enabled = selectedIds.isNotEmpty(),
+                        )
+                        CircleIconButton(
+                            icon = Icons.Outlined.Delete,
+                            contentDescription = stringResource(Res.string.action_delete),
                             onClick = { showDeleteConfirm = true },
                             enabled = selectedIds.isNotEmpty(),
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.action_delete))
-                        }
-                    },
-                )
-            }
-        },
-        bottomBar = {
-            if (selectionMode) {
-                Surface(tonalElevation = 3.dp) {
+                            tint = Danger,
+                            borderColor = DangerBorder,
+                        )
+                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            .padding(horizontal = ScreenGutter)
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Button(
+                        SelectionPillButton(
+                            text = stringResource(Res.string.batch_assign_tag),
                             onClick = { tagPickerAdd = true },
-                            modifier = Modifier.weight(1f),
                             enabled = selectedIds.isNotEmpty(),
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(Res.string.batch_assign_tag))
-                        }
-                        OutlinedButton(
+                            primary = true,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SelectionPillButton(
+                            text = stringResource(Res.string.batch_remove_tag),
                             onClick = { tagPickerAdd = false },
-                            modifier = Modifier.weight(1f),
                             enabled = selectedIds.isNotEmpty(),
-                        ) {
-                            Text(stringResource(Res.string.batch_remove_tag))
-                        }
+                            primary = false,
+                            modifier = Modifier.weight(1f),
+                        )
                     }
+                }
+            } else {
+                ScreenHeader(
+                    title = stringResource(Res.string.app_name),
+                    modifier = Modifier.background(NightBackground),
+                ) {
+                    CircleIconButton(
+                        icon = Icons.Outlined.Repeat,
+                        contentDescription = stringResource(Res.string.screen_recurring_expenses),
+                        onClick = { navController.navigate("recurring") },
+                    )
+                    CircleIconButton(
+                        icon = Icons.Outlined.Settings,
+                        contentDescription = stringResource(Res.string.cd_settings),
+                        onClick = { navController.navigate("settings") },
+                    )
                 }
             }
         },
         floatingActionButton = {
             if (!selectionMode) {
-                FloatingActionButton(onClick = {
-                    viewModel.prepareNewExpense()
-                    navController.navigate("expense/edit")
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.cd_add_expense))
-                }
+                NightFab(
+                    icon = Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.cd_add_expense),
+                    onClick = {
+                        viewModel.prepareNewExpense()
+                        navController.navigate("expense/edit")
+                    },
+                )
             }
-        }
+        },
     ) { padding ->
         Box(
             modifier = Modifier
@@ -299,23 +347,34 @@ fun ExpenseListScreen(
                 .padding(padding),
         ) {
             if (expenses.isEmpty() && isLoading) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
+                CircularProgressIndicator(Modifier.align(Alignment.Center), color = Mint)
             } else {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 80.dp),
+                    contentPadding = PaddingValues(start = ScreenGutter, top = 4.dp, end = ScreenGutter, bottom = 96.dp),
                 ) {
                     item(key = "search_header") {
-                        SearchHeader(
+                        SearchBar(
                             query = viewModel.searchQuery,
                             onQueryChange = viewModel::setSearchQuery,
                             filtersActive = viewModel.filter.isActive,
                             onFilterClick = { navController.navigate("expense/filter") },
-                            onRecurring = { navController.navigate("recurring") },
-                            onSettings = { navController.navigate("settings") },
-                            onLogout = onLogout,
                         )
+                    }
+                    item(key = "month_summary") {
+                        if (monthBalance != null && !selectionMode) {
+                            MonthSummary(
+                                label = stringResource(
+                                    Res.string.expenses_balance_so_far,
+                                    platformFormatMonthYear(year, month, locale).replaceFirstChar { it.titlecase() },
+                                ),
+                                amount = formatSignedTotal(monthBalance, locale, currency),
+                                amountColor = if (monthBalance > 0) Mint else NightTextPrimary,
+                            )
+                        } else {
+                            Spacer(Modifier.height(1.dp))
+                        }
                     }
                     if (expenses.isEmpty() && viewModel.hasActiveFilters) {
                         item(key = "empty") {
@@ -327,7 +386,8 @@ fun ExpenseListScreen(
                             ) {
                                 Text(
                                     text = stringResource(Res.string.no_matching_expenses),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = NightTextSecondary,
                                 )
                             }
                         }
@@ -347,17 +407,21 @@ fun ExpenseListScreen(
                             )
                         }
                     } else {
+                        val today = todayIsoDate()
                         grouped.forEach { (dateStr, dayExpenses) ->
                             stickyHeader(key = "header_$dateStr") {
-                                Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
-                                    Text(
-                                        text = formatDate(dateStr, locale),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
-                                    )
-                                }
+                                val dayTotal = dayExpenses.sumOf { signedValue(it) }
+                                val dateLabel = if (dateStr.startsWith("$year-")) formatIsoDateShort(dateStr, locale)
+                                else formatDate(dateStr, locale)
+                                SectionLabel(
+                                    text = if (dateStr == today) stringResource(Res.string.expenses_today_prefix, dateLabel)
+                                    else dateLabel,
+                                    trailing = formatSignedTotal(dayTotal, locale, currency),
+                                    trailingColor = if (dayTotal > 0) Mint else NightTextSecondary,
+                                    modifier = Modifier
+                                        .background(NightBackground)
+                                        .padding(top = 14.dp, bottom = 8.dp, start = 2.dp, end = 2.dp),
+                                )
                             }
                             items(dayExpenses, key = { it.id }) { expense ->
                                 ExpenseItem(
@@ -385,7 +449,7 @@ fun ExpenseListScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    CircularProgressIndicator()
+                                    CircularProgressIndicator(color = Mint)
                                 }
                             }
                         }
@@ -397,69 +461,154 @@ fun ExpenseListScreen(
 }
 
 @Composable
-private fun SearchHeader(
+private fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     filtersActive: Boolean,
     onFilterClick: () -> Unit,
-    onRecurring: () -> Unit,
-    onSettings: () -> Unit,
-    onLogout: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            IconButton(onClick = onRecurring) {
-                Icon(Icons.Default.EventRepeat, contentDescription = stringResource(Res.string.screen_recurring_expenses))
-            }
-            IconButton(onClick = onSettings) {
-                Icon(Icons.Default.Settings, contentDescription = stringResource(Res.string.cd_settings))
-            }
-            IconButton(onClick = onLogout) {
-                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(Res.string.cd_logout))
-            }
-        }
+    val shape = RoundedCornerShape(18.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 4.dp),
+                .weight(1f)
+                .heightIn(min = 54.dp)
+                .clip(shape)
+                .background(NightCard)
+                .border(1.dp, NightBorder, shape)
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OutlinedTextField(
+            Icon(
+                Icons.Outlined.Search,
+                contentDescription = null,
+                tint = NightTextSecondary,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(12.dp))
+            val textStyle = MaterialTheme.typography.bodyLarge
+            BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(Res.string.search_expenses_hint)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                trailingIcon = if (query.isNotEmpty()) {
-                    {
-                        IconButton(onClick = { onQueryChange("") }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.cd_clear_search))
-                        }
-                    }
-                } else null,
                 singleLine = true,
-                shape = MaterialTheme.shapes.large,
+                textStyle = textStyle.merge(TextStyle(color = NightTextPrimary)),
+                cursorBrush = SolidColor(Mint),
+                modifier = Modifier.weight(1f),
+                decorationBox = { inner ->
+                    Box {
+                        if (query.isEmpty()) {
+                            Text(stringResource(Res.string.search_expenses_hint), style = textStyle, color = NightTextTertiary)
+                        }
+                        inner()
+                    }
+                },
             )
-            IconButton(onClick = onFilterClick) {
-                BadgedBox(
-                    badge = { if (filtersActive) Badge() },
-                ) {
-                    Icon(
-                        Icons.Default.FilterList,
-                        contentDescription = stringResource(Res.string.cd_filter),
-                        tint = if (filtersActive) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+            if (query.isNotEmpty()) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = stringResource(Res.string.cd_clear_search),
+                    tint = NightTextSecondary,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable { onQueryChange("") }
+                        .padding(4.dp)
+                        .size(18.dp),
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .size(54.dp)
+                .clip(shape)
+                .background(if (filtersActive) MintContainer else NightCard)
+                .border(1.dp, if (filtersActive) MintBorder else NightBorder, shape)
+                .clickable(onClick = onFilterClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Tune,
+                contentDescription = stringResource(Res.string.cd_filter),
+                tint = if (filtersActive) Mint else NightTextPrimary,
+                modifier = Modifier.size(22.dp),
+            )
+            if (filtersActive) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-10).dp, y = 10.dp)
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Mint),
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun MonthSummary(label: String, amount: String, amountColor: Color) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 2.dp, end = 2.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = NightTextSecondary,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = amount,
+            style = MaterialTheme.typography.headlineMedium,
+            color = amountColor,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun SelectionPillButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    primary: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val shape = CircleShape
+    Row(
+        modifier = modifier
+            .clip(shape)
+            .background(if (primary) MintContainer else NightCard)
+            .border(1.dp, if (primary) MintBorder else NightBorder, shape)
+            .clickable(enabled = enabled, onClick = onClick)
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (primary) {
+            Icon(Icons.Outlined.Sell, contentDescription = null, tint = Mint, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (primary) FontWeight.Bold else FontWeight.Medium,
+            color = if (primary) Mint else NightTextSecondary,
+        )
+    }
+}
+
 @Composable
 internal fun ExpenseItem(
     expense: ExpenseOut,
@@ -469,92 +618,85 @@ internal fun ExpenseItem(
     selectionMode: Boolean = false,
     selected: Boolean = false,
 ) {
-    val iconColor = colorHexByName(subcategory?.color)
     val locale = LocalAppLocale.current
+    val isIncome = expense.type == "INCOME"
+    val sign = if (isIncome) "+" else "−"
 
-    val amountColor = if (expense.type == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
-    val sign = if (expense.type == "INCOME") "+" else "-"
-
-    Box(
+    NightCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 3.dp),
+        onClick = onClick,
+        onLongClick = onLongClick,
+        selected = selected,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 2.dp,
-            color = if (selected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surface,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (selectionMode) {
-                    Icon(
-                        imageVector = if (selected) Icons.Default.CheckCircle
-                        else Icons.Default.RadioButtonUnchecked,
-                        contentDescription = null,
-                        tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp),
-                    )
-                } else {
-                    Icon(
-                        imageVector = iconByName(subcategory?.icon),
-                        contentDescription = null,
-                        tint = iconColor,
-                        modifier = Modifier.size(24.dp),
-                    )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (selectionMode) {
+                Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                    CheckDot(checked = selected, size = 28.dp)
                 }
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = expense.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+            } else {
+                IconTile(
+                    icon = iconByName(subcategory?.icon),
+                    color = colorHexByName(subcategory?.color),
+                    size = 40.dp,
+                    iconSize = 20.dp,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = expense.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NightTextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     if (subcategory != null) {
                         Text(
                             text = subcategory.name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = NightTextSecondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                    }
+                    if (expense.tagIds.isNotEmpty()) {
+                        Spacer(Modifier.width(6.dp))
+                        Icon(
+                            Icons.Outlined.Sell,
+                            contentDescription = stringResource(Res.string.cd_has_tags),
+                            tint = Mint,
+                            modifier = Modifier.size(14.dp),
                         )
                     }
                 }
-                Text(
-                    text = "$sign${formatAmountDisplay(expense.amount, locale)} ${currencySymbol(expense.currency)}",
-                    color = amountColor,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
-                )
             }
-        }
-
-        // Bookmark ribbon pinned to the top edge, at a fixed x so it lines up across cards.
-        if (expense.tagIds.isNotEmpty()) {
-            Icon(
-                imageVector = Icons.Filled.Bookmark,
-                contentDescription = stringResource(Res.string.cd_has_tags),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 16.dp)
-                    .offset(y = (-6).dp)
-                    .size(width = 15.dp, height = 22.dp),
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = "$sign${formatAmountDisplay(expense.amount, locale)} ${currencySymbol(expense.currency)}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = amountColor(isIncome),
+                maxLines = 1,
             )
         }
     }
+}
+
+/** Income counts positive, expenses negative. */
+private fun signedValue(expense: ExpenseOut): Double {
+    val value = expense.amount.toDoubleOrNull() ?: 0.0
+    return if (expense.type == "INCOME") value else -value
+}
+
+/** "+2 850,00 €" / "−153,00 €" with the locale's separators. */
+private fun formatSignedTotal(value: Double, locale: String, currency: String): String {
+    val sign = if (value > 0) "+" else if (value < 0) "−" else ""
+    return "$sign${platformFormatDecimal(kotlin.math.abs(value), locale, 2, 2)} $currency"
 }
 
 internal fun formatDate(dateStr: String, locale: String): String =

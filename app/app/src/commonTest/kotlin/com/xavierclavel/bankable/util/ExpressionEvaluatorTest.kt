@@ -48,4 +48,14 @@ class ExpressionEvaluatorTest {
         assertNull(ExpressionEvaluator.evaluate("12+"))
         assertNull(ExpressionEvaluator.evaluate("1/0"))
     }
+
+    @Test
+    fun percentIsRelativeWhenAddedOrSubtracted() {
+        assertEquals(36.0, ExpressionEvaluator.evaluate("40-10%"))
+        assertEquals(60.0, ExpressionEvaluator.evaluate("50+20%"))
+        assertEquals(4.0, ExpressionEvaluator.evaluate("40*10%"))
+        assertEquals(0.1, ExpressionEvaluator.evaluate("10%"))
+        assertEquals(20.1, ExpressionEvaluator.evaluate("20+5*2%")!!, 1e-9)
+        assertNull(ExpressionEvaluator.evaluate("%"))
+    }
 }

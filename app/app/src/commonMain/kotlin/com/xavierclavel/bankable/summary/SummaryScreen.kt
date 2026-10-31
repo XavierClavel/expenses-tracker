@@ -20,6 +20,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,10 +31,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -41,12 +44,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -104,20 +104,40 @@ import com.xavierclavel.bankable.resources.label_month
 import com.xavierclavel.bankable.resources.label_saved
 import com.xavierclavel.bankable.resources.label_total
 import com.xavierclavel.bankable.resources.label_year
+import com.xavierclavel.bankable.resources.nav_summary
 import com.xavierclavel.bankable.resources.summary_no_data
 import com.xavierclavel.bankable.resources.summary_no_expenses
 import com.xavierclavel.bankable.resources.summary_outlier_mean
-import com.xavierclavel.bankable.resources.summary_outliers_caption
 import com.xavierclavel.bankable.resources.summary_outliers_title
 import com.xavierclavel.bankable.resources.summary_pct_of_income
 import com.xavierclavel.bankable.resources.summary_pct_of_spending
 import com.xavierclavel.bankable.resources.summary_saved_income
+import com.xavierclavel.bankable.ui.CardDivider
+import com.xavierclavel.bankable.ui.CircleIconButton
+import com.xavierclavel.bankable.ui.NightCard
+import com.xavierclavel.bankable.ui.ScreenGutter
+import com.xavierclavel.bankable.ui.ScreenHeader
+import com.xavierclavel.bankable.ui.ShareBar
 import com.xavierclavel.bankable.ui.SlidingToggle
+import com.xavierclavel.bankable.ui.amountColor
+import com.xavierclavel.bankable.ui.theme.Danger
+import com.xavierclavel.bankable.ui.theme.Mint
+import com.xavierclavel.bankable.ui.theme.NightBackground
+import com.xavierclavel.bankable.ui.theme.NightCard
+import com.xavierclavel.bankable.ui.theme.NightCardRaised
+import com.xavierclavel.bankable.ui.theme.NightTextPrimary
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
+import com.xavierclavel.bankable.ui.theme.NightTextTertiary
+import com.xavierclavel.bankable.ui.theme.NightTrack
 import com.xavierclavel.bankable.util.formatFixed
 import com.xavierclavel.bankable.util.formatIsoDateShort
 import com.xavierclavel.bankable.util.lastDayOfMonth
 import com.xavierclavel.bankable.util.padZeros
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Path
 import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -130,7 +150,7 @@ private fun localizedMonthYear(year: Int, month: Int, locale: String): String =
 
 // Neutral color for the "unspent income" remainder, so it doesn't read as a
 // (possibly green) spending category.
-private val ResidualColor = Color(0xFF9E9E9E)
+private val ResidualColor = NightTextTertiary
 
 data class SubcategoryEntry(
     val subcategoryId: Int,
@@ -262,6 +282,7 @@ fun SummaryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(NightBackground)
             .pointerInput(viewModel.selectedYear, viewModel.selectedMonth, viewModel.timescale) {
                 var totalDragX = 0f
                 detectHorizontalDragGestures(
@@ -274,194 +295,194 @@ fun SummaryScreen(
                     }
                 ) { _, dragAmount -> totalDragX += dragAmount }
             }
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
+            .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(12.dp))
-
-        // ── Date navigation ────────────────────────────────────────────────
-        val locale = LocalAppLocale.current
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            IconButton(onClick = { viewModel.previousPeriod() }, enabled = viewModel.canGoBack()) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.action_previous))
-            }
-            Text(
-                text = if (viewModel.timescale == "month")
-                    localizedMonthYear(viewModel.selectedYear, viewModel.selectedMonth, locale)
-                else viewModel.selectedYear.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+        // ── Title + timescale toggle ───────────────────────────────────────
+        ScreenHeader(title = stringResource(Res.string.nav_summary)) {
+            SlidingToggle(
+                options  = listOf("month" to stringResource(Res.string.label_month), "year" to stringResource(Res.string.label_year)),
+                selected = viewModel.timescale,
+                onSelect = { viewModel.setTimescale(it) },
+                height   = 46.dp,
+                modifier = Modifier.width(160.dp),
             )
-            IconButton(onClick = { viewModel.nextPeriod() }, enabled = viewModel.canGoForward()) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(Res.string.action_next))
-            }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(horizontal = ScreenGutter)) {
+            // ── Date navigation ────────────────────────────────────────────
+            val locale = LocalAppLocale.current
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CircleIconButton(
+                    icon               = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = stringResource(Res.string.action_previous),
+                    onClick            = { viewModel.previousPeriod() },
+                    enabled            = viewModel.canGoBack(),
+                    size               = 52.dp,
+                )
+                Text(
+                    text = if (viewModel.timescale == "month")
+                        localizedMonthYear(viewModel.selectedYear, viewModel.selectedMonth, locale)
+                    else viewModel.selectedYear.toString(),
+                    style     = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color     = NightTextPrimary,
+                    textAlign = TextAlign.Center,
+                    maxLines  = 1,
+                    modifier  = Modifier.weight(1f),
+                )
+                CircleIconButton(
+                    icon               = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = stringResource(Res.string.action_next),
+                    onClick            = { viewModel.nextPeriod() },
+                    enabled            = viewModel.canGoForward(),
+                    size               = 52.dp,
+                )
+            }
 
-        // ── Timescale + type toggles ───────────────────────────────────────
-        SlidingToggle(
-            options  = listOf("month" to stringResource(Res.string.label_month), "year" to stringResource(Res.string.label_year)),
-            selected = viewModel.timescale,
-            onSelect = { viewModel.setTimescale(it) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+            Spacer(Modifier.height(20.dp))
 
-        Spacer(Modifier.height(8.dp))
+            // ── Type toggle ────────────────────────────────────────────────
+            SlidingToggle(
+                options  = listOf("EXPENSE" to stringResource(Res.string.label_expenses), "INCOME" to stringResource(Res.string.label_income)),
+                selected = viewModel.selectedType,
+                onSelect = { viewModel.setSelectedType(it) },
+                height   = 56.dp,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-        SlidingToggle(
-            options  = listOf("EXPENSE" to stringResource(Res.string.label_expenses), "INCOME" to stringResource(Res.string.label_income)),
-            selected = viewModel.selectedType,
-            onSelect = { viewModel.setSelectedType(it) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+            Spacer(Modifier.height(28.dp))
 
-        Spacer(Modifier.height(12.dp))
+            // ── Animated data section ──────────────────────────────────────
+            AnimatedContent(
+                targetState = periodKey,
+                transitionSpec = {
+                    val forward = targetState > initialState
+                    slideInHorizontally(
+                        initialOffsetX = { if (forward) it else -it },
+                        animationSpec  = tween(320, easing = FastOutSlowInEasing),
+                    ) + fadeIn(tween(200)) togetherWith
+                    slideOutHorizontally(
+                        targetOffsetX = { if (forward) -it else it },
+                        animationSpec = tween(320, easing = FastOutSlowInEasing),
+                    ) + fadeOut(tween(150))
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { _ ->
+                // Both selectedSlice and expandedCategories reset per period
+                var selectedSlice        by remember { mutableIntStateOf(-1) }
+                var expandedCategories   by remember { mutableStateOf(setOf<Int>()) }
 
-        // ── Animated data section ──────────────────────────────────────────
-        AnimatedContent(
-            targetState = periodKey,
-            transitionSpec = {
-                val forward = targetState > initialState
-                slideInHorizontally(
-                    initialOffsetX = { if (forward) it else -it },
-                    animationSpec  = tween(320, easing = FastOutSlowInEasing),
-                ) + fadeIn(tween(200)) togetherWith
-                slideOutHorizontally(
-                    targetOffsetX = { if (forward) -it else it },
-                    animationSpec = tween(320, easing = FastOutSlowInEasing),
-                ) + fadeOut(tween(150))
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) { _ ->
-            // Both selectedSlice and expandedCategories reset per period
-            var selectedSlice        by remember { mutableIntStateOf(-1) }
-            var expandedCategories   by remember { mutableStateOf(setOf<Int>()) }
+                val totalExpenses = summary?.totalExpenses?.toDoubleOrNull() ?: 0.0
+                val totalIncome   = summary?.totalIncome?.toDoubleOrNull()   ?: 0.0
+                val balance       = totalIncome - totalExpenses
 
-            val totalExpenses = summary?.totalExpenses?.toDoubleOrNull() ?: 0.0
-            val totalIncome   = summary?.totalIncome?.toDoubleOrNull()   ?: 0.0
-            val balance       = totalIncome - totalExpenses
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    when {
+                        isLoading         -> SummarySkeleton()
+                        pieEntries.isEmpty() -> Box(
+                            Modifier.fillMaxWidth().height(200.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(stringResource(Res.string.summary_no_data), color = NightTextSecondary)
+                        }
+                        else -> {
+                            val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Balance summary card (or skeleton)
-                if (isLoading) {
-                    Box(Modifier.fillMaxWidth().height(64.dp).clip(MaterialTheme.shapes.medium).background(shimmerBrush()))
-                } else {
-                    BalanceSummaryCard(
-                        totalExpenses = totalExpenses,
-                        totalIncome   = totalIncome,
-                    )
-                }
+                            // In EXPENSE view with a surplus, the donut represents *income*:
+                            // expense categories plus an "unspent income" slice fill the ring,
+                            // so every percentage is read against income. Otherwise (income
+                            // view, or a deficit) percentages are read against the pie total.
+                            val showSavings = viewModel.selectedType == "EXPENSE" && balance > 0
+                            val savingsValue = if (showSavings) balance.toFloat() else 0f
+                            val denominator  = pieTotal + savingsValue
+                            val savingsIndex = pieEntries.size
 
-                Spacer(Modifier.height(16.dp))
+                            val donutEntries = if (showSavings) {
+                                pieEntries + PieEntry(
+                                    categoryId = -1,
+                                    value      = savingsValue,
+                                    label      = stringResource(Res.string.summary_saved_income),
+                                    color      = ResidualColor,
+                                    icon       = null,
+                                    isResidual = true,
+                                )
+                            } else pieEntries
 
-                when {
-                    isLoading         -> SummarySkeleton()
-                    pieEntries.isEmpty() -> Box(
-                        Modifier.fillMaxWidth().height(200.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(stringResource(Res.string.summary_no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            DonutChart(
+                                entries       = donutEntries,
+                                total         = denominator,
+                                selectedIndex = selectedSlice,
+                                onSliceClick  = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
+                                pieTotal      = pieTotal,
+                                balance       = balance,
+                                modifier      = Modifier.size(232.dp).align(Alignment.CenterHorizontally),
+                            )
+
+                            // Caption stating which basis the percentages use, so the
+                            // income-vs-spending denominator is never ambiguous.
+                            if (viewModel.selectedType == "EXPENSE") {
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    text = stringResource(
+                                        if (showSavings) Res.string.summary_pct_of_income
+                                        else Res.string.summary_pct_of_spending
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = NightTextTertiary,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+
+                            Spacer(Modifier.height(24.dp))
+
+                            // Savings row at the top: only in EXPENSE view when income >
+                            // expenses. Selectable in sync with its donut slice.
+                            if (showSavings) {
+                                SavingsLegendRow(
+                                    savings    = balance,
+                                    total      = denominator,
+                                    isSelected = selectedSlice == savingsIndex,
+                                    onSelect   = { selectedSlice = if (selectedSlice == savingsIndex) -1 else savingsIndex },
+                                )
+                                Spacer(Modifier.height(6.dp))
+                            }
+
+                            pieEntries.forEachIndexed { index, entry ->
+                                CategoryLegendRow(
+                                    entry       = entry,
+                                    total       = denominator,
+                                    isSelected  = index == selectedSlice,
+                                    isExpanded  = expandedCategories.contains(entry.categoryId),
+                                    onSelect    = { selectedSlice = if (selectedSlice == index) -1 else index },
+                                    onToggleExpand = {
+                                        expandedCategories =
+                                            if (expandedCategories.contains(entry.categoryId))
+                                                expandedCategories - entry.categoryId
+                                            else
+                                                expandedCategories + entry.categoryId
+                                    },
+                                    onSubcategoryClick = { sub -> bottomSheetEntry = sub },
+                                )
+                                Spacer(Modifier.height(6.dp))
+                            }
+
+                            if (viewModel.timescale == "year" && outlierEntries.isNotEmpty()) {
+                                Spacer(Modifier.height(6.dp))
+                                OutliersPanel(
+                                    entries      = outlierEntries,
+                                    selectedType = viewModel.selectedType,
+                                    onEntryClick = { sub -> bottomSheetEntry = sub },
+                                )
+                            }
+                        }
                     }
-                    else -> {
-                        val pieTotal = pieEntries.sumOf { it.value.toDouble() }.toFloat()
 
-                        // In EXPENSE view with a surplus, the donut represents *income*:
-                        // expense categories plus an "unspent income" slice fill the ring,
-                        // so every percentage is read against income. Otherwise (income
-                        // view, or a deficit) percentages are read against the pie total.
-                        val showSavings = viewModel.selectedType == "EXPENSE" && balance > 0
-                        val savingsValue = if (showSavings) balance.toFloat() else 0f
-                        val denominator  = pieTotal + savingsValue
-                        val savingsIndex = pieEntries.size
-
-                        val donutEntries = if (showSavings) {
-                            pieEntries + PieEntry(
-                                categoryId = -1,
-                                value      = savingsValue,
-                                label      = stringResource(Res.string.summary_saved_income),
-                                color      = ResidualColor,
-                                icon       = null,
-                                isResidual = true,
-                            )
-                        } else pieEntries
-
-                        DonutChart(
-                            entries       = donutEntries,
-                            total         = denominator,
-                            selectedIndex = selectedSlice,
-                            onSliceClick  = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
-                            balance       = balance,
-                            selectedType  = viewModel.selectedType,
-                            modifier      = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
-                        )
-
-                        // Caption stating which basis the percentages use, so the
-                        // income-vs-spending denominator is never ambiguous.
-                        if (viewModel.selectedType == "EXPENSE") {
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = stringResource(
-                                    if (showSavings) Res.string.summary_pct_of_income
-                                    else Res.string.summary_pct_of_spending
-                                ),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // Savings row at the top: only in EXPENSE view when income >
-                        // expenses. Selectable in sync with its donut slice.
-                        if (showSavings) {
-                            SavingsLegendRow(
-                                savings    = balance,
-                                total      = denominator,
-                                isSelected = selectedSlice == savingsIndex,
-                                onSelect   = { selectedSlice = if (selectedSlice == savingsIndex) -1 else savingsIndex },
-                            )
-                            Spacer(Modifier.height(6.dp))
-                        }
-
-                        pieEntries.forEachIndexed { index, entry ->
-                            CategoryLegendRow(
-                                entry       = entry,
-                                total       = denominator,
-                                isSelected  = index == selectedSlice,
-                                isExpanded  = expandedCategories.contains(entry.categoryId),
-                                onSelect    = { selectedSlice = if (selectedSlice == index) -1 else index },
-                                onToggleExpand = {
-                                    expandedCategories =
-                                        if (expandedCategories.contains(entry.categoryId))
-                                            expandedCategories - entry.categoryId
-                                        else
-                                            expandedCategories + entry.categoryId
-                                },
-                                onSubcategoryClick = { sub -> bottomSheetEntry = sub },
-                            )
-                            Spacer(Modifier.height(6.dp))
-                        }
-
-                        if (viewModel.timescale == "year" && outlierEntries.isNotEmpty()) {
-                            Spacer(Modifier.height(10.dp))
-                            OutliersPanel(
-                                entries      = outlierEntries,
-                                window       = viewModel.outlierWindow(),
-                                selectedType = viewModel.selectedType,
-                                onEntryClick = { sub -> bottomSheetEntry = sub },
-                            )
-                        }
-                    }
+                    Spacer(Modifier.height(16.dp))
                 }
-
-                Spacer(Modifier.height(16.dp))
             }
         }
     }
@@ -472,6 +493,7 @@ fun SummaryScreen(
         ModalBottomSheet(
             onDismissRequest = { bottomSheetEntry = null },
             sheetState       = sheetState,
+            containerColor   = NightCard,
         ) {
             ExpenseListSheetContent(
                 entry    = bottomSheetEntry!!,
@@ -491,46 +513,6 @@ fun SummaryScreen(
 // ── Sub-composables ────────────────────────────────────────────────────────────
 
 @Composable
-private fun BalanceSummaryCard(totalExpenses: Double, totalIncome: Double) {
-    val balance     = totalIncome - totalExpenses
-    val isSaved     = balance >= 0
-    val balColor    = if (isSaved) Color(0xFF4CAF50) else Color(0xFFE53935)
-
-    Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Expenses (left)
-                Column {
-                    Text("-${formatSummaryAmount(totalExpenses)}", style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
-                    Text(stringResource(Res.string.label_expenses), style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                // Balance (centre) — prominent
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val sign = if (isSaved) "+" else "-"
-                    Text("$sign${formatSummaryAmount(abs(balance))}", style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold, color = balColor)
-                    Text(if (isSaved) stringResource(Res.string.label_saved) else stringResource(Res.string.label_deficit), style = MaterialTheme.typography.labelSmall,
-                        color = balColor.copy(alpha = 0.8f))
-                }
-                // Income (right)
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("+${formatSummaryAmount(totalIncome)}", style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
-                    Text(stringResource(Res.string.label_income), style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun SavingsLegendRow(
     savings: Double,
     total: Float,
@@ -538,40 +520,45 @@ private fun SavingsLegendRow(
     onSelect: () -> Unit,
 ) {
     val fraction    = if (total > 0f) (savings / total).toFloat().coerceIn(0f, 1f) else 0f
-    val color       = ResidualColor
-    val trackColor  = MaterialTheme.colorScheme.outlineVariant
-    val stripeBrush = rememberDiagonalStripeBrush(color)
+    val stripeBrush = rememberDiagonalStripeBrush(NightTextSecondary)
 
-    Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect),
-        shape    = MaterialTheme.shapes.medium,
-        color    = color.copy(alpha = if (isSelected) 0.18f else 0.08f),
+    NightCard(
+        modifier       = Modifier.fillMaxWidth(),
+        onClick        = onSelect,
+        selected       = isSelected,
+        accent         = NightTextSecondary,
+        contentPadding = PaddingValues(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 10.dp),
     ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(Icons.Default.TrendingUp, null, tint = color, modifier = Modifier.size(22.dp))
-                Text(
-                    text       = stringResource(Res.string.summary_saved_income),
-                    style      = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier   = Modifier.weight(1f),
-                    color      = color,
-                )
-                Text("${formatFixed((fraction * 100).toDouble(), 1)}%", style = MaterialTheme.typography.bodySmall,
-                    color = color.copy(alpha = 0.7f), modifier = Modifier.width(42.dp), textAlign = TextAlign.End)
-                Text(formatSummaryAmount(savings), style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold, color = color, modifier = Modifier.width(76.dp), textAlign = TextAlign.End)
-                Spacer(Modifier.width(32.dp))
-            }
-            Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp).height(4.dp)) {
-                val r = CornerRadius(2.dp.toPx())
-                drawRoundRect(color = trackColor, cornerRadius = r)
-                if (fraction > 0f) drawRoundRect(brush = stripeBrush, size = Size(size.width * fraction, size.height), cornerRadius = r)
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(Icons.Default.TrendingUp, null, tint = NightTextSecondary, modifier = Modifier.size(24.dp))
+            Text(
+                text       = stringResource(Res.string.summary_saved_income),
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color      = NightTextPrimary,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
+                modifier   = Modifier.weight(1f),
+            )
+            Text(formatPct(fraction * 100f), style = MaterialTheme.typography.bodyMedium, color = NightTextSecondary)
+            Text(
+                formatSummaryAmount(savings),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = NightTextSecondary,
+            )
+            // Same footprint as the category rows' expand button.
+            Spacer(Modifier.size(30.dp))
+        }
+        Spacer(Modifier.height(4.dp))
+        Canvas(Modifier.fillMaxWidth().padding(end = 8.dp).height(6.dp)) {
+            val r = CornerRadius(size.height / 2f)
+            drawRoundRect(color = NightTrack, cornerRadius = r)
+            if (fraction > 0f) drawRoundRect(brush = stripeBrush, size = Size(size.width * fraction, size.height), cornerRadius = r)
         }
     }
 }
@@ -601,19 +588,56 @@ private fun rememberDiagonalStripeBrush(color: Color): ShaderBrush = remember(co
     ShaderBrush(ImageShader(bitmap, TileMode.Repeated, TileMode.Repeated))
 }
 
+// Corner radius of the donut slices: enough to soften them, not to round them off.
+private val SliceCorner = 6.dp
+
+/**
+ * A ring segment from [startDeg] sweeping [sweepDeg] (clockwise, 0° = 3 o'clock) with
+ * its four corners rounded by [corner], shrunk as needed so thin slices stay valid.
+ */
+private fun roundedRingSlice(
+    center: Offset,
+    outerRadius: Float,
+    innerRadius: Float,
+    startDeg: Float,
+    sweepDeg: Float,
+    corner: Float,
+): Path {
+    val toRad = PI.toFloat() / 180f
+    val a0 = startDeg * toRad
+    val a1 = (startDeg + sweepDeg) * toRad
+    val r = minOf(corner, (outerRadius - innerRadius) / 2f, (a1 - a0) * innerRadius / 2f).coerceAtLeast(0f)
+    val co = r / outerRadius
+    val ci = r / innerRadius
+    fun pt(radius: Float, angle: Float) = Offset(center.x + radius * cos(angle), center.y + radius * sin(angle))
+    return Path().apply {
+        pt(outerRadius, a0 + co).let { moveTo(it.x, it.y) }
+        arcTo(Rect(center, outerRadius), (a0 + co) / toRad, (a1 - a0 - 2 * co) / toRad, false)
+        pt(outerRadius, a1).let { c -> pt(outerRadius - r, a1).let { quadraticTo(c.x, c.y, it.x, it.y) } }
+        pt(innerRadius + r, a1).let { lineTo(it.x, it.y) }
+        pt(innerRadius, a1).let { c -> pt(innerRadius, a1 - ci).let { quadraticTo(c.x, c.y, it.x, it.y) } }
+        arcTo(Rect(center, innerRadius), (a1 - ci) / toRad, -(a1 - a0 - 2 * ci) / toRad, false)
+        pt(innerRadius, a0).let { c -> pt(innerRadius + r, a0).let { quadraticTo(c.x, c.y, it.x, it.y) } }
+        pt(outerRadius - r, a0).let { lineTo(it.x, it.y) }
+        pt(outerRadius, a0).let { c -> pt(outerRadius, a0 + co).let { quadraticTo(c.x, c.y, it.x, it.y) } }
+        close()
+    }
+}
+
 @Composable
 private fun DonutChart(
     entries: List<PieEntry>,
     total: Float,
     selectedIndex: Int,
     onSliceClick: (Int) -> Unit,
-    balance: Double = 0.0,
-    selectedType: String = "EXPENSE",
+    pieTotal: Float,
+    balance: Double,
     modifier: Modifier = Modifier,
 ) {
-    val anySelected  = selectedIndex != -1
+    val anySelected   = selectedIndex != -1
     val selectedEntry = entries.getOrNull(selectedIndex)
-    val stripeBrush  = rememberDiagonalStripeBrush(ResidualColor)
+    val stripeBrush   = rememberDiagonalStripeBrush(ResidualColor)
+    val ringFraction  = 0.24f
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(
@@ -623,7 +647,7 @@ private fun DonutChart(
                     val dx = tap.x - cx;      val dy = tap.y - cy
                     val dist   = sqrt(dx * dx + dy * dy)
                     val outerR = minOf(size.width, size.height) / 2f
-                    val strokeW = outerR * 0.28f
+                    val strokeW = outerR * ringFraction
                     if (dist < outerR - strokeW || dist > outerR) {
                         onSliceClick(-1); return@detectTapGestures
                     }
@@ -640,8 +664,9 @@ private fun DonutChart(
             }
         ) {
             val diameter   = minOf(size.width, size.height)
-            val strokeBase = diameter / 2f * 0.28f
-            val gapDeg     = 1.5f
+            val strokeBase = diameter / 2f * ringFraction
+            // Gaps only when there's more than one slice, so a lone category is a full ring.
+            val gapDeg     = if (entries.size > 1) 2f else 0f
             var startAngle = -90f
             entries.forEachIndexed { i, entry ->
                 val fraction   = entry.value / total
@@ -656,7 +681,19 @@ private fun DonutChart(
                 val arcSize = Size(diameter - stroke, diameter - stroke)
                 val start   = startAngle + gapDeg / 2f
                 val sweep   = sweepAngle.coerceAtLeast(0.1f)
-                if (entry.isResidual) {
+                if (entries.size > 1) {
+                    // Slices are ring segments with slightly softened corners.
+                    val slice = roundedRingSlice(
+                        center      = Offset(size.width / 2f, size.height / 2f),
+                        outerRadius = diameter / 2f,
+                        innerRadius = diameter / 2f - stroke,
+                        startDeg    = start,
+                        sweepDeg    = sweep,
+                        corner      = SliceCorner.toPx(),
+                    )
+                    if (entry.isResidual) drawPath(slice, brush = stripeBrush, alpha = alpha)
+                    else drawPath(slice, color = entry.color.copy(alpha = alpha))
+                } else if (entry.isResidual) {
                     drawArc(
                         brush      = stripeBrush,
                         startAngle = start,
@@ -681,35 +718,64 @@ private fun DonutChart(
                 startAngle += 360f * fraction
             }
         }
-        // Centre label: selected slice → slice value/name
-        //               expense mode, no selection → balance (saved/deficit)
-        //               income mode, no selection → total income
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(90.dp)) {
-            when {
-                selectedEntry != null -> {
-                    Text(formatSummaryAmount(selectedEntry.value.toDouble()),
-                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center, color = selectedEntry.color)
-                    Text(selectedEntry.label, style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center,
-                        maxLines = 2, overflow = TextOverflow.Ellipsis)
-                }
-                selectedType == "EXPENSE" && balance != 0.0 -> {
-                    val balColor = if (balance > 0) Color(0xFF4CAF50) else Color(0xFFE53935)
-                    val sign     = if (balance > 0) "+" else "-"
-                    Text("$sign${formatSummaryAmount(abs(balance))}",
-                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center, color = balColor)
-                    Text(if (balance > 0) stringResource(Res.string.label_saved) else stringResource(Res.string.label_deficit),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = balColor.copy(alpha = 0.8f), textAlign = TextAlign.Center)
-                }
-                else -> {
-                    Text(formatSummaryAmount(total.toDouble()),
-                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground)
-                    Text(stringResource(Res.string.label_total), style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        // Centre label: selected slice → its name, amount and share
+        //               otherwise → TOTAL of the shown type + saved/deficit line
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize().padding(horizontal = 50.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            if (selectedEntry != null) {
+                Text(
+                    selectedEntry.label.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NightTextSecondary,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    formatSummaryAmount(selectedEntry.value.toDouble()),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = if (selectedEntry.isResidual) NightTextPrimary else selectedEntry.color,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    formatPct(if (total > 0f) selectedEntry.value / total * 100f else 0f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NightTextSecondary,
+                    textAlign = TextAlign.Center,
+                )
+            } else {
+                Text(
+                    stringResource(Res.string.label_total).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NightTextSecondary,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    formatSummaryAmount(pieTotal.toDouble()),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = NightTextPrimary,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                )
+                if (balance != 0.0) {
+                    Spacer(Modifier.height(2.dp))
+                    val sign = if (balance > 0) "+" else "-"
+                    val word = stringResource(if (balance > 0) Res.string.label_saved else Res.string.label_deficit)
+                    Text(
+                        "$sign${formatSummaryAmount(abs(balance))} $word",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (balance > 0) Mint else Danger,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                    )
                 }
             }
         }
@@ -729,58 +795,66 @@ private fun CategoryLegendRow(
     val pct        = if (total > 0f) entry.value / total * 100f else 0f
     val fraction   = (entry.value / total).coerceIn(0f, 1f)
     val entryColor = entry.color
-    val trackColor = MaterialTheme.colorScheme.outlineVariant
     val hasSubs    = entry.subcategoryEntries.isNotEmpty()
 
     Column {
-        Surface(
-            modifier      = Modifier.fillMaxWidth().clickable(onClick = onSelect),
-            shape         = MaterialTheme.shapes.medium,
-            color         = if (isSelected) entryColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface,
-            tonalElevation = if (isSelected) 0.dp else 2.dp,
+        NightCard(
+            modifier       = Modifier.fillMaxWidth(),
+            onClick        = onSelect,
+            selected       = isSelected,
+            accent         = entryColor,
+            contentPadding = PaddingValues(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 10.dp),
         ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(iconByName(entry.icon), null, tint = entryColor, modifier = Modifier.size(24.dp))
+                Text(
+                    text       = entry.label,
+                    style      = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                    color      = NightTextPrimary,
+                    modifier   = Modifier.weight(1f),
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
+                )
+                Text(formatPct(pct), style = MaterialTheme.typography.bodyMedium, color = NightTextSecondary)
+                Text(
+                    formatSummaryAmount(entry.value.toDouble()),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = entryColor,
+                )
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .then(if (hasSubs) Modifier.clickable(onClick = onToggleExpand) else Modifier),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Icon(iconByName(entry.icon), null, tint = entryColor, modifier = Modifier.size(22.dp))
-                    Text(
-                        text       = entry.label,
-                        style      = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        modifier   = Modifier.weight(1f),
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis,
-                    )
-                    Text("${formatFixed((pct).toDouble(), 1)}%", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(42.dp), textAlign = TextAlign.End)
-                    Text(formatSummaryAmount(entry.value.toDouble()), style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold, color = entryColor, modifier = Modifier.width(76.dp), textAlign = TextAlign.End)
                     if (hasSubs) {
-                        IconButton(onClick = onToggleExpand, modifier = Modifier.size(32.dp)) {
-                            Icon(
-                                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    } else {
-                        Spacer(Modifier.width(32.dp))
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = NightTextSecondary,
+                            modifier = Modifier.size(22.dp),
+                        )
                     }
                 }
-                Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp).height(4.dp)) {
-                    val r = CornerRadius(2.dp.toPx())
-                    drawRoundRect(color = trackColor, cornerRadius = r)
-                    if (fraction > 0f) drawRoundRect(color = entryColor, size = Size(size.width * fraction, size.height), cornerRadius = r)
-                }
             }
+            Spacer(Modifier.height(4.dp))
+            ShareBar(
+                fraction = fraction,
+                color    = entryColor,
+                modifier = Modifier.padding(end = 8.dp),
+            )
         }
 
         if (isExpanded) {
             entry.subcategoryEntries.forEach { sub ->
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(4.dp))
                 SubcategoryLegendRow(
                     subEntry = sub,
                     total    = total,
@@ -797,43 +871,45 @@ private fun SubcategoryLegendRow(
     total: Float,
     onClick: () -> Unit,
 ) {
-    val pct        = if (total > 0f) subEntry.value / total * 100f else 0f
-    val fraction   = (subEntry.value / total).coerceIn(0f, 1f)
-    val color      = subEntry.color
-    val trackColor = MaterialTheme.colorScheme.outlineVariant
+    val pct      = if (total > 0f) subEntry.value / total * 100f else 0f
+    val fraction = (subEntry.value / total).coerceIn(0f, 1f)
+    val color    = subEntry.color
 
-    Surface(
-        modifier       = Modifier.fillMaxWidth().padding(start = 20.dp).clickable(onClick = onClick),
-        shape          = MaterialTheme.shapes.medium,
-        tonalElevation = 1.dp,
+    NightCard(
+        modifier       = Modifier.fillMaxWidth().padding(start = 20.dp),
+        onClick        = onClick,
+        contentPadding = PaddingValues(start = 12.dp, end = 8.dp, top = 7.dp, bottom = 8.dp),
     ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(iconByName(subEntry.icon), null, tint = color, modifier = Modifier.size(18.dp))
-                Text(
-                    text     = subEntry.label,
-                    style    = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text("${formatFixed((pct).toDouble(), 1)}%", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(42.dp), textAlign = TextAlign.End)
-                Text(formatSummaryAmount(subEntry.value.toDouble()), style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold, color = color, modifier = Modifier.width(76.dp), textAlign = TextAlign.End)
-                Icon(Icons.Default.ChevronRight, null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-            }
-            Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 6.dp).height(3.dp)) {
-                val r = CornerRadius(1.5.dp.toPx())
-                drawRoundRect(color = trackColor, cornerRadius = r)
-                if (fraction > 0f) drawRoundRect(color = color, size = Size(size.width * fraction, size.height), cornerRadius = r)
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(iconByName(subEntry.icon), null, tint = color, modifier = Modifier.size(20.dp))
+            Text(
+                text     = subEntry.label,
+                style    = MaterialTheme.typography.bodyLarge,
+                color    = NightTextPrimary,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(formatPct(pct), style = MaterialTheme.typography.bodyMedium, color = NightTextSecondary)
+            Text(
+                formatSummaryAmount(subEntry.value.toDouble()),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = color,
+            )
+            Icon(Icons.Default.ChevronRight, null, tint = NightTextSecondary, modifier = Modifier.size(20.dp))
         }
+        Spacer(Modifier.height(5.dp))
+        ShareBar(
+            fraction = fraction,
+            color    = color,
+            height   = 4.dp,
+            modifier = Modifier.padding(end = 6.dp),
+        )
     }
 }
 
@@ -844,38 +920,30 @@ private fun SubcategoryLegendRow(
 @Composable
 private fun OutliersPanel(
     entries: List<OutlierEntry>,
-    window: IntRange,
     selectedType: String,
     onEntryClick: (SubcategoryEntry) -> Unit,
 ) {
-    val accent     = if (selectedType == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
-    val windowText = if (window.first == window.last) "${window.first}" else "${window.first}–${window.last}"
+    val accent = if (selectedType == "INCOME") Mint else Danger
 
-    Surface(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp) {
-        Column(modifier = Modifier.padding(vertical = 12.dp)) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = accent, modifier = Modifier.size(22.dp))
-                Text(stringResource(Res.string.summary_outliers_title), style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold)
-            }
+    NightCard(
+        modifier       = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(start = 14.dp, end = 6.dp, top = 12.dp, bottom = 6.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = accent, modifier = Modifier.size(24.dp))
             Text(
-                text     = stringResource(
-                    Res.string.summary_outliers_caption,
-                    formatSummaryAmount(OUTLIER_MIN_TOTAL.toDouble()),
-                    "${formatFixed(OUTLIER_THRESHOLD * 100, 0)}%",
-                    windowText,
-                ),
-                style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
+                stringResource(Res.string.summary_outliers_title),
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color      = NightTextPrimary,
             )
-            entries.forEach { entry ->
-                OutlierRow(entry = entry, accent = accent, onClick = { onEntryClick(entry.subcategory) })
-            }
+        }
+        Spacer(Modifier.height(4.dp))
+        entries.forEach { entry ->
+            OutlierRow(entry = entry, accent = accent, onClick = { onEntryClick(entry.subcategory) })
         }
     }
 }
@@ -884,32 +952,54 @@ private fun OutliersPanel(
 private fun OutlierRow(entry: OutlierEntry, accent: Color, onClick: () -> Unit) {
     val sub = entry.subcategory
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(top = 8.dp, bottom = 8.dp, end = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(iconByName(sub.icon), null, tint = sub.color, modifier = Modifier.size(22.dp))
+        Icon(iconByName(sub.icon), null, tint = sub.color, modifier = Modifier.size(24.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(sub.label, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(stringResource(Res.string.summary_outlier_mean, formatSummaryAmount(entry.mean.toDouble())),
-                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Text(formatSummaryAmount(sub.value.toDouble()), style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End)
-        // Fixed minimum width so the amounts line up whatever the percentage's length.
-        Surface(shape = MaterialTheme.shapes.small, color = accent.copy(alpha = 0.14f), modifier = Modifier.widthIn(min = 56.dp)) {
             Text(
-                text       = "+${formatFixed(entry.deviation * 100, 0)}%",
-                style      = MaterialTheme.typography.labelMedium,
+                sub.label,
+                style      = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color      = accent,
-                textAlign  = TextAlign.Center,
-                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                color      = NightTextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                stringResource(Res.string.summary_outlier_mean, formatSummaryAmount(entry.mean.toDouble())),
+                style = MaterialTheme.typography.bodyMedium,
+                color = NightTextSecondary,
             )
         }
-        Icon(Icons.Default.ChevronRight, null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+        Text(
+            formatSummaryAmount(sub.value.toDouble()),
+            style      = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color      = NightTextPrimary,
+            textAlign  = TextAlign.End,
+        )
+        // Fixed minimum width so the amounts line up whatever the percentage's length.
+        Box(
+            modifier = Modifier
+                .widthIn(min = 56.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(accent.copy(alpha = 0.14f))
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text       = "+${formatFixed(entry.deviation * 100, 0)}%",
+                style      = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color      = accent,
+            )
+        }
+        Icon(Icons.Default.ChevronRight, null, tint = NightTextSecondary, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -936,29 +1026,33 @@ private fun ExpenseListSheetContent(
         isLoading = false
     }
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+    Column(modifier = Modifier.padding(horizontal = ScreenGutter).padding(bottom = 32.dp)) {
         // Header
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Icon(iconByName(entry.icon), null, tint = color, modifier = Modifier.size(28.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(entry.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(formatSummaryAmount(entry.value.toDouble()),
-                    style = MaterialTheme.typography.bodyMedium, color = color)
+                Text(entry.label, style = MaterialTheme.typography.titleLarge, color = NightTextPrimary)
+                Text(
+                    formatSummaryAmount(entry.value.toDouble()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = color,
+                )
             }
         }
-        HorizontalDivider()
-        Spacer(Modifier.height(8.dp))
+        CardDivider()
+        Spacer(Modifier.height(4.dp))
 
         when {
             isLoading -> Box(Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Mint)
             }
             expenses.isEmpty() -> Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(Res.string.summary_no_expenses), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(Res.string.summary_no_expenses), color = NightTextSecondary)
             }
             else -> expenses.forEach { expense ->
                 ExpenseSheetRow(expense, onClick = { onExpenseClick(expense) })
@@ -969,23 +1063,24 @@ private fun ExpenseListSheetContent(
 
 @Composable
 private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
-    val locale      = LocalAppLocale.current
-    val amountColor = if (expense.type == "INCOME") Color(0xFF4CAF50) else Color(0xFFE53935)
-    val sign        = if (expense.type == "INCOME") "+" else "-"
+    val locale   = LocalAppLocale.current
+    val isIncome = expense.type == "INCOME"
+    val sign     = if (isIncome) "+" else "-"
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 9.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text     = formatDateShort(expense.date, locale),
             style    = MaterialTheme.typography.bodySmall,
-            color    = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(48.dp),
+            color    = NightTextSecondary,
+            modifier = Modifier.width(52.dp),
         )
         Text(
             text     = expense.title,
             style    = MaterialTheme.typography.bodyMedium,
+            color    = NightTextPrimary,
             modifier = Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -993,19 +1088,19 @@ private fun ExpenseSheetRow(expense: ExpenseOut, onClick: () -> Unit) {
         Text(
             text       = "$sign${formatAmountDisplay(expense.amount, locale)} ${currencySymbol(expense.currency)}",
             style      = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color      = amountColor,
+            fontWeight = FontWeight.Bold,
+            color      = amountColor(isIncome),
         )
     }
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+    CardDivider()
 }
 
 // ── Skeleton loader ────────────────────────────────────────────────────────────
 
 @Composable
 private fun shimmerBrush(): Brush {
-    val base       = MaterialTheme.colorScheme.surfaceVariant
-    val highlight  = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
+    val base       = NightCard
+    val highlight  = NightCardRaised
     val transition = rememberInfiniteTransition(label = "shimmer")
     val offset by transition.animateFloat(
         initialValue  = 0f,
@@ -1024,10 +1119,10 @@ private fun shimmerBrush(): Brush {
 private fun SummarySkeleton() {
     val brush = shimmerBrush()
     Column(modifier = Modifier.fillMaxWidth()) {
-        Box(modifier = Modifier.size(220.dp).align(Alignment.CenterHorizontally)) {
+        Box(modifier = Modifier.size(232.dp).align(Alignment.CenterHorizontally)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val diameter    = minOf(size.width, size.height)
-                val strokeWidth = diameter / 2f * 0.28f
+                val strokeWidth = diameter / 2f * 0.24f
                 val inset       = strokeWidth / 2f
                 drawArc(
                     brush = brush, startAngle = 0f, sweepAngle = 360f, useCenter = false,
@@ -1037,10 +1132,10 @@ private fun SummarySkeleton() {
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
         repeat(4) {
-            Box(Modifier.fillMaxWidth().height(72.dp).clip(MaterialTheme.shapes.medium).background(brush))
-            Spacer(Modifier.height(6.dp))
+            Box(Modifier.fillMaxWidth().height(76.dp).clip(MaterialTheme.shapes.large).background(brush))
+            Spacer(Modifier.height(10.dp))
         }
         Spacer(Modifier.height(10.dp))
     }
@@ -1060,6 +1155,8 @@ private fun computeDateRange(year: Int, month: Int, timescale: String): Pair<Str
 private fun formatSummaryAmount(value: Double): String {
     return "${formatRoundedAmount(value)} €"
 }
+
+private fun formatPct(pct: Float): String = "${formatFixed(pct.toDouble(), 1)} %"
 
 private fun formatDateShort(dateStr: String, locale: String): String =
     formatIsoDateShort(dateStr, locale)

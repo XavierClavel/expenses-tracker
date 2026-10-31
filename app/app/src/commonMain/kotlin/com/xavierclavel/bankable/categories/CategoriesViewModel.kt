@@ -11,6 +11,7 @@ import com.xavierclavel.bankable.api.apiCreateCategory
 import com.xavierclavel.bankable.api.apiCreateSubcategory
 import com.xavierclavel.bankable.api.apiDeleteCategory
 import com.xavierclavel.bankable.api.apiDeleteSubcategory
+import com.xavierclavel.bankable.api.apiGetYearSummary
 import com.xavierclavel.bankable.api.apiListCategories
 import com.xavierclavel.bankable.api.apiListExpenses
 import com.xavierclavel.bankable.api.apiUpdateCategory
@@ -20,6 +21,8 @@ import com.xavierclavel.bankable.model.CategoryOut
 import com.xavierclavel.bankable.model.ExpenseOut
 import com.xavierclavel.bankable.model.SubcategoryIn
 import com.xavierclavel.bankable.model.SubcategoryOut
+import com.xavierclavel.bankable.util.currentMonth
+import com.xavierclavel.bankable.util.currentYear
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +40,11 @@ class CategoriesViewModel : ViewModel() {
     // Expenses belonging to the subcategory currently being viewed (paginated).
     private val _subcategoryExpenses = MutableStateFlow<List<ExpenseOut>>(emptyList())
     val subcategoryExpenses: StateFlow<List<ExpenseOut>> = _subcategoryExpenses
+
+    // Mean monthly amount over the current year, keyed by subcategory id (the summary
+    // API reports per subcategory).
+    private val _meanTotals = MutableStateFlow<Map<Int, Double>>(emptyMap())
+    val meanTotals: StateFlow<Map<Int, Double>> = _meanTotals
 
     var selectedCategory by mutableStateOf<CategoryOut?>(null)
         private set
@@ -79,6 +87,20 @@ class CategoriesViewModel : ViewModel() {
             } catch (_: Exception) {
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    // Refetched each time the category list opens so the amounts stay current. The
+    // year-to-date total is spread over the months elapsed, current one included.
+    fun loadMeanTotals() {
+        viewModelScope.launch {
+            try {
+                val summary = apiGetYearSummary(currentYear())
+                val months = currentMonth().toDouble()
+                _meanTotals.value = (summary.expensesByCategory + summary.incomeByCategory)
+                    .associate { it.categoryId to (it.total.toDoubleOrNull() ?: 0.0) / months }
+            } catch (_: Exception) {
             }
         }
     }

@@ -154,11 +154,6 @@ class SummaryViewModel : ViewModel() {
         loadSummary()
     }
 
-    // The years the outliers' average spans: cut short by the first year on record and
-    // by the current one, as the backend does.
-    fun outlierWindow(): IntRange =
-        maxOf(selectedYear - OUTLIER_YEARS_AROUND, oldestYear)..minOf(selectedYear + OUTLIER_YEARS_AROUND, currentYear())
-
     fun canGoBack(): Boolean = if (timescale == "month")
         !(selectedYear == oldestYear && selectedMonth <= oldestMonth)
     else

@@ -3,47 +3,52 @@ package com.xavierclavel.bankable.tags
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.bankable.categories.EditActions
+import com.xavierclavel.bankable.categories.EditPreviewTile
+import com.xavierclavel.bankable.constants.currencySymbol
+import com.xavierclavel.bankable.constants.formatAmountDisplay
+import com.xavierclavel.bankable.platform.LocalAppLocale
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.action_back
 import com.xavierclavel.bankable.resources.action_cancel
 import com.xavierclavel.bankable.resources.action_delete
-import com.xavierclavel.bankable.resources.action_save
 import com.xavierclavel.bankable.resources.dialog_confirm_delete_title
 import com.xavierclavel.bankable.resources.dialog_delete_tag_message
 import com.xavierclavel.bankable.resources.label_tag_label
 import com.xavierclavel.bankable.resources.screen_edit_tag
 import com.xavierclavel.bankable.resources.screen_new_tag
+import com.xavierclavel.bankable.resources.tag_delete
+import com.xavierclavel.bankable.resources.tag_edit_summary
+import com.xavierclavel.bankable.resources.tag_rename_hint
+import com.xavierclavel.bankable.ui.NightTextField
+import com.xavierclavel.bankable.ui.ScreenGutter
+import com.xavierclavel.bankable.ui.ScreenHeader
+import com.xavierclavel.bankable.ui.TagPill
+import com.xavierclavel.bankable.ui.theme.NightBackground
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagEditScreen(
     viewModel: TagsViewModel,
@@ -53,6 +58,7 @@ fun TagEditScreen(
     var label by remember { mutableStateOf(viewModel.selectedTag?.label ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val locale = LocalAppLocale.current
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -79,22 +85,28 @@ fun TagEditScreen(
     }
 
     Scaffold(
+        containerColor = NightBackground,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (isEditing) stringResource(Res.string.screen_edit_tag)
-                        else stringResource(Res.string.screen_new_tag)
+            ScreenHeader(
+                title = stringResource(if (isEditing) Res.string.screen_edit_tag else Res.string.screen_new_tag),
+                navigationIcon = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                navigationContentDescription = stringResource(Res.string.action_back),
+                onNavigate = { navController.popBackStack() },
+            )
+        },
+        bottomBar = {
+            EditActions(
+                error = error,
+                onSave = {
+                    viewModel.saveTag(
+                        label = label,
+                        onSuccess = { navController.popBackStack() },
+                        onError = { e -> error = e },
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.action_back),
-                        )
-                    }
-                },
+                saveEnabled = label.isNotBlank(),
+                deleteText = if (isEditing) stringResource(Res.string.tag_delete) else null,
+                onDelete = { showDeleteDialog = true },
             )
         },
     ) { padding ->
@@ -102,46 +114,38 @@ fun TagEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = ScreenGutter, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(
+            if (label.isNotBlank()) {
+                EditPreviewTile(
+                    icon = { TagPill(text = label.trim(), icon = Icons.Outlined.Sell) },
+                    caption = viewModel.selectedTag?.let { tag ->
+                        stringResource(
+                            Res.string.tag_edit_summary,
+                            tag.expenseCount,
+                            "${formatAmountDisplay(tag.total, locale)} ${currencySymbol("EUR")}",
+                        )
+                    },
+                )
+            }
+
+            NightTextField(
                 value = label,
                 onValueChange = { label = it },
-                label = { Text(stringResource(Res.string.label_tag_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                label = stringResource(Res.string.label_tag_label),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                textStyle = MaterialTheme.typography.titleMedium,
             )
 
-            Button(
-                onClick = {
-                    viewModel.saveTag(
-                        label = label,
-                        onSuccess = { navController.popBackStack() },
-                        onError = { e -> error = e },
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = label.isNotBlank(),
-            ) {
-                Text(stringResource(Res.string.action_save), fontWeight = FontWeight.SemiBold)
-            }
-
             if (isEditing) {
-                OutlinedButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) {
-                    Text(stringResource(Res.string.action_delete))
-                }
-            }
-
-            error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
+                Text(
+                    text = stringResource(Res.string.tag_rename_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NightTextSecondary,
+                    modifier = Modifier.padding(horizontal = 6.dp),
+                )
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.xavierclavel.bankable.platform
 
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 
@@ -14,13 +13,6 @@ val LocalAppLocale = staticCompositionLocalOf { "en" }
 /** The locale to render in, recomposing when the platform's locale changes. */
 @Composable
 expect fun rememberAppLocaleTag(): String
-
-/**
- * Material You colors, when the platform offers them (Android 12+). Null means
- * "use the app's own palette".
- */
-@Composable
-expect fun platformDynamicColorScheme(darkTheme: Boolean): ColorScheme?
 
 /** True when the app can switch language in place; false when a restart is needed. */
 expect val languageChangeAppliesImmediately: Boolean
