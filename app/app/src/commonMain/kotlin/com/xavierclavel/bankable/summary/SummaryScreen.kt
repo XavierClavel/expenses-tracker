@@ -952,7 +952,7 @@ private fun OutliersPanel(
                 "${formatFixed(OUTLIER_THRESHOLD * 100, 0)}%",
                 windowText,
             ),
-            style    = MaterialTheme.typography.bodySmall,
+            style    = MaterialTheme.typography.bodyMedium,
             color    = NightTextSecondary,
             modifier = Modifier.padding(end = 8.dp, top = 4.dp, bottom = 4.dp),
         )
@@ -974,25 +974,26 @@ private fun OutlierRow(entry: OutlierEntry, accent: Color, onClick: () -> Unit) 
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(iconByName(sub.icon), null, tint = sub.color, modifier = Modifier.size(22.dp))
+        Icon(iconByName(sub.icon), null, tint = sub.color, modifier = Modifier.size(24.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 sub.label,
-                style    = MaterialTheme.typography.bodyLarge,
-                color    = NightTextPrimary,
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color      = NightTextPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 stringResource(Res.string.summary_outlier_mean, formatSummaryAmount(entry.mean.toDouble())),
-                style = MaterialTheme.typography.bodySmall,
-                color = NightTextTertiary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = NightTextSecondary,
             )
         }
         Text(
             formatSummaryAmount(sub.value.toDouble()),
-            style      = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
+            style      = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
             color      = NightTextPrimary,
             textAlign  = TextAlign.End,
         )
@@ -1007,7 +1008,7 @@ private fun OutlierRow(entry: OutlierEntry, accent: Color, onClick: () -> Unit) 
         ) {
             Text(
                 text       = "+${formatFixed(entry.deviation * 100, 0)}%",
-                style      = MaterialTheme.typography.labelMedium,
+                style      = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color      = accent,
             )
