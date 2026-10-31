@@ -1,7 +1,5 @@
 package com.xavierclavel.bankable.accounts
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,26 +11,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,37 +36,62 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.xavierclavel.bankable.constants.AccountType
 import com.xavierclavel.bankable.model.AccountOut
 import com.xavierclavel.bankable.model.AccountReportOut
 import com.xavierclavel.bankable.model.InvestmentOut
 import com.xavierclavel.bankable.platform.LocalAppLocale
 import com.xavierclavel.bankable.platform.showToast
 import com.xavierclavel.bankable.resources.Res
+import com.xavierclavel.bankable.resources.accounts_net_contributions
+import com.xavierclavel.bankable.resources.accounts_net_interest
+import com.xavierclavel.bankable.resources.accounts_since_last_report
+import com.xavierclavel.bankable.resources.accounts_subtitle_contributions
+import com.xavierclavel.bankable.resources.accounts_subtitle_interest
 import com.xavierclavel.bankable.resources.action_back
 import com.xavierclavel.bankable.resources.action_delete
 import com.xavierclavel.bankable.resources.cd_add_report
 import com.xavierclavel.bankable.resources.cd_add_transfer
 import com.xavierclavel.bankable.resources.cd_edit_account
 import com.xavierclavel.bankable.resources.label_charts
-import com.xavierclavel.bankable.resources.label_earnings
 import com.xavierclavel.bankable.resources.label_interest
 import com.xavierclavel.bankable.resources.label_reports
 import com.xavierclavel.bankable.resources.label_transfers
 import com.xavierclavel.bankable.resources.no_reports_yet
 import com.xavierclavel.bankable.resources.no_transfers_yet
+import com.xavierclavel.bankable.resources.transfer_deposit
+import com.xavierclavel.bankable.resources.transfer_fee
+import com.xavierclavel.bankable.resources.transfer_interest
+import com.xavierclavel.bankable.resources.transfer_withdrawal
+import com.xavierclavel.bankable.ui.CheckDot
+import com.xavierclavel.bankable.ui.CircleIconButton
 import com.xavierclavel.bankable.ui.ConfirmDeleteDialog
+import com.xavierclavel.bankable.ui.DangerButton
+import com.xavierclavel.bankable.ui.IconTile
+import com.xavierclavel.bankable.ui.NightCard
+import com.xavierclavel.bankable.ui.NightFab
+import com.xavierclavel.bankable.ui.ScreenGutter
+import com.xavierclavel.bankable.ui.ScreenHeader
 import com.xavierclavel.bankable.ui.SelectionActionBar
 import com.xavierclavel.bankable.ui.SelectionController
 import com.xavierclavel.bankable.ui.SelectionHeaderRow
+import com.xavierclavel.bankable.ui.UnderlineTabs
 import com.xavierclavel.bankable.ui.rememberSelectionController
-import com.xavierclavel.bankable.util.formatFixed
+import com.xavierclavel.bankable.ui.theme.Danger
+import com.xavierclavel.bankable.ui.theme.Mint
+import com.xavierclavel.bankable.ui.theme.NightBackground
+import com.xavierclavel.bankable.ui.theme.NightTextPrimary
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
+import com.xavierclavel.bankable.ui.theme.NightTextTertiary
+import com.xavierclavel.bankable.ui.theme.TransferBlue
 import com.xavierclavel.bankable.util.formatIsoDateLong
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountViewScreen(
     viewModel: AccountsViewModel,
@@ -94,41 +111,53 @@ fun AccountViewScreen(
     val reportsSelection = rememberSelectionController<Int>()
     val transfersSelection = rememberSelectionController<Long>()
 
+    val typeLabel = stringResource(AccountType.fromKey(account.type).labelRes)
+
     Scaffold(
+        containerColor = NightBackground,
         topBar = {
-            TopAppBar(
-                title = { Text(account.name) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.action_back))
-                    }
-                },
+            ScreenHeader(
+                title = account.name,
+                subtitle = stringResource(
+                    if (account.tracking == TRACKING_INTEREST) Res.string.accounts_subtitle_interest
+                    else Res.string.accounts_subtitle_contributions,
+                    typeLabel,
+                ),
+                navigationIcon = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                navigationContentDescription = stringResource(Res.string.action_back),
+                onNavigate = { navController.popBackStack() },
                 actions = {
-                    IconButton(onClick = {
-                        viewModel.prepareEditAccount(account)
-                        navController.navigate("account/edit")
-                    }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(Res.string.cd_edit_account))
-                    }
-                }
+                    CircleIconButton(
+                        icon = Icons.Outlined.Edit,
+                        contentDescription = stringResource(Res.string.cd_edit_account),
+                        onClick = {
+                            viewModel.prepareEditAccount(account)
+                            navController.navigate("account/edit")
+                        },
+                    )
+                },
             )
         },
         floatingActionButton = {
             when (selectedTab) {
-                0 -> if (!reportsSelection.active) FloatingActionButton(onClick = {
-                    viewModel.prepareNewReport()
-                    navController.navigate("account/report/edit")
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.cd_add_report))
-                }
-                1 -> if (!transfersSelection.active) FloatingActionButton(onClick = {
-                    viewModel.prepareNewTransfer()
-                    navController.navigate("account/transfer/edit")
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.cd_add_transfer))
-                }
+                0 -> if (!reportsSelection.active) NightFab(
+                    icon = Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.cd_add_report),
+                    onClick = {
+                        viewModel.prepareNewReport()
+                        navController.navigate("account/report/edit")
+                    },
+                )
+                1 -> if (!transfersSelection.active) NightFab(
+                    icon = Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.cd_add_transfer),
+                    onClick = {
+                        viewModel.prepareNewTransfer()
+                        navController.navigate("account/transfer/edit")
+                    },
+                )
             }
-        }
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -139,44 +168,35 @@ fun AccountViewScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
+                    .padding(horizontal = ScreenGutter, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = formatAmount(account.amount.toDoubleOrNull() ?: 0.0),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.displayLarge,
+                    color = Mint,
+                    maxLines = 1,
                 )
                 InterestSummary(account)
             }
 
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(Res.string.label_reports)) },
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = {
-                        Text(stringResource(
-                            if (account.tracking == TRACKING_INTEREST) Res.string.label_earnings
-                            else Res.string.label_transfers
-                        ))
-                    },
-                )
-                Tab(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    text = { Text(stringResource(Res.string.label_charts)) },
-                )
-            }
+            UnderlineTabs(
+                tabs = listOf(
+                    stringResource(Res.string.label_reports),
+                    stringResource(
+                        if (account.tracking == TRACKING_INTEREST) Res.string.label_interest
+                        else Res.string.label_transfers
+                    ),
+                    stringResource(Res.string.label_charts),
+                ),
+                selectedIndex = selectedTab,
+                onSelect = { selectedTab = it },
+                modifier = Modifier.padding(horizontal = ScreenGutter).padding(top = 12.dp),
+            )
 
             when (selectedTab) {
                 0 -> ReportsTab(reports, viewModel, reportsSelection, navController)
-                1 -> TransfersTab(transfers, viewModel, transfersSelection, navController)
+                1 -> TransfersTab(account, transfers, viewModel, transfersSelection, navController)
                 2 -> AccountChartsScreen(viewModel, accountId = account.id)
             }
         }
@@ -209,9 +229,18 @@ private fun ReportsTab(
         )
     }
 
+    // Each report's change since the one before it (by date); the oldest has none.
+    val chronological = remember(reports) { reports.sortedByDescending { it.date } }
+    val deltas = remember(chronological) {
+        chronological.zipWithNext { newer, older ->
+            newer.id to (newer.amount.toDoubleOrNull() ?: 0.0) - (older.amount.toDoubleOrNull() ?: 0.0)
+        }.toMap()
+    }
+    val latestId = chronological.firstOrNull()?.id
+
     if (reports.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(Res.string.no_reports_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(Res.string.no_reports_yet), color = NightTextSecondary)
         }
     } else {
         Column(Modifier.fillMaxSize()) {
@@ -220,13 +249,16 @@ private fun ReportsTab(
             }
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = PaddingValues(start = ScreenGutter, top = 14.dp, end = ScreenGutter, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(reports, key = { it.id }) { report ->
                     ReportRow(
                         report = report,
+                        delta = deltas[report.id],
+                        isLatest = report.id == latestId,
                         selected = selection.selectedIds.contains(report.id),
+                        selecting = selection.active,
                         onClick = {
                             if (selection.active) {
                                 selection.toggle(report.id)
@@ -240,73 +272,82 @@ private fun ReportsTab(
                 }
             }
             if (selection.active) {
-                SelectionActionBar {
-                    Button(
-                        onClick = { showConfirm = true },
-                        enabled = selection.selectedIds.isNotEmpty(),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.size(6.dp))
-                        Text(stringResource(Res.string.action_delete))
-                    }
-                }
+                DeleteSelectionBar(enabled = selection.selectedIds.isNotEmpty()) { showConfirm = true }
             }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun DeleteSelectionBar(enabled: Boolean, onDelete: () -> Unit) {
+    SelectionActionBar {
+        DangerButton(
+            text = stringResource(Res.string.action_delete),
+            onClick = onDelete,
+            icon = Icons.Outlined.Delete,
+            enabled = enabled,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
 @Composable
 private fun ReportRow(
     report: AccountReportOut,
-    selected: Boolean = false,
+    delta: Double?,
+    isLatest: Boolean,
+    selected: Boolean,
+    selecting: Boolean,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
     val locale = LocalAppLocale.current
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 2.dp,
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surface,
+    NightCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        onLongClick = onLongClick,
+        selected = selected,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (selected) {
-                Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(20.dp),
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (selecting) {
+                Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { CheckDot(selected) }
+            } else {
+                IconTile(
+                    icon = Icons.AutoMirrored.Outlined.ReceiptLong,
+                    color = if (isLatest) Mint else NightTextSecondary,
+                    size = 40.dp,
+                    iconSize = 20.dp,
                 )
-                Spacer(Modifier.size(12.dp))
             }
-            Text(
-                text = formatReportDate(report.date, locale),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = formatReportDate(report.date, locale),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = NightTextPrimary,
+                )
+                if (delta != null) {
+                    val deltaText = signedAmountWithPercent(delta, null)
+                    Text(
+                        text = if (isLatest) stringResource(Res.string.accounts_since_last_report, deltaText) else deltaText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = gainColor(delta),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Spacer(Modifier.width(8.dp))
             Text(
                 text = formatAmount(report.amount.toDoubleOrNull() ?: 0.0),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = NightTextPrimary,
             )
         }
     }
 }
-
-private val GAIN_COLOR = Color(0xFF4CAF50)
-private val LOSS_COLOR = Color(0xFFE53935)
 
 @Composable
 private fun InterestSummary(account: AccountOut) {
@@ -314,26 +355,25 @@ private fun InterestSummary(account: AccountOut) {
     // net contribution recorded, the whole balance would misleadingly read as gain.
     if ((account.contributions.toDoubleOrNull() ?: 0.0) == 0.0) return
     val info = accountInterest(account.amount, account.contributions)
-    val color = if (info.value >= 0.0) GAIN_COLOR else LOSS_COLOR
-    val sign = if (info.value > 0.0) "+" else ""
-    val percentText = info.percent?.let { " (${if (it > 0.0) "+" else ""}${formatFixed(it, 1)}%)" } ?: ""
 
     Spacer(Modifier.height(4.dp))
     Text(
-        text = "${stringResource(Res.string.label_interest)}: $sign${formatAmount(info.value)}$percentText",
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.Medium,
-        color = color,
+        text = "${stringResource(Res.string.label_interest)}: ${signedAmountWithPercent(info.value, info.percent)}",
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+        color = gainColor(info.value),
     )
     AnnualReturnLabel(
         latestAnnualReturn = account.latestAnnualReturn,
         latestAnnualReturnYear = account.latestAnnualReturnYear,
         style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(top = 2.dp),
     )
 }
 
 @Composable
 private fun TransfersTab(
+    account: AccountOut,
     transfers: List<InvestmentOut>,
     viewModel: AccountsViewModel,
     selection: SelectionController<Long>,
@@ -360,7 +400,7 @@ private fun TransfersTab(
 
     if (transfers.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(Res.string.no_transfers_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(Res.string.no_transfers_yet), color = NightTextSecondary)
         }
     } else {
         Column(Modifier.fillMaxSize()) {
@@ -369,13 +409,41 @@ private fun TransfersTab(
             }
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 80.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = PaddingValues(start = ScreenGutter, top = 14.dp, end = ScreenGutter, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                item(key = "net") {
+                    // Contributions accounts sum their deposits; interest accounts sum what
+                    // the balance earned beyond them.
+                    val interestTracked = account.tracking == TRACKING_INTEREST
+                    val net = if (interestTracked) accountInterest(account.amount, account.contributions).value
+                    else account.contributions.toDoubleOrNull() ?: 0.0
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (interestTracked) Res.string.accounts_net_interest
+                                else Res.string.accounts_net_contributions
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = NightTextSecondary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = formatAmount(net),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = NightTextPrimary,
+                        )
+                    }
+                }
                 items(transfers, key = { it.id }) { transfer ->
                     TransferRow(
                         transfer = transfer,
                         selected = selection.selectedIds.contains(transfer.id),
+                        selecting = selection.active,
                         onClick = {
                             if (selection.active) {
                                 selection.toggle(transfer.id)
@@ -389,70 +457,66 @@ private fun TransfersTab(
                 }
             }
             if (selection.active) {
-                SelectionActionBar {
-                    Button(
-                        onClick = { showConfirm = true },
-                        enabled = selection.selectedIds.isNotEmpty(),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.size(6.dp))
-                        Text(stringResource(Res.string.action_delete))
-                    }
-                }
+                DeleteSelectionBar(enabled = selection.selectedIds.isNotEmpty()) { showConfirm = true }
             }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+// How a transfer type reads in the list: its tile icon, accent color and label.
+private data class TransferLook(val icon: ImageVector, val color: Color, val label: org.jetbrains.compose.resources.StringResource)
+
+private fun transferLook(type: String): TransferLook = when (type) {
+    TRANSFER_IN       -> TransferLook(Icons.Outlined.ArrowDownward, TransferBlue, Res.string.transfer_deposit)
+    TRANSFER_INTEREST -> TransferLook(Icons.Outlined.ArrowDownward, Mint, Res.string.transfer_interest)
+    TRANSFER_FEE      -> TransferLook(Icons.Outlined.ArrowUpward, Danger, Res.string.transfer_fee)
+    else              -> TransferLook(Icons.Outlined.ArrowUpward, Danger, Res.string.transfer_withdrawal)
+}
+
 @Composable
 private fun TransferRow(
     transfer: InvestmentOut,
-    selected: Boolean = false,
+    selected: Boolean,
+    selecting: Boolean,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
     val locale = LocalAppLocale.current
     val positive = transfer.type == TRANSFER_IN || transfer.type == TRANSFER_INTEREST
-    val color = if (positive) GAIN_COLOR else LOSS_COLOR
-    val sign = if (positive) "+" else "-"
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 2.dp,
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surface,
+    val sign = if (positive) "+" else "−"
+    val look = transferLook(transfer.type)
+    NightCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        onLongClick = onLongClick,
+        selected = selected,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (selected) {
-                Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(Modifier.size(12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (selecting) {
+                Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { CheckDot(selected) }
+            } else {
+                IconTile(icon = look.icon, color = look.color, size = 40.dp, iconSize = 20.dp)
             }
-            Text(
-                text = formatReportDate(transfer.date, locale),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(look.label),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = NightTextPrimary,
+                )
+                Text(
+                    text = formatReportDate(transfer.date, locale),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = NightTextTertiary,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
             Text(
                 text = "$sign${formatAmount(transfer.amount.toDoubleOrNull() ?: 0.0)}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = color,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = look.color,
             )
         }
     }

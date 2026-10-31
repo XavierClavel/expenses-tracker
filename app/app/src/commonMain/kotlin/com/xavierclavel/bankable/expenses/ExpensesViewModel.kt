@@ -82,6 +82,10 @@ class ExpensesViewModel : ViewModel() {
     private var hasMore = true
     private val pageSize = 50
 
+    /** True once every page matching the current search/filters has been fetched. */
+    val allLoaded: Boolean
+        get() = !hasMore
+
     init {
         refresh()
     }

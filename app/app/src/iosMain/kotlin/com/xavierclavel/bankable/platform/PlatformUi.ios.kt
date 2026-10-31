@@ -1,6 +1,5 @@
 package com.xavierclavel.bankable.platform
 
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.xavierclavel.bankable.settings.LocaleManager
@@ -13,10 +12,6 @@ actual fun rememberAppLocaleTag(): String {
     val stored = LocaleManager.storedLanguageTag()
     return remember(stored) { stored.ifEmpty { platformDefaultLocaleTag() } }
 }
-
-/** iOS has no Material You equivalent; the app's own palette is always used. */
-@Composable
-actual fun platformDynamicColorScheme(darkTheme: Boolean): ColorScheme? = null
 
 actual val languageChangeAppliesImmediately: Boolean = false
 

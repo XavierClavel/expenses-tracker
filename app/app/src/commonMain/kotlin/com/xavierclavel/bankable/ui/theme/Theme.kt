@@ -1,49 +1,67 @@
 package com.xavierclavel.bankable.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import com.xavierclavel.bankable.platform.platformDynamicColorScheme
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+// The app ships a single dark theme; Material You is deliberately not applied so
+// the palette stays consistent across devices.
+private val NightColorScheme = darkColorScheme(
+    primary = Mint,
+    onPrimary = OnMint,
+    primaryContainer = MintContainer,
+    onPrimaryContainer = Mint,
+    secondary = TransferBlue,
+    onSecondary = OnMint,
+    secondaryContainer = TransferBlueContainer,
+    onSecondaryContainer = TransferBlue,
+    tertiary = Mint,
+    onTertiary = OnMint,
+    background = NightBackground,
+    onBackground = NightTextPrimary,
+    surface = NightBackground,
+    onSurface = NightTextPrimary,
+    surfaceVariant = NightCardRaised,
+    onSurfaceVariant = NightTextSecondary,
+    surfaceTint = NightBackground,
+    surfaceBright = NightCardRaised,
+    surfaceDim = NightBackground,
+    surfaceContainerLowest = NightBackground,
+    surfaceContainerLow = NightCard,
+    surfaceContainer = NightCard,
+    surfaceContainerHigh = NightCard,
+    surfaceContainerHighest = NightCardRaised,
+    inverseSurface = NightTextPrimary,
+    inverseOnSurface = NightBackground,
+    inversePrimary = OnMint,
+    error = Danger,
+    onError = OnMint,
+    errorContainer = DangerContainer,
+    onErrorContainer = Danger,
+    outline = NightBorder,
+    outlineVariant = NightDivider,
+    scrim = NightBackground,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val NightShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(22.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
 @Composable
 fun MyApplicationTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+; other platforms fall back to
-    // the palette above.
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val dynamicScheme = if (dynamicColor) platformDynamicColorScheme(darkTheme) else null
-    val colorScheme = dynamicScheme
-        ?: if (darkTheme) DarkColorScheme else LightColorScheme
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = NightColorScheme,
         typography = Typography,
+        shapes = NightShapes,
         content = content
     )
 }

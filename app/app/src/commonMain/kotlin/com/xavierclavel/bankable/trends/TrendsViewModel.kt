@@ -17,6 +17,7 @@ import com.xavierclavel.bankable.model.CategoryOut
 import com.xavierclavel.bankable.model.SubcategoryOut
 import com.xavierclavel.bankable.platform.platformDefaultLocaleTag
 import com.xavierclavel.bankable.platform.platformShortMonthName
+import com.xavierclavel.bankable.accounts.isCurrentPeriod
 import com.xavierclavel.bankable.util.currentYear
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,9 @@ data class BarGroup(
     val label: String,
     val income: Float,
     val expense: Float,
+    // Calendar period behind the label (month is null for yearly groups).
+    val year: Int? = null,
+    val month: Int? = null,
 )
 
 class TrendsViewModel : ViewModel() {
@@ -127,11 +131,11 @@ class TrendsViewModel : ViewModel() {
     private suspend fun loadIncomeExpense() {
         if (timescale == "month") {
             _groups.value = apiGetMonthTrends().map { t ->
-                BarGroup(monthLabel(t.year, t.month ?: 1), t.totalIncome.toFloatOrNull() ?: 0f, t.totalExpenses.toFloatOrNull() ?: 0f)
+                BarGroup(monthLabel(t.year, t.month ?: 1), t.totalIncome.toFloatOrNull() ?: 0f, t.totalExpenses.toFloatOrNull() ?: 0f, t.year, t.month ?: 1)
             }
         } else {
             _groups.value = apiGetYearTrends().map { t ->
-                BarGroup(t.year.toString(), agg(t.totalIncome, t.meanIncome, t.medianIncome), agg(t.totalExpenses, t.meanExpenses, t.medianExpenses))
+                BarGroup(t.year.toString(), agg(t.totalIncome, t.meanIncome, t.medianIncome), agg(t.totalExpenses, t.meanExpenses, t.medianExpenses), t.year)
             }
         }
         _bars.value = emptyList()
@@ -141,11 +145,11 @@ class TrendsViewModel : ViewModel() {
         if (timescale == "month") {
             _bars.value = apiGetMonthTrends().map { t ->
                 val v = (t.totalIncome.toFloatOrNull() ?: 0f) - (t.totalExpenses.toFloatOrNull() ?: 0f)
-                BarEntry(v, monthLabel(t.year, t.month ?: 1))
+                BarEntry(v, monthLabel(t.year, t.month ?: 1), year = t.year, isCurrent = isCurrentPeriod(t.year, t.month ?: 1))
             }
         } else {
             _bars.value = apiGetYearFlowTrends().map { t ->
-                BarEntry(aggCat(t), t.year.toString())
+                BarEntry(aggCat(t), t.year.toString(), isCurrent = isCurrentPeriod(t.year, null))
             }
         }
         _groups.value = emptyList()
@@ -159,15 +163,15 @@ class TrendsViewModel : ViewModel() {
         when {
             sub != null -> {
                 _bars.value = if (timescale == "month")
-                    apiGetMonthSubcategoryTrends(sub.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
+                    apiGetMonthSubcategoryTrends(sub.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1), year = t.year, isCurrent = isCurrentPeriod(t.year, t.month ?: 1)) }
                 else
-                    apiGetYearSubcategoryTrends(sub.id).map { t -> BarEntry(aggCat(t), t.year.toString()) }
+                    apiGetYearSubcategoryTrends(sub.id).map { t -> BarEntry(aggCat(t), t.year.toString(), isCurrent = isCurrentPeriod(t.year, null)) }
             }
             cat != null -> {
                 _bars.value = if (timescale == "month")
-                    apiGetMonthCategoryTrends(cat.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1)) }
+                    apiGetMonthCategoryTrends(cat.id).map { t -> BarEntry(t.total.toFloatOrNull() ?: 0f, monthLabel(t.year, t.month ?: 1), year = t.year, isCurrent = isCurrentPeriod(t.year, t.month ?: 1)) }
                 else
-                    apiGetYearCategoryTrends(cat.id).map { t -> BarEntry(aggCat(t), t.year.toString()) }
+                    apiGetYearCategoryTrends(cat.id).map { t -> BarEntry(aggCat(t), t.year.toString(), isCurrent = isCurrentPeriod(t.year, null)) }
             }
             else -> _bars.value = emptyList()
         }

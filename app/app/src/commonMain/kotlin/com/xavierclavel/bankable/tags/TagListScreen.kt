@@ -1,31 +1,25 @@
 package com.xavierclavel.bankable.tags
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.xavierclavel.bankable.constants.currencySymbol
@@ -44,10 +39,19 @@ import com.xavierclavel.bankable.resources.action_back
 import com.xavierclavel.bankable.resources.cd_add_tag
 import com.xavierclavel.bankable.resources.nav_tags
 import com.xavierclavel.bankable.resources.tag_expense_count
+import com.xavierclavel.bankable.resources.tag_list_subtitle
 import com.xavierclavel.bankable.resources.tags_empty
+import com.xavierclavel.bankable.ui.IconTile
+import com.xavierclavel.bankable.ui.NightCard
+import com.xavierclavel.bankable.ui.NightFab
+import com.xavierclavel.bankable.ui.ScreenGutter
+import com.xavierclavel.bankable.ui.ScreenHeader
+import com.xavierclavel.bankable.ui.theme.Mint
+import com.xavierclavel.bankable.ui.theme.NightBackground
+import com.xavierclavel.bankable.ui.theme.NightTextPrimary
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagListScreen(
     viewModel: TagsViewModel,
@@ -59,26 +63,25 @@ fun TagListScreen(
     LaunchedEffect(Unit) { viewModel.loadTags() }
 
     Scaffold(
+        containerColor = NightBackground,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.nav_tags)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.action_back),
-                        )
-                    }
-                },
+            ScreenHeader(
+                title = stringResource(Res.string.nav_tags),
+                subtitle = stringResource(Res.string.tag_list_subtitle, tags.size),
+                navigationIcon = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                navigationContentDescription = stringResource(Res.string.action_back),
+                onNavigate = { navController.popBackStack() },
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                viewModel.prepareNewTag()
-                navController.navigate("tag/edit")
-            }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.cd_add_tag))
-            }
+            NightFab(
+                icon = Icons.Default.Add,
+                contentDescription = stringResource(Res.string.cd_add_tag),
+                onClick = {
+                    viewModel.prepareNewTag()
+                    navController.navigate("tag/edit")
+                },
+            )
         },
     ) { padding ->
         Box(
@@ -88,19 +91,20 @@ fun TagListScreen(
         ) {
             when {
                 viewModel.isLoading && tags.isEmpty() ->
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(Modifier.align(Alignment.Center), color = Mint)
 
                 tags.isEmpty() ->
                     Text(
                         text = stringResource(Res.string.tags_empty),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = NightTextSecondary,
                         modifier = Modifier.align(Alignment.Center),
                     )
 
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 0.dp),
+                    contentPadding = PaddingValues(start = ScreenGutter, end = ScreenGutter, top = 8.dp, bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     items(tags, key = { it.id }) { tag ->
                         TagRow(
@@ -123,46 +127,30 @@ private fun TagRow(
     onClick: () -> Unit,
 ) {
     val locale = LocalAppLocale.current
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 2.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Label,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.height(24.dp),
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp),
-            ) {
+    NightCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconTile(icon = Icons.Outlined.Sell, color = Mint)
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = tag.label,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NightTextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = stringResource(Res.string.tag_expense_count, tag.expenseCount),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NightTextSecondary,
                 )
             }
+            Spacer(Modifier.width(12.dp))
             Text(
                 text = "${formatAmountDisplay(tag.total, locale)} ${currencySymbol("EUR")}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = NightTextPrimary,
             )
         }
     }

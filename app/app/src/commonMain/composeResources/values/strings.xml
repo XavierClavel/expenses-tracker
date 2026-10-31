@@ -168,7 +168,6 @@
     <string name="tracking_interest">Interest</string>
     <string name="tracking_contributions_hint">You record deposits &amp; withdrawals; interest is inferred from the balance. Best for market-valued accounts (PEA).</string>
     <string name="tracking_interest_hint">You record known interest &amp; fees; contributions are inferred from the balance. Best for fixed-rate accounts (Livret A).</string>
-    <string name="label_earnings">Interest &amp; fees</string>
     <!-- Account-card interest switch -->
     <string name="interest_view_label">Interest shown</string>
     <string name="interest_view_total">Total</string>
@@ -239,7 +238,6 @@
     <string name="recurring_expenses_empty">No recurring expenses yet</string>
     <string name="recurring_expenses_empty_hint">Add one and it will be added to your expenses automatically every month.</string>
     <string name="recurring_day_label">Day of the month</string>
-    <string name="recurring_day_value">Every month on day %1$d</string>
     <string name="recurring_due_today_hint">That's today: this month's expense will be added right away.</string>
     <string name="recurring_short_months_hint">In shorter months, it's added on the last day.</string>
     <string name="recurring_edit_hint">Changes only apply to upcoming expenses; the ones already added stay as they are.</string>
@@ -271,4 +269,79 @@
     <string name="color_coral">Coral</string>
     <string name="color_gray">Gray</string>
     <string name="color_navy">Navy</string>
+    <string name="auth_tagline">Expenses, savings and investments in one place.</string>
+    <string name="auth_signup_title">Create your account</string>
+    <string name="auth_signup_subtitle">Track expenses, savings and investments in one place.</string>
+    <string name="auth_or">or</string>
+    <string name="auth_email_placeholder">you@example.com</string>
+    <string name="auth_new_here">New here?</string>
+    <string name="auth_have_account">Already have an account?</string>
+    <string name="settings_delete_account_hint">Deleting your account permanently removes all your data: expenses, categories, accounts and reports.</string>
+    <string name="recurring_subtitle">Added automatically every month</string>
+    <string name="recurring_every_month">Every month</string>
+    <string name="recurring_amount">Amount</string>
+    <string name="recurring_add_tag">+ Add</string>
+    <string name="recurring_cd_previous_day">Previous day</string>
+    <string name="recurring_cd_next_day">Next day</string>
+
+    <!-- ── Categories & tags (Night desk) ─────────────────── -->
+    <string name="cat_per_month">%1$s / month</string>
+    <string name="cat_count">%1$d categories</string>
+    <string name="cat_subcategory_count">%1$d subcategories</string>
+    <string name="cat_default_badge">Default</string>
+    <string name="cat_default_subcategory">%1$s · default subcategory</string>
+    <string name="cat_screen_new_category">New category</string>
+    <string name="cat_screen_new_subcategory">New subcategory</string>
+    <string name="cat_label_color">Color</string>
+    <string name="cat_label_icon">Icon</string>
+    <string name="cat_label_parent">Parent</string>
+    <string name="cat_delete_category">Delete category</string>
+    <string name="cat_delete_subcategory">Delete subcategory</string>
+    <string name="cat_screen_select_color">Select color</string>
+    <string name="cat_selected_color">Selected: %1$s</string>
+    <string name="cat_screen_select_icon">Select icon</string>
+    <string name="cat_icon_count">%1$d icons · shown in the category color</string>
+    <string name="cat_inherits_parent_color">Inherits the parent's color</string>
+    <string name="tag_list_subtitle">%1$d tags · cut across categories</string>
+    <string name="tag_edit_summary">On %1$d expenses · %2$s</string>
+    <string name="tag_rename_hint">Renaming keeps the tag on every expense it's already attached to.</string>
+    <string name="tag_delete">Delete tag</string>
+    <!-- Accounts (Night desk) -->
+    <string name="accounts_interest_in_year">interest in %1$d</string>
+    <string name="accounts_interest_total">interest in total</string>
+    <string name="accounts_interest_mean">interest / yr · %1$s</string>
+    <string name="accounts_subtitle_contributions">%1$s · contributions tracking</string>
+    <string name="accounts_subtitle_interest">%1$s · interest tracking</string>
+    <string name="accounts_since_last_report">%1$s since last report</string>
+    <string name="accounts_since_date">%1$s since %2$s</string>
+    <string name="accounts_net_contributions">Net contributions</string>
+    <string name="accounts_net_interest">Net interest</string>
+    <string name="accounts_delete_hint">Deleting an account also deletes all its reports and transfers.</string>
+    <string name="accounts_report_subtitle">%1$s · the balance you see in your bank app</string>
+    <string name="accounts_save_report">Save report</string>
+    <string name="accounts_transfer_subtitle">%1$s · money you moved in or out</string>
+    <string name="accounts_transfer_subtitle_interest">%1$s · interest earned or fees paid</string>
+    <string name="accounts_amount">Amount</string>
+    <string name="accounts_net_contributions_after">Net contributions after saving:</string>
+    <string name="accounts_transfer_hint_contributions">On an interest-tracked account, this form records interest and fees instead.</string>
+    <string name="accounts_transfer_hint_interest">On a contributions-tracked account, this form records deposits and withdrawals instead.</string>
+    <string name="accounts_save_transfer">Save transfer</string>
+    <!-- Trends (Night desk) -->
+    <string name="trends_vs_mean">%1$s · vs. mean</string>
+    <string name="trends_all_time">all time</string>
+    <string name="trends_vs_mean_short">vs. mean</string>
+    <string name="trends_below_mean">%1$s below mean</string>
+    <string name="trends_above_mean">%1$s above mean</string>
+    <string name="expenses_balance_so_far">%1$s · balance so far</string>
+    <string name="expenses_today_prefix">Today · %1$s</string>
+    <string name="expenses_add_tag_pill">+ Add</string>
+    <string name="expenses_save_expense">Save expense</string>
+    <string name="expenses_save_income">Save income</string>
+    <string name="expenses_tag_picker_subtitle">%1$d selected · tap to toggle</string>
+    <string name="expenses_tag_picker_helper">Need another tag? Create it from the Tags screen, reached from Categories.</string>
+    <string name="expenses_done">Done</string>
+    <string name="expenses_apply_one">Apply · 1 filter</string>
+    <string name="expenses_apply_many">Apply · %1$d filters</string>
+    <string name="expenses_category_and_tag">Category &amp; tag</string>
+    <string name="expenses_date_any">Any</string>
 </resources>

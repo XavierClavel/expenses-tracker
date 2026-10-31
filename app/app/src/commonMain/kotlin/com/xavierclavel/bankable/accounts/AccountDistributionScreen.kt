@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,14 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,7 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -44,10 +44,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.xavierclavel.bankable.constants.AccountType
-import com.xavierclavel.bankable.constants.shadePalette
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.account_distribution_no_data
 import com.xavierclavel.bankable.resources.label_total
+import com.xavierclavel.bankable.ui.NightCard
+import com.xavierclavel.bankable.ui.ScreenGutter
+import com.xavierclavel.bankable.ui.ShareBar
+import com.xavierclavel.bankable.ui.theme.NightTextPrimary
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
+import com.xavierclavel.bankable.ui.theme.NightTextTertiary
 import com.xavierclavel.bankable.util.formatFixed
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -58,7 +63,6 @@ data class AccountEntry(
     val id: Int,
     val label: String,
     val value: Float,
-    val color: Color,
 )
 
 data class TypeSliceEntry(
@@ -73,8 +77,7 @@ fun AccountDistributionScreen(viewModel: AccountsViewModel) {
     val accounts by viewModel.accounts.collectAsState()
 
     // Only positive balances can be represented as slices of a whole. Accounts are
-    // grouped under their type (one donut slice per type), and each account is a
-    // shade of its type's color family, spread by its rank within the type.
+    // grouped under their type (one donut slice per type, largest first).
     val entries = remember(accounts) {
         val positive = accounts.mapNotNull { account ->
             val v = account.amount.toFloatOrNull() ?: 0f
@@ -85,26 +88,26 @@ fun AccountDistributionScreen(viewModel: AccountsViewModel) {
                 .filter { AccountType.fromKey(it.first.type) == type }
                 .sortedByDescending { it.second }
             if (typeAccounts.isEmpty()) return@mapNotNull null
-            val shades = shadePalette(type.accentColor, typeAccounts.size)
             TypeSliceEntry(
                 type     = type,
                 value    = typeAccounts.sumOf { it.second.toDouble() }.toFloat(),
                 color    = type.accentColor,
-                accounts = typeAccounts.mapIndexed { i, (account, v) ->
-                    AccountEntry(id = account.id, label = account.name, value = v, color = shades[i])
+                accounts = typeAccounts.map { (account, v) ->
+                    AccountEntry(id = account.id, label = account.name, value = v)
                 },
             )
-        }
+        }.sortedByDescending { it.value }
     }
 
-    var selectedSlice by remember(entries) { mutableIntStateOf(-1) }
-    var expandedTypes by remember(entries) { mutableStateOf(setOf<String>()) }
+    // The largest group starts highlighted; tapping it again shows the total.
+    var selectedSlice by remember(entries) { mutableIntStateOf(if (entries.isEmpty()) -1 else 0) }
+    var expandedTypes by remember(entries) { mutableStateOf(entries.map { it.type.key }.toSet()) }
 
     if (entries.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 stringResource(Res.string.account_distribution_no_data),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = NightTextSecondary,
             )
         }
         return
@@ -116,22 +119,23 @@ fun AccountDistributionScreen(viewModel: AccountsViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = ScreenGutter),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
 
         DistributionDonut(
             entries       = entries,
             total         = total,
             selectedIndex = selectedSlice,
             onSliceClick  = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
-            modifier      = Modifier.size(220.dp).align(Alignment.CenterHorizontally),
+            modifier      = Modifier.size(210.dp).align(Alignment.CenterHorizontally),
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         entries.forEachIndexed { index, entry ->
-            TypeLegendRow(
+            TypeGroupCard(
                 entry      = entry,
                 total      = total,
                 isSelected = index == selectedSlice,
@@ -143,10 +147,9 @@ fun AccountDistributionScreen(viewModel: AccountsViewModel) {
                         else expandedTypes + entry.type.key
                 },
             )
-            Spacer(Modifier.height(6.dp))
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
     }
 }
 
@@ -158,7 +161,6 @@ private fun DistributionDonut(
     onSliceClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val anySelected   = selectedIndex != -1
     val selectedEntry = entries.getOrNull(selectedIndex)
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
@@ -169,7 +171,7 @@ private fun DistributionDonut(
                     val dx = tap.x - cx;      val dy = tap.y - cy
                     val dist    = sqrt(dx * dx + dy * dy)
                     val outerR  = minOf(size.width, size.height) / 2f
-                    val strokeW = outerR * 0.28f
+                    val strokeW = outerR * 0.26f
                     if (dist < outerR - strokeW || dist > outerR) {
                         onSliceClick(-1); return@detectTapGestures
                     }
@@ -186,18 +188,18 @@ private fun DistributionDonut(
             }
         ) {
             val diameter   = minOf(size.width, size.height)
-            val strokeBase = diameter / 2f * 0.28f
-            val gapDeg     = 1.5f
+            val strokeBase = diameter / 2f * 0.22f
+            // No gaps for a single slice: it is the whole ring.
+            val gapDeg     = if (entries.size > 1) 3f else 0f
             var startAngle = -90f
             entries.forEachIndexed { i, entry ->
                 val fraction   = entry.value / total
                 val sweepAngle = 360f * fraction - gapDeg
-                val isSelected = i == selectedIndex
-                val alpha  = when { !anySelected -> 1f; isSelected -> 1f; else -> 0.25f }
-                val stroke = if (isSelected) strokeBase * 1.15f else strokeBase
+                val stroke = if (i == selectedIndex) strokeBase * 1.18f else strokeBase
+                // Every slice shares the same outer edge; a thicker stroke grows inward.
                 val inset  = stroke / 2f
                 drawArc(
-                    color      = entry.color.copy(alpha = alpha),
+                    color      = entry.color,
                     startAngle = startAngle + gapDeg / 2f,
                     sweepAngle = sweepAngle.coerceAtLeast(0.1f),
                     useCenter  = false,
@@ -208,28 +210,30 @@ private fun DistributionDonut(
                 startAngle += 360f * fraction
             }
         }
-        // Centre label: selected slice → its value/type, otherwise total.
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(90.dp)) {
-            if (selectedEntry != null) {
-                Text(formatAmount(selectedEntry.value.toDouble()),
-                    style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center, color = selectedEntry.color)
-                Text(stringResource(selectedEntry.type.labelRes), style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
-            } else {
-                Text(formatAmount(total.toDouble()),
-                    style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground)
-                Text(stringResource(Res.string.label_total), style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-            }
+        // Centre label: selected group → its value/type, otherwise total.
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(130.dp)) {
+            Text(
+                text = formatAmount((selectedEntry?.value ?: total).toDouble()),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                color = selectedEntry?.color ?: NightTextPrimary,
+                maxLines = 1,
+            )
+            Text(
+                text = stringResource(selectedEntry?.type?.labelRes ?: Res.string.label_total).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = NightTextSecondary,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
 
 @Composable
-private fun TypeLegendRow(
+private fun TypeGroupCard(
     entry: TypeSliceEntry,
     total: Float,
     isSelected: Boolean,
@@ -237,105 +241,99 @@ private fun TypeLegendRow(
     onSelect: () -> Unit,
     onToggleExpand: () -> Unit,
 ) {
-    val pct        = if (total > 0f) entry.value / total * 100f else 0f
-    val fraction   = (entry.value / total).coerceIn(0f, 1f)
-    val color      = entry.color
-    val trackColor = MaterialTheme.colorScheme.outlineVariant
-    val canExpand  = entry.accounts.isNotEmpty()
+    val pct      = if (total > 0f) entry.value / total * 100f else 0f
+    val fraction = (entry.value / total).coerceIn(0f, 1f)
+    val color    = entry.color
 
-    Column {
-        Surface(
-            modifier       = Modifier.fillMaxWidth().clickable(onClick = onSelect),
-            shape          = MaterialTheme.shapes.medium,
-            color          = if (isSelected) color.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface,
-            tonalElevation = if (isSelected) 0.dp else 2.dp,
+    NightCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onSelect,
+        selected = isSelected,
+        accent = color,
+        contentPadding = PaddingValues(start = 14.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Icon(entry.type.icon, null, tint = color, modifier = Modifier.size(22.dp))
-                    Text(
-                        text       = stringResource(entry.type.labelRes),
-                        style      = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        modifier   = Modifier.weight(1f),
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis,
-                    )
-                    Text("${formatFixed(pct.toDouble(), 1)}%", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(42.dp), textAlign = TextAlign.End)
-                    Text(formatAmount(entry.value.toDouble()), style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold, color = color, modifier = Modifier.width(80.dp), textAlign = TextAlign.End)
-                    if (canExpand) {
-                        IconButton(onClick = onToggleExpand, modifier = Modifier.size(32.dp)) {
-                            Icon(
-                                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    } else {
-                        Spacer(Modifier.width(32.dp))
-                    }
-                }
-                Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp).height(4.dp)) {
-                    val r = CornerRadius(2.dp.toPx())
-                    drawRoundRect(color = trackColor, cornerRadius = r)
-                    if (fraction > 0f) drawRoundRect(color = color, size = Size(size.width * fraction, size.height), cornerRadius = r)
-                }
-            }
+            Icon(entry.type.icon, null, tint = color, modifier = Modifier.size(20.dp))
+            Text(
+                text       = stringResource(entry.type.labelRes),
+                style      = MaterialTheme.typography.titleSmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                color      = NightTextPrimary,
+                modifier   = Modifier.weight(1f),
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
+            )
+            Text(
+                "${formatFixed(pct.toDouble(), 1)} %",
+                style = MaterialTheme.typography.bodySmall,
+                color = NightTextSecondary,
+                textAlign = TextAlign.End,
+            )
+            Text(
+                formatAmount(entry.value.toDouble()),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = color,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(92.dp),
+                maxLines = 1,
+            )
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = NightTextTertiary,
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onToggleExpand)
+                    .padding(3.dp),
+            )
         }
+        Spacer(Modifier.height(10.dp))
+        ShareBar(fraction = fraction, color = color, height = 4.dp, modifier = Modifier.padding(end = 4.dp))
 
         if (isExpanded) {
+            Spacer(Modifier.height(6.dp))
             entry.accounts.forEach { account ->
-                Spacer(Modifier.height(3.dp))
-                AccountLegendRow(account = account, total = total)
+                AccountShareRow(account = account, total = total)
             }
         }
     }
 }
 
 @Composable
-private fun AccountLegendRow(account: AccountEntry, total: Float) {
-    val pct        = if (total > 0f) account.value / total * 100f else 0f
-    val fraction   = (account.value / total).coerceIn(0f, 1f)
-    val color      = account.color
-    val trackColor = MaterialTheme.colorScheme.outlineVariant
-
-    Surface(
-        modifier       = Modifier.fillMaxWidth().padding(start = 20.dp),
-        shape          = MaterialTheme.shapes.medium,
-        tonalElevation = 1.dp,
+private fun AccountShareRow(account: AccountEntry, total: Float) {
+    val pct = if (total > 0f) account.value / total * 100f else 0f
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 30.dp, end = 36.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Canvas(Modifier.size(14.dp)) {
-                    drawRoundRect(color = color, cornerRadius = CornerRadius(3.dp.toPx()))
-                }
-                Text(
-                    text     = account.label,
-                    style    = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text("${formatFixed(pct.toDouble(), 1)}%", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(42.dp), textAlign = TextAlign.End)
-                Text(formatAmount(account.value.toDouble()), style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold, color = color, modifier = Modifier.width(80.dp), textAlign = TextAlign.End)
-            }
-            Canvas(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 6.dp).height(3.dp)) {
-                val r = CornerRadius(1.5.dp.toPx())
-                drawRoundRect(color = trackColor, cornerRadius = r)
-                if (fraction > 0f) drawRoundRect(color = color, size = Size(size.width * fraction, size.height), cornerRadius = r)
-            }
-        }
+        Text(
+            text     = account.label,
+            style    = MaterialTheme.typography.bodyMedium,
+            color    = NightTextPrimary.copy(alpha = 0.85f),
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            "${formatFixed(pct.toDouble(), 1)} %",
+            style = MaterialTheme.typography.bodySmall,
+            color = NightTextSecondary,
+            textAlign = TextAlign.End,
+        )
+        Text(
+            formatAmount(account.value.toDouble()),
+            style = MaterialTheme.typography.bodyMedium,
+            color = NightTextSecondary,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(92.dp),
+            maxLines = 1,
+        )
     }
 }

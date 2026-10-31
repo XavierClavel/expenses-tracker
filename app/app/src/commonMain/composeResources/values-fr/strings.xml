@@ -168,7 +168,6 @@
     <string name="tracking_interest">Intérêts</string>
     <string name="tracking_contributions_hint">Vous saisissez les dépôts et retraits ; les intérêts sont déduits du solde. Idéal pour les comptes à valeur de marché (PEA).</string>
     <string name="tracking_interest_hint">Vous saisissez les intérêts et frais connus ; les versements sont déduits du solde. Idéal pour les comptes à taux fixe (Livret A).</string>
-    <string name="label_earnings">Intérêts &amp; frais</string>
     <!-- Sélecteur d'intérêts sur les cartes de compte -->
     <string name="interest_view_label">Intérêts affichés</string>
     <string name="interest_view_total">Total</string>
@@ -239,7 +238,6 @@
     <string name="recurring_expenses_empty">Aucune dépense récurrente</string>
     <string name="recurring_expenses_empty_hint">Ajoutez-en une : elle sera ajoutée automatiquement à vos dépenses chaque mois.</string>
     <string name="recurring_day_label">Jour du mois</string>
-    <string name="recurring_day_value">Tous les mois, le %1$d</string>
     <string name="recurring_due_today_hint">C'est aujourd'hui : la dépense de ce mois-ci sera ajoutée tout de suite.</string>
     <string name="recurring_short_months_hint">Les mois plus courts, elle est ajoutée le dernier jour.</string>
     <string name="recurring_edit_hint">Les modifications ne s'appliquent qu'aux prochaines dépenses ; celles déjà ajoutées restent inchangées.</string>
@@ -271,4 +269,79 @@
     <string name="color_coral">Corail</string>
     <string name="color_gray">Gris</string>
     <string name="color_navy">Bleu marine</string>
+    <string name="auth_tagline">Dépenses, épargne et investissements au même endroit.</string>
+    <string name="auth_signup_title">Créez votre compte</string>
+    <string name="auth_signup_subtitle">Suivez vos dépenses, votre épargne et vos investissements au même endroit.</string>
+    <string name="auth_or">ou</string>
+    <string name="auth_email_placeholder">vous@exemple.com</string>
+    <string name="auth_new_here">Nouveau ici ?</string>
+    <string name="auth_have_account">Vous avez déjà un compte ?</string>
+    <string name="settings_delete_account_hint">Supprimer votre compte efface définitivement toutes vos données : dépenses, catégories, comptes et rapports.</string>
+    <string name="recurring_subtitle">Ajoutées automatiquement chaque mois</string>
+    <string name="recurring_every_month">Chaque mois</string>
+    <string name="recurring_amount">Montant</string>
+    <string name="recurring_add_tag">+ Ajouter</string>
+    <string name="recurring_cd_previous_day">Jour précédent</string>
+    <string name="recurring_cd_next_day">Jour suivant</string>
+
+    <!-- ── Categories & tags (Night desk) ─────────────────── -->
+    <string name="cat_per_month">%1$s / mois</string>
+    <string name="cat_count">%1$d catégories</string>
+    <string name="cat_subcategory_count">%1$d sous-catégories</string>
+    <string name="cat_default_badge">Par défaut</string>
+    <string name="cat_default_subcategory">%1$s · sous-catégorie par défaut</string>
+    <string name="cat_screen_new_category">Nouvelle catégorie</string>
+    <string name="cat_screen_new_subcategory">Nouvelle sous-catégorie</string>
+    <string name="cat_label_color">Couleur</string>
+    <string name="cat_label_icon">Icône</string>
+    <string name="cat_label_parent">Parente</string>
+    <string name="cat_delete_category">Supprimer la catégorie</string>
+    <string name="cat_delete_subcategory">Supprimer la sous-catégorie</string>
+    <string name="cat_screen_select_color">Choisir une couleur</string>
+    <string name="cat_selected_color">Sélection : %1$s</string>
+    <string name="cat_screen_select_icon">Choisir une icône</string>
+    <string name="cat_icon_count">%1$d icônes · affichées dans la couleur de la catégorie</string>
+    <string name="cat_inherits_parent_color">Hérite de la couleur de la catégorie parente</string>
+    <string name="tag_list_subtitle">%1$d étiquettes · transverses aux catégories</string>
+    <string name="tag_edit_summary">Sur %1$d dépenses · %2$s</string>
+    <string name="tag_rename_hint">Renommer conserve l'étiquette sur toutes les dépenses auxquelles elle est déjà associée.</string>
+    <string name="tag_delete">Supprimer l'étiquette</string>
+    <!-- Accounts (Night desk) -->
+    <string name="accounts_interest_in_year">d'intérêts en %1$d</string>
+    <string name="accounts_interest_total">d'intérêts au total</string>
+    <string name="accounts_interest_mean">d'intérêts / an · %1$s</string>
+    <string name="accounts_subtitle_contributions">%1$s · suivi des versements</string>
+    <string name="accounts_subtitle_interest">%1$s · suivi des intérêts</string>
+    <string name="accounts_since_last_report">%1$s depuis le dernier relevé</string>
+    <string name="accounts_since_date">%1$s depuis le %2$s</string>
+    <string name="accounts_net_contributions">Versements nets</string>
+    <string name="accounts_net_interest">Intérêts nets</string>
+    <string name="accounts_delete_hint">Supprimer un compte supprime aussi tous ses relevés et transferts.</string>
+    <string name="accounts_report_subtitle">%1$s · le solde affiché dans votre appli bancaire</string>
+    <string name="accounts_save_report">Enregistrer le relevé</string>
+    <string name="accounts_transfer_subtitle">%1$s · l'argent versé ou retiré</string>
+    <string name="accounts_transfer_subtitle_interest">%1$s · intérêts perçus ou frais payés</string>
+    <string name="accounts_amount">Montant</string>
+    <string name="accounts_net_contributions_after">Versements nets après enregistrement :</string>
+    <string name="accounts_transfer_hint_contributions">Sur un compte suivi par intérêts, ce formulaire enregistre plutôt les intérêts et les frais.</string>
+    <string name="accounts_transfer_hint_interest">Sur un compte suivi par versements, ce formulaire enregistre plutôt les dépôts et les retraits.</string>
+    <string name="accounts_save_transfer">Enregistrer le transfert</string>
+    <!-- Trends (Night desk) -->
+    <string name="trends_vs_mean">%1$s · vs. moyenne</string>
+    <string name="trends_all_time">depuis le début</string>
+    <string name="trends_vs_mean_short">vs. moyenne</string>
+    <string name="trends_below_mean">%1$s sous la moyenne</string>
+    <string name="trends_above_mean">%1$s au-dessus de la moyenne</string>
+    <string name="expenses_balance_so_far">%1$s · solde à ce jour</string>
+    <string name="expenses_today_prefix">Aujourd'hui · %1$s</string>
+    <string name="expenses_add_tag_pill">+ Ajouter</string>
+    <string name="expenses_save_expense">Enregistrer la dépense</string>
+    <string name="expenses_save_income">Enregistrer le revenu</string>
+    <string name="expenses_tag_picker_subtitle">%1$d sélectionnée(s) · touchez pour basculer</string>
+    <string name="expenses_tag_picker_helper">Besoin d'une autre étiquette ? Créez-la depuis l'écran Étiquettes, accessible depuis Catégories.</string>
+    <string name="expenses_done">Terminé</string>
+    <string name="expenses_apply_one">Appliquer · 1 filtre</string>
+    <string name="expenses_apply_many">Appliquer · %1$d filtres</string>
+    <string name="expenses_category_and_tag">Catégorie et étiquette</string>
+    <string name="expenses_date_any">Indifférent</string>
 </resources>

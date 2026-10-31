@@ -1,12 +1,8 @@
 package com.xavierclavel.bankable.auth
 
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -17,6 +13,8 @@ import com.xavierclavel.bankable.platform.requestGoogleIdToken
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.action_continue_google
 import com.xavierclavel.bankable.resources.ic_google_logo
+import com.xavierclavel.bankable.ui.SecondaryButton
+import com.xavierclavel.bankable.ui.theme.Mint
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -44,7 +42,8 @@ fun GoogleSignInButton(
     if (!isGoogleSignInSupported) return
 
     val scope = rememberCoroutineScope()
-    OutlinedButton(
+    SecondaryButton(
+        text = stringResource(Res.string.action_continue_google),
         onClick = {
             onLoadingChange(true)
             scope.launch {
@@ -54,21 +53,21 @@ fun GoogleSignInButton(
         },
         enabled = enabled,
         modifier = modifier,
-    ) {
-        if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
-                strokeWidth = 2.dp,
-            )
-        } else {
-            Icon(
-                painter = painterResource(Res.drawable.ic_google_logo),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(Res.string.action_continue_google))
-        }
-    }
+        leading = {
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = Mint,
+                )
+            } else {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_google_logo),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        },
+    )
 }

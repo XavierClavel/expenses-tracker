@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MyApplication" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- The app UI is always dark; matching the window background avoids a light
+         flash before Compose draws. -->
+    <style name="Theme.MyApplication" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/night_background</item>
+    </style>
 
     <!-- Splash screen shown while the app launches. -->
     <style name="Theme.MyApplication.Starting" parent="Theme.SplashScreen">

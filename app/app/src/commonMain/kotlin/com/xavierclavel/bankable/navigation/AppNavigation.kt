@@ -1,19 +1,29 @@
 package com.xavierclavel.bankable.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +34,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -76,6 +90,11 @@ import com.xavierclavel.bankable.tags.TagViewScreen
 import com.xavierclavel.bankable.tags.TagsViewModel
 import com.xavierclavel.bankable.trends.TrendsScreen
 import com.xavierclavel.bankable.trends.TrendsViewModel
+import com.xavierclavel.bankable.ui.theme.Mint
+import com.xavierclavel.bankable.ui.theme.MintContainer
+import com.xavierclavel.bankable.ui.theme.NightBackground
+import com.xavierclavel.bankable.ui.theme.NightDivider
+import com.xavierclavel.bankable.ui.theme.NightTextSecondary
 import org.jetbrains.compose.resources.stringResource
 
 private val TOP_LEVEL_ROUTES = setOf("home", "categories", "summary", "trends", "accounts")
@@ -155,6 +174,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
     val currentRoute = backStackEntry?.destination?.route
 
     Scaffold(
+        containerColor = NightBackground,
         bottomBar = {
             if (currentRoute in TOP_LEVEL_ROUTES) {
                 BottomNavBar(navController, currentRoute)
@@ -172,7 +192,6 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
                     categoriesViewModel,
                     tagsViewModel,
                     navController,
-                    onLogout = { authViewModel.logout() },
                 )
             }
             composable("tags") {
@@ -201,6 +220,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             composable("recurring/subcategory-picker") {
                 SubcategoryPickerScreen(
                     selectedType = recurringExpensesViewModel.selectedType,
+                    selectedId = recurringExpensesViewModel.selectedSubcategory?.id,
                     onPick = recurringExpensesViewModel::setSelectedSubcategory,
                     categoriesViewModel = categoriesViewModel,
                     navController = navController,
@@ -217,6 +237,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             composable("settings") {
                 SettingsScreen(
                     navController,
+                    onLogout = { authViewModel.logout() },
                     onDeleteAccount = { onError -> authViewModel.deleteAccount(onError) },
                 )
             }
@@ -226,6 +247,7 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
             composable("expense/subcategory-picker") {
                 SubcategoryPickerScreen(
                     selectedType = expensesViewModel.selectedType,
+                    selectedId = expensesViewModel.selectedSubcategory?.id,
                     onPick = expensesViewModel::setSelectedSubcategory,
                     categoriesViewModel = categoriesViewModel,
                     navController = navController,
@@ -290,37 +312,51 @@ private fun MainNavGraphContent(authViewModel: AuthViewModel) {
 
 @Composable
 private fun BottomNavBar(navController: NavController, currentRoute: String?) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = currentRoute == "home",
-            onClick = { navController.navigateTopLevel("home") },
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text(stringResource(Res.string.nav_home)) },
-        )
-        NavigationBarItem(
-            selected = currentRoute == "categories",
-            onClick = { navController.navigateTopLevel("categories") },
-            icon = { Icon(Icons.Default.Category, contentDescription = null) },
-            label = { Text(stringResource(Res.string.nav_categories)) },
-        )
-        NavigationBarItem(
-            selected = currentRoute == "summary",
-            onClick = { navController.navigateTopLevel("summary") },
-            icon = { Icon(Icons.Default.PieChart, contentDescription = null) },
-            label = { Text(stringResource(Res.string.nav_summary)) },
-        )
-        NavigationBarItem(
-            selected = currentRoute == "trends",
-            onClick = { navController.navigateTopLevel("trends") },
-            icon = { Icon(Icons.Default.ShowChart, contentDescription = null) },
-            label = { Text(stringResource(Res.string.nav_trends)) },
-        )
-        NavigationBarItem(
-            selected = currentRoute == "accounts",
-            onClick = { navController.navigateTopLevel("accounts") },
-            icon = { Icon(Icons.Default.AccountBalance, contentDescription = null) },
-            label = { Text(stringResource(Res.string.nav_accounts)) },
-        )
+    val items = listOf(
+        Triple("home", Icons.Outlined.Home, Res.string.nav_home),
+        Triple("categories", Icons.Outlined.GridView, Res.string.nav_categories),
+        Triple("summary", Icons.Outlined.PieChart, Res.string.nav_summary),
+        Triple("trends", Icons.AutoMirrored.Outlined.TrendingUp, Res.string.nav_trends),
+        Triple("accounts", Icons.Outlined.AccountBalance, Res.string.nav_accounts),
+    )
+    Column(Modifier.fillMaxWidth().background(NightBackground)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(NightDivider))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 10.dp),
+        ) {
+            items.forEach { (route, icon, label) ->
+                val selected = currentRoute == route
+                val tint = if (selected) Mint else NightTextSecondary
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { navController.navigateTopLevel(route) }
+                        .padding(vertical = 2.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(if (selected) MintContainer else Color.Transparent)
+                            .padding(horizontal = 18.dp, vertical = 6.dp),
+                    ) {
+                        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        color = tint,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
     }
 }
 
