@@ -108,7 +108,6 @@ import com.xavierclavel.bankable.resources.nav_summary
 import com.xavierclavel.bankable.resources.summary_no_data
 import com.xavierclavel.bankable.resources.summary_no_expenses
 import com.xavierclavel.bankable.resources.summary_outlier_mean
-import com.xavierclavel.bankable.resources.summary_outliers_caption
 import com.xavierclavel.bankable.resources.summary_outliers_title
 import com.xavierclavel.bankable.resources.summary_pct_of_income
 import com.xavierclavel.bankable.resources.summary_pct_of_spending
@@ -475,7 +474,6 @@ fun SummaryScreen(
                                 Spacer(Modifier.height(6.dp))
                                 OutliersPanel(
                                     entries      = outlierEntries,
-                                    window       = viewModel.outlierWindow(),
                                     selectedType = viewModel.selectedType,
                                     onEntryClick = { sub -> bottomSheetEntry = sub },
                                 )
@@ -922,12 +920,10 @@ private fun SubcategoryLegendRow(
 @Composable
 private fun OutliersPanel(
     entries: List<OutlierEntry>,
-    window: IntRange,
     selectedType: String,
     onEntryClick: (SubcategoryEntry) -> Unit,
 ) {
-    val accent     = if (selectedType == "INCOME") Mint else Danger
-    val windowText = if (window.first == window.last) "${window.first}" else "${window.first}–${window.last}"
+    val accent = if (selectedType == "INCOME") Mint else Danger
 
     NightCard(
         modifier       = Modifier.fillMaxWidth(),
@@ -945,17 +941,7 @@ private fun OutliersPanel(
                 color      = NightTextPrimary,
             )
         }
-        Text(
-            text     = stringResource(
-                Res.string.summary_outliers_caption,
-                formatSummaryAmount(OUTLIER_MIN_TOTAL.toDouble()),
-                "${formatFixed(OUTLIER_THRESHOLD * 100, 0)}%",
-                windowText,
-            ),
-            style    = MaterialTheme.typography.bodyMedium,
-            color    = NightTextSecondary,
-            modifier = Modifier.padding(end = 8.dp, top = 4.dp, bottom = 4.dp),
-        )
+        Spacer(Modifier.height(4.dp))
         entries.forEach { entry ->
             OutlierRow(entry = entry, accent = accent, onClick = { onEntryClick(entry.subcategory) })
         }
