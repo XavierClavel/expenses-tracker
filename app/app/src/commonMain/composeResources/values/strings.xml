@@ -182,7 +182,7 @@
     <string name="summary_pct_of_spending">% of spending</string>
     <string name="summary_no_data">No data for this period</string>
     <string name="summary_no_expenses">No expenses for this period</string>
-    <string name="summary_outliers_title">Above average</string>
+    <string name="summary_outliers_title">Outliers</string>
     <!-- %1$s = minimum total, %2$s = threshold, %3$s = years averaged, e.g. "250 €", "50%", "2024–2026" -->
     <string name="summary_outlier_mean">Average: %1$s</string>
 
