@@ -20,9 +20,12 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +36,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -78,6 +83,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -97,11 +103,10 @@ import com.xavierclavel.bankable.platform.platformFormatMonthYear
 import com.xavierclavel.bankable.resources.Res
 import com.xavierclavel.bankable.resources.action_next
 import com.xavierclavel.bankable.resources.action_previous
-import com.xavierclavel.bankable.resources.label_deficit
+import com.xavierclavel.bankable.resources.label_balance
 import com.xavierclavel.bankable.resources.label_expenses
 import com.xavierclavel.bankable.resources.label_income
 import com.xavierclavel.bankable.resources.label_month
-import com.xavierclavel.bankable.resources.label_saved
 import com.xavierclavel.bankable.resources.label_total
 import com.xavierclavel.bankable.resources.label_year
 import com.xavierclavel.bankable.resources.nav_summary
@@ -112,6 +117,7 @@ import com.xavierclavel.bankable.resources.summary_outliers_title
 import com.xavierclavel.bankable.resources.summary_pct_of_income
 import com.xavierclavel.bankable.resources.summary_pct_of_spending
 import com.xavierclavel.bankable.resources.summary_saved_income
+import com.xavierclavel.bankable.resources.summary_share_of_income
 import com.xavierclavel.bankable.ui.CardDivider
 import com.xavierclavel.bankable.ui.CircleIconButton
 import com.xavierclavel.bankable.ui.NightCard
@@ -380,6 +386,14 @@ fun SummaryScreen(
                 val balance       = totalIncome - totalExpenses
 
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    if (!isLoading && summary != null) {
+                        BalanceTiles(
+                            totalExpenses = totalExpenses,
+                            totalIncome   = totalIncome,
+                            balance       = balance,
+                        )
+                        Spacer(Modifier.height(28.dp))
+                    }
                     when {
                         isLoading         -> SummarySkeleton()
                         pieEntries.isEmpty() -> Box(
@@ -417,7 +431,9 @@ fun SummaryScreen(
                                 selectedIndex = selectedSlice,
                                 onSliceClick  = { i -> selectedSlice = if (selectedSlice == i) -1 else i },
                                 pieTotal      = pieTotal,
-                                balance       = balance,
+                                // Share of income spent, shown under the total in the expense view.
+                                incomeShare   = if (viewModel.selectedType == "EXPENSE" && totalIncome > 0)
+                                    totalExpenses / totalIncome else null,
                                 modifier      = Modifier.size(232.dp).align(Alignment.CenterHorizontally),
                             )
 
@@ -511,6 +527,73 @@ fun SummaryScreen(
 }
 
 // ── Sub-composables ────────────────────────────────────────────────────────────
+
+// Expenses, income and their difference for the period, side by side. The balance
+// tile takes the accent of its sign: mint for a surplus, red for a deficit.
+@Composable
+private fun BalanceTiles(totalExpenses: Double, totalIncome: Double, balance: Double) {
+    val balanceAccent = if (balance < 0) Danger else Mint
+    val balanceSign   = when {
+        balance > 0 -> "+"
+        balance < 0 -> "−"
+        else        -> ""
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        BalanceTile(
+            label = stringResource(Res.string.label_expenses),
+            value = formatSummaryAmount(totalExpenses),
+        )
+        BalanceTile(
+            label = stringResource(Res.string.label_income),
+            value = formatSummaryAmount(totalIncome),
+        )
+        BalanceTile(
+            label      = stringResource(Res.string.label_balance),
+            value      = balanceSign + formatSummaryAmount(abs(balance)),
+            valueColor = if (balance == 0.0) NightTextPrimary else balanceAccent,
+            accent     = balanceAccent,
+            selected   = balance != 0.0,
+        )
+    }
+}
+
+// A third of the row is narrow for an amount, so the value shrinks to fit rather
+// than being cut off.
+@Composable
+private fun RowScope.BalanceTile(
+    label: String,
+    value: String,
+    valueColor: Color = NightTextPrimary,
+    accent: Color = Mint,
+    selected: Boolean = false,
+) {
+    NightCard(
+        modifier       = Modifier.weight(1f).fillMaxHeight(),
+        selected       = selected,
+        accent         = accent,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+    ) {
+        Text(
+            label.uppercase(),
+            style    = MaterialTheme.typography.labelSmall,
+            color    = NightTextSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(4.dp))
+        val valueStyle = MaterialTheme.typography.titleMedium
+        BasicText(
+            text     = value,
+            style    = valueStyle.copy(fontWeight = FontWeight.ExtraBold, color = valueColor),
+            maxLines = 1,
+            softWrap = false,
+            autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = valueStyle.fontSize),
+        )
+    }
+}
 
 @Composable
 private fun SavingsLegendRow(
@@ -631,7 +714,7 @@ private fun DonutChart(
     selectedIndex: Int,
     onSliceClick: (Int) -> Unit,
     pieTotal: Float,
-    balance: Double,
+    incomeShare: Double?,
     modifier: Modifier = Modifier,
 ) {
     val anySelected   = selectedIndex != -1
@@ -764,15 +847,12 @@ private fun DonutChart(
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                 )
-                if (balance != 0.0) {
+                if (incomeShare != null) {
                     Spacer(Modifier.height(2.dp))
-                    val sign = if (balance > 0) "+" else "-"
-                    val word = stringResource(if (balance > 0) Res.string.label_saved else Res.string.label_deficit)
                     Text(
-                        "$sign${formatSummaryAmount(abs(balance))} $word",
+                        stringResource(Res.string.summary_share_of_income, "${formatFixed(incomeShare * 100, 0)} %"),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (balance > 0) Mint else Danger,
+                        color = NightTextSecondary,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                     )
