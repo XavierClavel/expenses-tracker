@@ -59,8 +59,6 @@
     <string name="label_category">Category</string>
     <string name="label_flow">Flow</string>
     <string name="label_in_out">In / Out</string>
-    <string name="label_saved">saved</string>
-    <string name="label_deficit">deficit</string>
     <string name="label_no_data">No data</string>
 
     <!-- ── Auth ───────────────────────────────────────────── -->
@@ -180,6 +178,7 @@
     <string name="summary_saved_income">Saved income</string>
     <string name="summary_pct_of_income">% of income</string>
     <string name="summary_pct_of_spending">% of spending</string>
+    <string name="summary_share_of_income">%1$s of income</string>
     <string name="summary_no_data">No data for this period</string>
     <string name="summary_no_expenses">No expenses for this period</string>
     <string name="summary_outliers_title">Outliers</string>

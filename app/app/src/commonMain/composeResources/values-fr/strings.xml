@@ -59,8 +59,6 @@
     <string name="label_category">Catégorie</string>
     <string name="label_flow">Flux</string>
     <string name="label_in_out">Entrées / Sorties</string>
-    <string name="label_saved">épargné</string>
-    <string name="label_deficit">déficit</string>
     <string name="label_no_data">Aucune donnée</string>
 
     <!-- ── Auth ───────────────────────────────────────────── -->
@@ -180,6 +178,7 @@
     <string name="summary_saved_income">Revenu épargné</string>
     <string name="summary_pct_of_income">% du revenu</string>
     <string name="summary_pct_of_spending">% des dépenses</string>
+    <string name="summary_share_of_income">%1$s du revenu</string>
     <string name="summary_no_data">Aucune donnée pour cette période</string>
     <string name="summary_no_expenses">Aucune dépense pour cette période</string>
     <string name="summary_outliers_title">Valeurs atypiques</string>
